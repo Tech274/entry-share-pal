@@ -4,12 +4,10 @@ export interface DeliveryRequest {
   freshDeskTicketNumber: string;
   trainingName: string;
   numberOfUsers: number;
-  startDate: string;
-  endDate: string;
   labStatus: string;
   labType: string;
-  deliveryLabRequestReceived: string;
-  delivered: string;
+  startDate: string;
+  endDate: string;
   labSetupRequirement: string; // Hardware, Software, Version details
   inputCostPerUser: number;
   sellingCostPerUser: number;

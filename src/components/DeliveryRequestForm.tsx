@@ -22,12 +22,10 @@ const initialFormState = {
   freshDeskTicketNumber: '',
   trainingName: '',
   numberOfUsers: 0,
-  startDate: '',
-  endDate: '',
   labStatus: '',
   labType: '',
-  deliveryLabRequestReceived: '',
-  delivered: '',
+  startDate: '',
+  endDate: '',
   labSetupRequirement: '',
   inputCostPerUser: 0,
   sellingCostPerUser: 0,
@@ -105,24 +103,6 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
               placeholder="0"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="startDate">Start Date</Label>
-            <Input
-              id="startDate"
-              type="date"
-              value={formData.startDate}
-              onChange={e => handleChange('startDate', e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="endDate">End Date</Label>
-            <Input
-              id="endDate"
-              type="date"
-              value={formData.endDate}
-              onChange={e => handleChange('endDate', e.target.value)}
-            />
-          </div>
         </div>
       </div>
 
@@ -157,21 +137,21 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="deliveryLabRequestReceived">Delivery Lab Request Received</Label>
+            <Label htmlFor="startDate">Start Date</Label>
             <Input
-              id="deliveryLabRequestReceived"
+              id="startDate"
               type="date"
-              value={formData.deliveryLabRequestReceived}
-              onChange={e => handleChange('deliveryLabRequestReceived', e.target.value)}
+              value={formData.startDate}
+              onChange={e => handleChange('startDate', e.target.value)}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="delivered">Delivered</Label>
+            <Label htmlFor="endDate">End Date</Label>
             <Input
-              id="delivered"
+              id="endDate"
               type="date"
-              value={formData.delivered}
-              onChange={e => handleChange('delivered', e.target.value)}
+              value={formData.endDate}
+              onChange={e => handleChange('endDate', e.target.value)}
             />
           </div>
         </div>
