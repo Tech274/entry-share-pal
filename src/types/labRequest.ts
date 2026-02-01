@@ -1,0 +1,32 @@
+export interface LabRequest {
+  id: string;
+  freshDeskTicketNumber: string;
+  month: string;
+  client: string;
+  cloud: string;
+  vendor: string;
+  labName: string;
+  requester: string;
+  agentName: string;
+  accountManager: string;
+  receivedOn: string;
+  deliveredOn: string;
+  conformationStartDate: string;
+  conformationEndDate: string;
+  userCount: number;
+  durationInDays: number;
+  inputCostPerUser: number;
+  shellingCostPerUser: number;
+  totalAmountForTraining: number;
+  margin: number;
+  status: string;
+  remarks: string;
+  createdAt: string;
+}
+
+export const CLOUD_OPTIONS = ['AWS', 'Azure', 'GCP', 'Oracle', 'On-Premise', 'Other'];
+export const STATUS_OPTIONS = ['Pending', 'In Progress', 'Completed', 'On Hold', 'Cancelled'];
+export const MONTH_OPTIONS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
