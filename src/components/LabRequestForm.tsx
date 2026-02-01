@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CLOUD_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, LabRequest } from '@/types/labRequest';
+import { CLOUD_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LabRequest } from '@/types/labRequest';
 import { Send, RotateCcw } from 'lucide-react';
 
 interface LabRequestFormProps {
@@ -21,6 +21,7 @@ const initialFormState = {
   potentialId: '',
   freshDeskTicketNumber: '',
   month: '',
+  year: new Date().getFullYear(),
   client: '',
   cloud: '',
   labName: '',
@@ -103,6 +104,19 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
               <SelectContent>
                 {MONTH_OPTIONS.map(m => (
                   <SelectItem key={m} value={m}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="year">Year</Label>
+            <Select value={formData.year.toString()} onValueChange={v => handleChange('year', parseInt(v))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select year" />
+              </SelectTrigger>
+              <SelectContent>
+                {YEAR_OPTIONS.map(y => (
+                  <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
