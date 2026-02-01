@@ -18,6 +18,7 @@ interface LabRequestFormProps {
 }
 
 const initialFormState = {
+  potentialId: '',
   freshDeskTicketNumber: '',
   month: '',
   client: '',
@@ -75,6 +76,15 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
       <div className="form-section">
         <h3 className="form-section-title">Basic Information</h3>
         <div className="form-grid">
+          <div className="space-y-2">
+            <Label htmlFor="potentialId">Potential ID</Label>
+            <Input
+              id="potentialId"
+              value={formData.potentialId}
+              onChange={e => handleChange('potentialId', e.target.value)}
+              placeholder="Enter potential ID"
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="freshDeskTicketNumber">FreshDesk Ticket Number</Label>
             <Input

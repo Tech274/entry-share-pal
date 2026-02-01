@@ -1,5 +1,6 @@
 export interface LabRequest {
   id: string;
+  potentialId: string;
   freshDeskTicketNumber: string;
   month: string;
   client: string;
