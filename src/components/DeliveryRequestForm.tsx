@@ -18,6 +18,8 @@ interface DeliveryRequestFormProps {
 }
 
 const initialFormState = {
+  potentialId: '',
+  freshDeskTicketNumber: '',
   trainingName: '',
   numberOfUsers: 0,
   startDate: '',
@@ -65,6 +67,24 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
       <div className="form-section">
         <h3 className="form-section-title">Basic Information</h3>
         <div className="form-grid">
+          <div className="space-y-2">
+            <Label htmlFor="potentialId">Potential ID</Label>
+            <Input
+              id="potentialId"
+              value={formData.potentialId}
+              onChange={e => handleChange('potentialId', e.target.value)}
+              placeholder="Enter potential ID"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="freshDeskTicketNumber">FreshDesk Ticket Number</Label>
+            <Input
+              id="freshDeskTicketNumber"
+              value={formData.freshDeskTicketNumber}
+              onChange={e => handleChange('freshDeskTicketNumber', e.target.value)}
+              placeholder="Enter ticket number"
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="trainingName">Training Name</Label>
             <Input

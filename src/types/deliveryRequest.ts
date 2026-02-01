@@ -1,5 +1,7 @@
 export interface DeliveryRequest {
   id: string;
+  potentialId: string;
+  freshDeskTicketNumber: string;
   trainingName: string;
   numberOfUsers: number;
   startDate: string;
