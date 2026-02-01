@@ -14,7 +14,7 @@ export interface LabRequest {
   userCount: number;
   durationInDays: number;
   inputCostPerUser: number;
-  shellingCostPerUser: number;
+  sellingCostPerUser: number;
   totalAmountForTraining: number;
   margin: number;
   status: string;
@@ -23,7 +23,7 @@ export interface LabRequest {
 }
 
 export const CLOUD_OPTIONS = ['AWS', 'Azure', 'GCP', 'Oracle', 'On-Premise', 'Other'];
-export const STATUS_OPTIONS = ['Pending', 'In Progress', 'Completed', 'On Hold', 'Cancelled'];
+export const STATUS_OPTIONS = ['Solution Pending', 'Solution Sent'];
 export const MONTH_OPTIONS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'

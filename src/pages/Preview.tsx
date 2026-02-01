@@ -165,7 +165,7 @@ const Preview = () => {
                       <th className="spreadsheet-cell font-semibold text-left">Lab End Date</th>
                       <th className="spreadsheet-cell font-semibold text-center">Duration</th>
                       <th className="spreadsheet-cell font-semibold text-right">Input Cost</th>
-                      <th className="spreadsheet-cell font-semibold text-right">Shelling Cost</th>
+                      <th className="spreadsheet-cell font-semibold text-right">Selling Cost</th>
                       <th className="spreadsheet-cell font-semibold text-right">Total Amount</th>
                       <th className="spreadsheet-cell font-semibold text-right">Margin</th>
                       <th className="spreadsheet-cell font-semibold text-left">Status</th>
@@ -283,8 +283,8 @@ const Preview = () => {
                         </td>
                         <td className="spreadsheet-cell">
                           <EditableCell
-                            value={request.shellingCostPerUser}
-                            onSave={(v) => handleCellUpdate(request.id, 'shellingCostPerUser', v)}
+                            value={request.sellingCostPerUser}
+                            onSave={(v) => handleCellUpdate(request.id, 'sellingCostPerUser', v)}
                             type="number"
                             align="right"
                             prefix="₹"

@@ -32,7 +32,7 @@ const initialFormState = {
   userCount: 0,
   durationInDays: 0,
   inputCostPerUser: 0,
-  shellingCostPerUser: 0,
+  sellingCostPerUser: 0,
   totalAmountForTraining: 0,
   margin: 0,
   status: '',
@@ -43,7 +43,19 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
   const [formData, setFormData] = useState(initialFormState);
 
   const handleChange = (field: string, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      
+      // Auto-calculate total: userCount * durationInDays * inputCostPerUser
+      if (field === 'userCount' || field === 'durationInDays' || field === 'inputCostPerUser') {
+        const userCount = field === 'userCount' ? Number(value) : updated.userCount;
+        const days = field === 'durationInDays' ? Number(value) : updated.durationInDays;
+        const inputCost = field === 'inputCostPerUser' ? Number(value) : updated.inputCostPerUser;
+        updated.totalAmountForTraining = userCount * days * inputCost;
+      }
+      
+      return updated;
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -245,14 +257,14 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="shellingCostPerUser">Shelling Cost Per User</Label>
+            <Label htmlFor="sellingCostPerUser">Selling Cost Per User</Label>
             <Input
-              id="shellingCostPerUser"
+              id="sellingCostPerUser"
               type="number"
               min="0"
               step="0.01"
-              value={formData.shellingCostPerUser || ''}
-              onChange={e => handleChange('shellingCostPerUser', parseFloat(e.target.value) || 0)}
+              value={formData.sellingCostPerUser || ''}
+              onChange={e => handleChange('sellingCostPerUser', parseFloat(e.target.value) || 0)}
               placeholder="0.00"
             />
           </div>
