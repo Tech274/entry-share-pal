@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DeliveryRequest, LAB_STATUS_OPTIONS, LAB_TYPE_OPTIONS } from '@/types/deliveryRequest';
+import { DeliveryRequest, LAB_STATUS_OPTIONS, LAB_TYPE_OPTIONS, CLOUD_OPTIONS } from '@/types/deliveryRequest';
 import { Send, RotateCcw } from 'lucide-react';
 
 interface DeliveryRequestFormProps {
@@ -22,6 +22,12 @@ const initialFormState = {
   freshDeskTicketNumber: '',
   trainingName: '',
   numberOfUsers: 0,
+  client: '',
+  cloud: '',
+  labName: '',
+  requester: '',
+  agentName: '',
+  accountManager: '',
   labStatus: '',
   labType: '',
   startDate: '',
@@ -101,6 +107,78 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
               value={formData.numberOfUsers || ''}
               onChange={e => handleChange('numberOfUsers', parseInt(e.target.value) || 0)}
               placeholder="0"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Client & Lab Details */}
+      <div className="form-section">
+        <h3 className="form-section-title">Client & Lab Details</h3>
+        <div className="form-grid">
+          <div className="space-y-2">
+            <Label htmlFor="client">Client</Label>
+            <Input
+              id="client"
+              value={formData.client}
+              onChange={e => handleChange('client', e.target.value)}
+              placeholder="Client name"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="cloud">Cloud</Label>
+            <Select value={formData.cloud} onValueChange={v => handleChange('cloud', v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select cloud" />
+              </SelectTrigger>
+              <SelectContent>
+                {CLOUD_OPTIONS.map(c => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="labName">Lab Name</Label>
+            <Input
+              id="labName"
+              value={formData.labName}
+              onChange={e => handleChange('labName', e.target.value)}
+              placeholder="Lab name"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Personnel */}
+      <div className="form-section">
+        <h3 className="form-section-title">Personnel</h3>
+        <div className="form-grid">
+          <div className="space-y-2">
+            <Label htmlFor="requester">Requester</Label>
+            <Input
+              id="requester"
+              value={formData.requester}
+              onChange={e => handleChange('requester', e.target.value)}
+              placeholder="Requester name"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="agentName">Agent Name</Label>
+            <Input
+              id="agentName"
+              value={formData.agentName}
+              onChange={e => handleChange('agentName', e.target.value)}
+              placeholder="Agent name"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="accountManager">Account Manager</Label>
+            <Input
+              id="accountManager"
+              value={formData.accountManager}
+              onChange={e => handleChange('accountManager', e.target.value)}
+              placeholder="Account manager"
             />
           </div>
         </div>
