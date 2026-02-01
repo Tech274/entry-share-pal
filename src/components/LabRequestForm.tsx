@@ -24,13 +24,14 @@ const initialFormState = {
   cloud: '',
   vendor: '',
   labName: '',
+  solutionRequest: '',
+  deliveryRequest: '',
   requester: '',
   agentName: '',
   accountManager: '',
   receivedOn: '',
-  deliveredOn: '',
-  conformationStartDate: '',
-  conformationEndDate: '',
+  labStartDate: '',
+  labEndDate: '',
   userCount: 0,
   durationInDays: 0,
   inputCostPerUser: 0,
@@ -146,6 +147,24 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
               placeholder="Lab name"
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="solutionRequest">Solution Request</Label>
+            <Input
+              id="solutionRequest"
+              value={formData.solutionRequest}
+              onChange={e => handleChange('solutionRequest', e.target.value)}
+              placeholder="Solution request details"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="deliveryRequest">Delivery Request</Label>
+            <Input
+              id="deliveryRequest"
+              value={formData.deliveryRequest}
+              onChange={e => handleChange('deliveryRequest', e.target.value)}
+              placeholder="Delivery request details"
+            />
+          </div>
         </div>
       </div>
 
@@ -197,30 +216,21 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="deliveredOn">Delivered On</Label>
+            <Label htmlFor="labStartDate">Lab Start Date</Label>
             <Input
-              id="deliveredOn"
+              id="labStartDate"
               type="date"
-              value={formData.deliveredOn}
-              onChange={e => handleChange('deliveredOn', e.target.value)}
+              value={formData.labStartDate}
+              onChange={e => handleChange('labStartDate', e.target.value)}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="conformationStartDate">Conformation Start Date</Label>
+            <Label htmlFor="labEndDate">Lab End Date</Label>
             <Input
-              id="conformationStartDate"
+              id="labEndDate"
               type="date"
-              value={formData.conformationStartDate}
-              onChange={e => handleChange('conformationStartDate', e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="conformationEndDate">Conformation End Date</Label>
-            <Input
-              id="conformationEndDate"
-              type="date"
-              value={formData.conformationEndDate}
-              onChange={e => handleChange('conformationEndDate', e.target.value)}
+              value={formData.labEndDate}
+              onChange={e => handleChange('labEndDate', e.target.value)}
             />
           </div>
         </div>

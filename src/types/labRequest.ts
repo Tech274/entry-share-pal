@@ -6,13 +6,14 @@ export interface LabRequest {
   cloud: string;
   vendor: string;
   labName: string;
+  solutionRequest: string;
+  deliveryRequest: string;
   requester: string;
   agentName: string;
   accountManager: string;
   receivedOn: string;
-  deliveredOn: string;
-  conformationStartDate: string;
-  conformationEndDate: string;
+  labStartDate: string;
+  labEndDate: string;
   userCount: number;
   durationInDays: number;
   inputCostPerUser: number;
