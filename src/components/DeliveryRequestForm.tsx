@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DeliveryRequest, VENUE_OPTIONS, LAB_CREATED_OPTIONS } from '@/types/deliveryRequest';
+import { DeliveryRequest, LAB_STATUS_OPTIONS, LAB_TYPE_OPTIONS } from '@/types/deliveryRequest';
 import { Send, RotateCcw } from 'lucide-react';
 
 interface DeliveryRequestFormProps {
@@ -18,13 +18,15 @@ interface DeliveryRequestFormProps {
 }
 
 const initialFormState = {
+  trainingName: '',
+  numberOfUsers: 0,
   startDate: '',
   endDate: '',
-  numberOfUsers: 0,
+  labStatus: '',
+  labType: '',
+  deliveryLabRequestReceived: '',
+  delivered: '',
   labSetupRequirement: '',
-  trainingVenue: '',
-  testLabCreated: '',
-  testLabDate: '',
   inputCostPerUser: 0,
   sellingCostPerUser: 0,
   totalAmount: 0,
@@ -59,10 +61,30 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Schedule Information */}
+      {/* Basic Information */}
       <div className="form-section">
-        <h3 className="form-section-title">Schedule Information</h3>
+        <h3 className="form-section-title">Basic Information</h3>
         <div className="form-grid">
+          <div className="space-y-2">
+            <Label htmlFor="trainingName">Training Name</Label>
+            <Input
+              id="trainingName"
+              value={formData.trainingName}
+              onChange={e => handleChange('trainingName', e.target.value)}
+              placeholder="Enter training name"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="numberOfUsers">No. of Users</Label>
+            <Input
+              id="numberOfUsers"
+              type="number"
+              min="0"
+              value={formData.numberOfUsers || ''}
+              onChange={e => handleChange('numberOfUsers', parseInt(e.target.value) || 0)}
+              placeholder="0"
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="startDate">Start Date</Label>
             <Input
@@ -81,57 +103,55 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
               onChange={e => handleChange('endDate', e.target.value)}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="numberOfUsers">No. of Users</Label>
-            <Input
-              id="numberOfUsers"
-              type="number"
-              min="0"
-              value={formData.numberOfUsers || ''}
-              onChange={e => handleChange('numberOfUsers', parseInt(e.target.value) || 0)}
-              placeholder="0"
-            />
-          </div>
         </div>
       </div>
 
-      {/* Training Details */}
+      {/* Lab Details */}
       <div className="form-section">
-        <h3 className="form-section-title">Training Details</h3>
+        <h3 className="form-section-title">Lab Details</h3>
         <div className="form-grid">
           <div className="space-y-2">
-            <Label htmlFor="trainingVenue">Training Venue</Label>
-            <Select value={formData.trainingVenue} onValueChange={v => handleChange('trainingVenue', v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select venue" />
-              </SelectTrigger>
-              <SelectContent>
-                {VENUE_OPTIONS.map(v => (
-                  <SelectItem key={v} value={v}>{v}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="testLabCreated">Test Lab Created</Label>
-            <Select value={formData.testLabCreated} onValueChange={v => handleChange('testLabCreated', v)}>
+            <Label htmlFor="labStatus">Lab Status</Label>
+            <Select value={formData.labStatus} onValueChange={v => handleChange('labStatus', v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                {LAB_CREATED_OPTIONS.map(o => (
-                  <SelectItem key={o} value={o}>{o}</SelectItem>
+                {LAB_STATUS_OPTIONS.map(s => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="testLabDate">Test Lab Date</Label>
+            <Label htmlFor="labType">Lab Type</Label>
+            <Select value={formData.labType} onValueChange={v => handleChange('labType', v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                {LAB_TYPE_OPTIONS.map(t => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="deliveryLabRequestReceived">Delivery Lab Request Received</Label>
             <Input
-              id="testLabDate"
+              id="deliveryLabRequestReceived"
               type="date"
-              value={formData.testLabDate}
-              onChange={e => handleChange('testLabDate', e.target.value)}
+              value={formData.deliveryLabRequestReceived}
+              onChange={e => handleChange('deliveryLabRequestReceived', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="delivered">Delivered</Label>
+            <Input
+              id="delivered"
+              type="date"
+              value={formData.delivered}
+              onChange={e => handleChange('delivered', e.target.value)}
             />
           </div>
         </div>
