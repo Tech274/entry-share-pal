@@ -153,9 +153,6 @@ const Preview = () => {
                       <th className="spreadsheet-cell font-semibold text-left">#</th>
                       <th className="spreadsheet-cell font-semibold text-left">Training Name</th>
                       <th className="spreadsheet-cell font-semibold text-left">Client Name</th>
-                      <th className="spreadsheet-cell font-semibold text-left">Technology</th>
-                      <th className="spreadsheet-cell font-semibold text-left">Solution Request</th>
-                      <th className="spreadsheet-cell font-semibold text-left">Delivery Request</th>
                       <th className="spreadsheet-cell font-semibold text-center">User Count</th>
                       <th className="spreadsheet-cell font-semibold text-left">Remarks</th>
                       <th className="spreadsheet-cell font-semibold text-left">Month</th>
@@ -195,24 +192,6 @@ const Preview = () => {
                           <EditableCell
                             value={request.client}
                             onSave={(v) => handleCellUpdate(request.id, 'client', v)}
-                          />
-                        </td>
-                        <td className="spreadsheet-cell">
-                          <EditableCell
-                            value={request.vendor}
-                            onSave={(v) => handleCellUpdate(request.id, 'vendor', v)}
-                          />
-                        </td>
-                        <td className="spreadsheet-cell">
-                          <EditableCell
-                            value={request.solutionRequest}
-                            onSave={(v) => handleCellUpdate(request.id, 'solutionRequest', v)}
-                          />
-                        </td>
-                        <td className="spreadsheet-cell">
-                          <EditableCell
-                            value={request.deliveryRequest}
-                            onSave={(v) => handleCellUpdate(request.id, 'deliveryRequest', v)}
                           />
                         </td>
                         <td className="spreadsheet-cell bg-accent/30">

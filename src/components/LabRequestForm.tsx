@@ -22,10 +22,7 @@ const initialFormState = {
   month: '',
   client: '',
   cloud: '',
-  vendor: '',
   labName: '',
-  solutionRequest: '',
-  deliveryRequest: '',
   requester: '',
   agentName: '',
   accountManager: '',
@@ -130,39 +127,12 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="vendor">Vendor</Label>
-            <Input
-              id="vendor"
-              value={formData.vendor}
-              onChange={e => handleChange('vendor', e.target.value)}
-              placeholder="Vendor name"
-            />
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="labName">Lab Name</Label>
             <Input
               id="labName"
               value={formData.labName}
               onChange={e => handleChange('labName', e.target.value)}
               placeholder="Lab name"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="solutionRequest">Solution Request</Label>
-            <Input
-              id="solutionRequest"
-              value={formData.solutionRequest}
-              onChange={e => handleChange('solutionRequest', e.target.value)}
-              placeholder="Solution request details"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="deliveryRequest">Delivery Request</Label>
-            <Input
-              id="deliveryRequest"
-              value={formData.deliveryRequest}
-              onChange={e => handleChange('deliveryRequest', e.target.value)}
-              placeholder="Delivery request details"
             />
           </div>
         </div>
