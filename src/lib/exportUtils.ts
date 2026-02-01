@@ -7,13 +7,14 @@ const HEADERS = [
   'Cloud',
   'Vendor',
   'Lab Name',
+  'Solution Request',
+  'Delivery Request',
   'Requester',
   'Agent Name',
   'Account Manager',
   'Received On',
-  'Delivered On',
-  'Conformation Start Date',
-  'Conformation End Date',
+  'Lab Start Date',
+  'Lab End Date',
   'User Count',
   'Duration (in days)',
   'Input Cost Per User',
@@ -40,13 +41,14 @@ export const exportToCSV = (requests: LabRequest[]): void => {
     r.cloud,
     r.vendor,
     r.labName,
+    r.solutionRequest,
+    r.deliveryRequest,
     r.requester,
     r.agentName,
     r.accountManager,
     r.receivedOn,
-    r.deliveredOn,
-    r.conformationStartDate,
-    r.conformationEndDate,
+    r.labStartDate,
+    r.labEndDate,
     r.userCount,
     r.durationInDays,
     r.inputCostPerUser,
@@ -75,13 +77,14 @@ export const exportToXLS = (requests: LabRequest[]): void => {
       <td>${r.cloud}</td>
       <td>${r.vendor}</td>
       <td>${r.labName}</td>
+      <td>${r.solutionRequest}</td>
+      <td>${r.deliveryRequest}</td>
       <td>${r.requester}</td>
       <td>${r.agentName}</td>
       <td>${r.accountManager}</td>
       <td>${r.receivedOn}</td>
-      <td>${r.deliveredOn}</td>
-      <td>${r.conformationStartDate}</td>
-      <td>${r.conformationEndDate}</td>
+      <td>${r.labStartDate}</td>
+      <td>${r.labEndDate}</td>
       <td>${r.userCount}</td>
       <td>${r.durationInDays}</td>
       <td>${r.inputCostPerUser}</td>

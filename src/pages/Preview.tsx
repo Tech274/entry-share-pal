@@ -156,6 +156,8 @@ const Preview = () => {
                       <th className="spreadsheet-cell font-semibold text-left">Training Name</th>
                       <th className="spreadsheet-cell font-semibold text-left">Client Name</th>
                       <th className="spreadsheet-cell font-semibold text-left">Technology</th>
+                      <th className="spreadsheet-cell font-semibold text-left">Solution Request</th>
+                      <th className="spreadsheet-cell font-semibold text-left">Delivery Request</th>
                       <th className="spreadsheet-cell font-semibold text-center">User Count</th>
                       <th className="spreadsheet-cell font-semibold text-left">Remarks</th>
                       <th className="spreadsheet-cell font-semibold text-left">Month</th>
@@ -164,7 +166,8 @@ const Preview = () => {
                       <th className="spreadsheet-cell font-semibold text-left">Agent</th>
                       <th className="spreadsheet-cell font-semibold text-left">Account Manager</th>
                       <th className="spreadsheet-cell font-semibold text-left">Received On</th>
-                      <th className="spreadsheet-cell font-semibold text-left">Delivered On</th>
+                      <th className="spreadsheet-cell font-semibold text-left">Lab Start Date</th>
+                      <th className="spreadsheet-cell font-semibold text-left">Lab End Date</th>
                       <th className="spreadsheet-cell font-semibold text-center">Duration</th>
                       <th className="spreadsheet-cell font-semibold text-right">Input Cost</th>
                       <th className="spreadsheet-cell font-semibold text-right">Shelling Cost</th>
@@ -200,6 +203,18 @@ const Preview = () => {
                           <EditableCell
                             value={request.vendor}
                             onSave={(v) => handleCellUpdate(request.id, 'vendor', v)}
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.solutionRequest}
+                            onSave={(v) => handleCellUpdate(request.id, 'solutionRequest', v)}
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.deliveryRequest}
+                            onSave={(v) => handleCellUpdate(request.id, 'deliveryRequest', v)}
                           />
                         </td>
                         <td className="spreadsheet-cell bg-accent/30">
@@ -260,8 +275,15 @@ const Preview = () => {
                         </td>
                         <td className="spreadsheet-cell">
                           <EditableCell
-                            value={request.deliveredOn}
-                            onSave={(v) => handleCellUpdate(request.id, 'deliveredOn', v)}
+                            value={request.labStartDate}
+                            onSave={(v) => handleCellUpdate(request.id, 'labStartDate', v)}
+                            type="date"
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.labEndDate}
+                            onSave={(v) => handleCellUpdate(request.id, 'labEndDate', v)}
                             type="date"
                           />
                         </td>
