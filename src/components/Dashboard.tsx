@@ -1,4 +1,6 @@
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { 
@@ -9,32 +11,120 @@ import {
   TrendingUp, 
   Clock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Filter
 } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+} from 'recharts';
 
 interface DashboardProps {
   labRequests: LabRequest[];
   deliveryRequests: DeliveryRequest[];
 }
 
+const MONTHS = [
+  'All Months',
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const CHART_COLORS = {
+  solutions: '#3b82f6',
+  delivery: '#22c55e',
+  margin: '#8b5cf6',
+  revenue: '#f59e0b',
+};
+
+const PIE_COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
+
 export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => {
-  // Calculate statistics
-  const totalLabRequests = labRequests.length;
-  const totalDeliveryRequests = deliveryRequests.length;
+  const [selectedMonth, setSelectedMonth] = useState('All Months');
+
+  // Filter data based on selected month
+  const filteredLabRequests = useMemo(() => {
+    if (selectedMonth === 'All Months') return labRequests;
+    return labRequests.filter(r => r.month === selectedMonth);
+  }, [labRequests, selectedMonth]);
+
+  const filteredDeliveryRequests = useMemo(() => {
+    if (selectedMonth === 'All Months') return deliveryRequests;
+    return deliveryRequests.filter(r => r.month === selectedMonth);
+  }, [deliveryRequests, selectedMonth]);
+
+  // Calculate statistics from filtered data
+  const totalLabRequests = filteredLabRequests.length;
+  const totalDeliveryRequests = filteredDeliveryRequests.length;
   
-  const totalLabUsers = labRequests.reduce((sum, r) => sum + (r.userCount || 0), 0);
-  const totalDeliveryUsers = deliveryRequests.reduce((sum, r) => sum + (r.numberOfUsers || 0), 0);
+  const totalLabUsers = filteredLabRequests.reduce((sum, r) => sum + (r.userCount || 0), 0);
+  const totalDeliveryUsers = filteredDeliveryRequests.reduce((sum, r) => sum + (r.numberOfUsers || 0), 0);
   
-  const totalLabRevenue = labRequests.reduce((sum, r) => sum + (r.totalAmountForTraining || 0), 0);
-  const totalDeliveryRevenue = deliveryRequests.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+  const totalLabRevenue = filteredLabRequests.reduce((sum, r) => sum + (r.totalAmountForTraining || 0), 0);
+  const totalDeliveryRevenue = filteredDeliveryRequests.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
   
-  const totalMargin = labRequests.reduce((sum, r) => sum + (r.margin || 0), 0);
+  const totalMargin = filteredLabRequests.reduce((sum, r) => sum + (r.margin || 0), 0);
   
-  const solutionsSent = labRequests.filter(r => r.status === 'Solution Sent').length;
-  const solutionsPending = labRequests.filter(r => r.status === 'Solution Pending').length;
+  const solutionsSent = filteredLabRequests.filter(r => r.status === 'Solution Sent').length;
+  const solutionsPending = filteredLabRequests.filter(r => r.status === 'Solution Pending').length;
   
-  const deliveryReady = deliveryRequests.filter(r => r.labStatus === 'Ready' || r.labStatus === 'Completed').length;
-  const deliveryInProgress = deliveryRequests.filter(r => r.labStatus === 'In Progress').length;
+  const deliveryReady = filteredDeliveryRequests.filter(r => r.labStatus === 'Ready' || r.labStatus === 'Completed').length;
+  const deliveryInProgress = filteredDeliveryRequests.filter(r => r.labStatus === 'In Progress').length;
+
+  // Monthly trends data (always show all months for trend chart)
+  const monthlyTrendsData = useMemo(() => {
+    const monthOrder = MONTHS.slice(1); // Remove 'All Months'
+    return monthOrder.map(month => {
+      const labForMonth = labRequests.filter(r => r.month === month);
+      const deliveryForMonth = deliveryRequests.filter(r => r.month === month);
+      return {
+        month: month.substring(0, 3),
+        solutions: labForMonth.length,
+        delivery: deliveryForMonth.length,
+        solutionsRevenue: labForMonth.reduce((sum, r) => sum + (r.totalAmountForTraining || 0), 0),
+        deliveryRevenue: deliveryForMonth.reduce((sum, r) => sum + (r.totalAmount || 0), 0),
+        margin: labForMonth.reduce((sum, r) => sum + (r.margin || 0), 0),
+      };
+    });
+  }, [labRequests, deliveryRequests]);
+
+  // Revenue breakdown by cloud provider
+  const revenueByCloud = useMemo(() => {
+    const cloudRevenue: Record<string, number> = {};
+    
+    filteredLabRequests.forEach(r => {
+      const cloud = r.cloud || 'Other';
+      cloudRevenue[cloud] = (cloudRevenue[cloud] || 0) + (r.totalAmountForTraining || 0);
+    });
+    
+    filteredDeliveryRequests.forEach(r => {
+      const cloud = r.cloud || 'Other';
+      cloudRevenue[cloud] = (cloudRevenue[cloud] || 0) + (r.totalAmount || 0);
+    });
+    
+    return Object.entries(cloudRevenue).map(([name, value]) => ({ name, value }));
+  }, [filteredLabRequests, filteredDeliveryRequests]);
+
+  // Status breakdown
+  const statusBreakdown = useMemo(() => {
+    return [
+      { name: 'Solution Sent', value: solutionsSent, color: '#22c55e' },
+      { name: 'Solution Pending', value: solutionsPending, color: '#f59e0b' },
+      { name: 'Delivery Ready', value: deliveryReady, color: '#3b82f6' },
+      { name: 'Delivery In Progress', value: deliveryInProgress, color: '#8b5cf6' },
+    ].filter(item => item.value > 0);
+  }, [solutionsSent, solutionsPending, deliveryReady, deliveryInProgress]);
 
   const stats = [
     {
@@ -79,17 +169,37 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
     },
   ];
 
-  // Recent activity
-  const recentLabRequests = [...labRequests]
+  // Recent activity (from filtered data)
+  const recentLabRequests = [...filteredLabRequests]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5);
     
-  const recentDeliveryRequests = [...deliveryRequests]
+  const recentDeliveryRequests = [...filteredDeliveryRequests]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5);
 
   return (
     <div className="space-y-6">
+      {/* Month Filter */}
+      <div className="flex items-center gap-3">
+        <Filter className="h-5 w-5 text-muted-foreground" />
+        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select month" />
+          </SelectTrigger>
+          <SelectContent>
+            {MONTHS.map(month => (
+              <SelectItem key={month} value={month}>{month}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {selectedMonth !== 'All Months' && (
+          <span className="text-sm text-muted-foreground">
+            Showing data for {selectedMonth}
+          </span>
+        )}
+      </div>
+
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {stats.map((stat) => (
@@ -108,6 +218,148 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Monthly Requests Trend */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Monthly Requests Trend</CardTitle>
+            <CardDescription>Solutions vs Delivery requests by month</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={monthlyTrendsData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="month" className="text-xs" />
+                <YAxis className="text-xs" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }} 
+                />
+                <Legend />
+                <Bar dataKey="solutions" name="Solutions" fill={CHART_COLORS.solutions} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="delivery" name="Delivery" fill={CHART_COLORS.delivery} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Revenue Trend */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue & Margin Trend</CardTitle>
+            <CardDescription>Monthly revenue and margin analysis</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={monthlyTrendsData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="month" className="text-xs" />
+                <YAxis className="text-xs" tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                  formatter={(value: number) => [`₹${value.toLocaleString()}`, '']}
+                />
+                <Legend />
+                <Line type="monotone" dataKey="solutionsRevenue" name="Solutions Revenue" stroke={CHART_COLORS.solutions} strokeWidth={2} dot={{ fill: CHART_COLORS.solutions }} />
+                <Line type="monotone" dataKey="deliveryRevenue" name="Delivery Revenue" stroke={CHART_COLORS.delivery} strokeWidth={2} dot={{ fill: CHART_COLORS.delivery }} />
+                <Line type="monotone" dataKey="margin" name="Margin" stroke={CHART_COLORS.margin} strokeWidth={2} dot={{ fill: CHART_COLORS.margin }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Revenue by Cloud Provider */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue by Cloud Provider</CardTitle>
+            <CardDescription>Distribution across cloud platforms</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {revenueByCloud.length === 0 ? (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No data available
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={revenueByCloud}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                  >
+                    {revenueByCloud.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                    formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Revenue']}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Status Breakdown */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Status Breakdown</CardTitle>
+            <CardDescription>Current status of all requests</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {statusBreakdown.length === 0 ? (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No data available
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={statusBreakdown}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                  >
+                    {statusBreakdown.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recent Activity */}
