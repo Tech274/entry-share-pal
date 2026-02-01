@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { FileSpreadsheet, Download, Trash2, Eye } from 'lucide-react';
+import { Download, Trash2, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   DropdownMenu,
@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import logo from '@/assets/makemylabs-logo.png';
 
 interface HeaderProps {
   requestCount: number;
@@ -18,14 +19,11 @@ interface HeaderProps {
 export const Header = ({ requestCount, onExportCSV, onExportXLS, onClearAll }: HeaderProps) => {
   return (
     <header className="bg-card border-b sticky top-0 z-10">
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-              <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">MML Lab Request</h1>
+            <img src={logo} alt="MakeMyLabs" className="h-10 object-contain" />
+            <div className="hidden sm:block">
               <p className="text-sm text-muted-foreground">
                 {requestCount} {requestCount === 1 ? 'entry' : 'entries'} recorded
               </p>

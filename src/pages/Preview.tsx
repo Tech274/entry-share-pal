@@ -3,7 +3,7 @@ import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Download, FileSpreadsheet, ArrowLeft, Trash2 } from 'lucide-react';
+import { Download, ArrowLeft, Trash2, Table } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EditableCell } from '@/components/EditableCell';
 import { LabRequest, CLOUD_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS } from '@/types/labRequest';
@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import logo from '@/assets/makemylabs-logo.png';
 
 const Preview = () => {
   const { requests, updateRequest, deleteRequest, clearAll } = useLabRequests();
@@ -82,7 +83,7 @@ const Preview = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-card border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Link to="/">
@@ -90,11 +91,8 @@ const Preview = () => {
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
               </Link>
-              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">Preview & Export</h1>
+              <img src={logo} alt="MakeMyLabs" className="h-8 object-contain" />
+              <div className="hidden sm:block">
                 <p className="text-sm text-muted-foreground">
                   {requests.length} {requests.length === 1 ? 'entry' : 'entries'} • Double-click to edit
                 </p>
@@ -133,7 +131,7 @@ const Preview = () => {
       <main className="container mx-auto px-4 py-6">
         {requests.length === 0 ? (
           <div className="bg-card rounded-lg border p-12 text-center">
-            <FileSpreadsheet className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+            <Table className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
             <h2 className="text-xl font-semibold mb-2">No Data Available</h2>
             <p className="text-muted-foreground mb-4">
               Start by adding lab requests to see them here.
