@@ -46,12 +46,13 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
       
-      // Auto-calculate total: userCount * durationInDays * inputCostPerUser
-      if (field === 'userCount' || field === 'durationInDays' || field === 'inputCostPerUser') {
+      // Auto-calculate margin: totalAmountForTraining - (userCount * durationInDays * inputCostPerUser)
+      if (field === 'userCount' || field === 'durationInDays' || field === 'inputCostPerUser' || field === 'totalAmountForTraining') {
         const userCount = field === 'userCount' ? Number(value) : updated.userCount;
         const days = field === 'durationInDays' ? Number(value) : updated.durationInDays;
         const inputCost = field === 'inputCostPerUser' ? Number(value) : updated.inputCostPerUser;
-        updated.totalAmountForTraining = userCount * days * inputCost;
+        const totalAmount = field === 'totalAmountForTraining' ? Number(value) : updated.totalAmountForTraining;
+        updated.margin = totalAmount - (userCount * days * inputCost);
       }
       
       return updated;
