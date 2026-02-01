@@ -48,7 +48,7 @@ const CHART_COLORS = {
   revenue: '#f59e0b',
 };
 
-const PIE_COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
+const PIE_COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6'];
 
 export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => {
   const [selectedMonth, setSelectedMonth] = useState('All Months');
@@ -114,6 +114,54 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
     });
     
     return Object.entries(cloudRevenue).map(([name, value]) => ({ name, value }));
+  }, [filteredLabRequests, filteredDeliveryRequests]);
+
+  // Revenue by Agent/Personnel
+  const revenueByAgent = useMemo(() => {
+    const agentRevenue: Record<string, { solutions: number; delivery: number }> = {};
+    
+    filteredLabRequests.forEach(r => {
+      const agent = r.agentName || 'Unassigned';
+      if (!agentRevenue[agent]) agentRevenue[agent] = { solutions: 0, delivery: 0 };
+      agentRevenue[agent].solutions += (r.totalAmountForTraining || 0);
+    });
+    
+    filteredDeliveryRequests.forEach(r => {
+      const agent = r.agentName || 'Unassigned';
+      if (!agentRevenue[agent]) agentRevenue[agent] = { solutions: 0, delivery: 0 };
+      agentRevenue[agent].delivery += (r.totalAmount || 0);
+    });
+    
+    return Object.entries(agentRevenue).map(([name, data]) => ({ 
+      name, 
+      solutions: data.solutions,
+      delivery: data.delivery,
+      total: data.solutions + data.delivery 
+    }));
+  }, [filteredLabRequests, filteredDeliveryRequests]);
+
+  // Requests count by Agent
+  const requestsByAgent = useMemo(() => {
+    const agentCounts: Record<string, { solutions: number; delivery: number }> = {};
+    
+    filteredLabRequests.forEach(r => {
+      const agent = r.agentName || 'Unassigned';
+      if (!agentCounts[agent]) agentCounts[agent] = { solutions: 0, delivery: 0 };
+      agentCounts[agent].solutions += 1;
+    });
+    
+    filteredDeliveryRequests.forEach(r => {
+      const agent = r.agentName || 'Unassigned';
+      if (!agentCounts[agent]) agentCounts[agent] = { solutions: 0, delivery: 0 };
+      agentCounts[agent].delivery += 1;
+    });
+    
+    return Object.entries(agentCounts).map(([name, data]) => ({ 
+      name, 
+      solutions: data.solutions,
+      delivery: data.delivery,
+      total: data.solutions + data.delivery 
+    }));
   }, [filteredLabRequests, filteredDeliveryRequests]);
 
   // Status breakdown
@@ -354,6 +402,85 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '8px'
                     }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Personnel Analytics Row */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Revenue by Agent */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue by Agent</CardTitle>
+            <CardDescription>Revenue contribution by personnel</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {revenueByAgent.length === 0 ? (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No data available
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={revenueByAgent} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis type="number" className="text-xs" tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`} />
+                  <YAxis type="category" dataKey="name" className="text-xs" width={100} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                    formatter={(value: number) => [`₹${value.toLocaleString()}`, '']}
+                  />
+                  <Legend />
+                  <Bar dataKey="solutions" name="Solutions" fill={CHART_COLORS.solutions} radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="delivery" name="Delivery" fill={CHART_COLORS.delivery} radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Requests by Agent */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Requests by Agent</CardTitle>
+            <CardDescription>Number of requests handled by each agent</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {requestsByAgent.length === 0 ? (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No data available
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={requestsByAgent}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="total"
+                    label={({ name, total }) => `${name}: ${total}`}
+                  >
+                    {requestsByAgent.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                    formatter={(value: number, name: string) => [value, name === 'total' ? 'Total Requests' : name]}
                   />
                 </PieChart>
               </ResponsiveContainer>
