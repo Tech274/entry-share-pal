@@ -7,6 +7,9 @@ export interface DeliveryRequest {
   trainingVenue: string;
   testLabCreated: string;
   testLabDate: string;
+  inputCostPerUser: number;
+  sellingCostPerUser: number;
+  totalAmount: number;
   createdAt: string;
 }
 

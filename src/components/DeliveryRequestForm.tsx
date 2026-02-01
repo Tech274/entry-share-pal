@@ -25,13 +25,26 @@ const initialFormState = {
   trainingVenue: '',
   testLabCreated: '',
   testLabDate: '',
+  inputCostPerUser: 0,
+  sellingCostPerUser: 0,
+  totalAmount: 0,
 };
 
 export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
   const [formData, setFormData] = useState(initialFormState);
 
   const handleChange = (field: string, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      // Auto-calculate total when users or costs change
+      if (field === 'numberOfUsers' || field === 'inputCostPerUser' || field === 'sellingCostPerUser') {
+        const users = field === 'numberOfUsers' ? Number(value) : updated.numberOfUsers;
+        const inputCost = field === 'inputCostPerUser' ? Number(value) : updated.inputCostPerUser;
+        const sellingCost = field === 'sellingCostPerUser' ? Number(value) : updated.sellingCostPerUser;
+        updated.totalAmount = users * (inputCost + sellingCost);
+      }
+      return updated;
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -138,6 +151,50 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
           rows={6}
           className="min-h-[150px]"
         />
+      </div>
+
+      {/* Metrics & Costs */}
+      <div className="form-section">
+        <h3 className="form-section-title">Metrics & Costs</h3>
+        <div className="form-grid">
+          <div className="space-y-2">
+            <Label htmlFor="inputCostPerUser">Input Cost Per User</Label>
+            <Input
+              id="inputCostPerUser"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.inputCostPerUser || ''}
+              onChange={e => handleChange('inputCostPerUser', parseFloat(e.target.value) || 0)}
+              placeholder="0.00"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="sellingCostPerUser">Selling Cost Per User</Label>
+            <Input
+              id="sellingCostPerUser"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.sellingCostPerUser || ''}
+              onChange={e => handleChange('sellingCostPerUser', parseFloat(e.target.value) || 0)}
+              placeholder="0.00"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="totalAmount">Total Amount</Label>
+            <Input
+              id="totalAmount"
+              type="number"
+              value={formData.totalAmount.toFixed(2)}
+              readOnly
+              className="bg-muted font-semibold"
+            />
+            <p className="text-xs text-muted-foreground">
+              Auto-calculated: (Input + Selling) × Users
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Actions */}
