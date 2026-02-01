@@ -1,14 +1,20 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LabRequestForm } from '@/components/LabRequestForm';
+import { DeliveryRequestForm } from '@/components/DeliveryRequestForm';
 import { RequestsTable } from '@/components/RequestsTable';
 import { Header } from '@/components/Header';
 import { useLabRequests } from '@/hooks/useLabRequests';
+import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { useToast } from '@/hooks/use-toast';
-import { ClipboardList, TableProperties } from 'lucide-react';
+import { ClipboardList, Truck, TableProperties } from 'lucide-react';
 
 const Index = () => {
   const { requests, addRequest, deleteRequest, clearAll } = useLabRequests();
+  const { 
+    requests: deliveryRequests, 
+    addRequest: addDeliveryRequest 
+  } = useDeliveryRequests();
   const { toast } = useToast();
 
   const handleSubmit = (data: Parameters<typeof addRequest>[0]) => {
@@ -16,6 +22,14 @@ const Index = () => {
     toast({
       title: 'Request Submitted',
       description: 'Your lab request has been recorded successfully.',
+    });
+  };
+
+  const handleDeliverySubmit = (data: Parameters<typeof addDeliveryRequest>[0]) => {
+    addDeliveryRequest(data);
+    toast({
+      title: 'Delivery Request Submitted',
+      description: 'Your delivery request has been recorded successfully.',
     });
   };
 
@@ -58,27 +72,35 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header
-        requestCount={requests.length}
+        requestCount={requests.length + deliveryRequests.length}
         onExportCSV={handleExportCSV}
         onExportXLS={handleExportXLS}
         onClearAll={handleClearAll}
       />
 
       <main className="container mx-auto px-4 py-6">
-        <Tabs defaultValue="form" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="form" className="gap-2">
+        <Tabs defaultValue="solutions" className="space-y-6">
+          <TabsList className="grid w-full max-w-lg grid-cols-3">
+            <TabsTrigger value="solutions" className="gap-2">
               <ClipboardList className="w-4 h-4" />
-              New Request
+              Solutions
+            </TabsTrigger>
+            <TabsTrigger value="delivery" className="gap-2">
+              <Truck className="w-4 h-4" />
+              Delivery
             </TabsTrigger>
             <TabsTrigger value="table" className="gap-2">
               <TableProperties className="w-4 h-4" />
-              All Entries ({requests.length})
+              Entries ({requests.length})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="form" className="space-y-6">
+          <TabsContent value="solutions" className="space-y-6">
             <LabRequestForm onSubmit={handleSubmit} />
+          </TabsContent>
+
+          <TabsContent value="delivery" className="space-y-6">
+            <DeliveryRequestForm onSubmit={handleDeliverySubmit} />
           </TabsContent>
 
           <TabsContent value="table">
