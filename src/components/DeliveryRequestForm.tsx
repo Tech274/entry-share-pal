@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DeliveryRequest, LAB_STATUS_OPTIONS, LAB_TYPE_OPTIONS, CLOUD_OPTIONS, MONTH_OPTIONS } from '@/types/deliveryRequest';
+import { DeliveryRequest, LAB_STATUS_OPTIONS, LAB_TYPE_OPTIONS, CLOUD_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS } from '@/types/deliveryRequest';
 import { Send, RotateCcw } from 'lucide-react';
 
 interface DeliveryRequestFormProps {
@@ -23,6 +23,7 @@ const initialFormState = {
   trainingName: '',
   numberOfUsers: 0,
   month: '',
+  year: new Date().getFullYear(),
   receivedOn: '',
   client: '',
   cloud: '',
@@ -199,6 +200,19 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
               <SelectContent>
                 {MONTH_OPTIONS.map(m => (
                   <SelectItem key={m} value={m}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="year">Year</Label>
+            <Select value={formData.year.toString()} onValueChange={v => handleChange('year', parseInt(v))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select year" />
+              </SelectTrigger>
+              <SelectContent>
+                {YEAR_OPTIONS.map(y => (
+                  <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

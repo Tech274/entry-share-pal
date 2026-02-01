@@ -3,6 +3,7 @@ export interface LabRequest {
   potentialId: string;
   freshDeskTicketNumber: string;
   month: string;
+  year: number;
   client: string;
   cloud: string;
   labName: string;
@@ -29,3 +30,4 @@ export const MONTH_OPTIONS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
+export const YEAR_OPTIONS = [2025, 2026];

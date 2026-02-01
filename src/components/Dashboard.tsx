@@ -41,6 +41,8 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
+const YEARS = ['All Years', '2025', '2026'];
+
 const CHART_COLORS = {
   solutions: '#3b82f6',
   delivery: '#22c55e',
@@ -52,17 +54,30 @@ const PIE_COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444', '#06b
 
 export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => {
   const [selectedMonth, setSelectedMonth] = useState('All Months');
+  const [selectedYear, setSelectedYear] = useState('All Years');
 
-  // Filter data based on selected month
+  // Filter data based on selected month and year
   const filteredLabRequests = useMemo(() => {
-    if (selectedMonth === 'All Months') return labRequests;
-    return labRequests.filter(r => r.month === selectedMonth);
-  }, [labRequests, selectedMonth]);
+    let filtered = labRequests;
+    if (selectedMonth !== 'All Months') {
+      filtered = filtered.filter(r => r.month === selectedMonth);
+    }
+    if (selectedYear !== 'All Years') {
+      filtered = filtered.filter(r => r.year === parseInt(selectedYear));
+    }
+    return filtered;
+  }, [labRequests, selectedMonth, selectedYear]);
 
   const filteredDeliveryRequests = useMemo(() => {
-    if (selectedMonth === 'All Months') return deliveryRequests;
-    return deliveryRequests.filter(r => r.month === selectedMonth);
-  }, [deliveryRequests, selectedMonth]);
+    let filtered = deliveryRequests;
+    if (selectedMonth !== 'All Months') {
+      filtered = filtered.filter(r => r.month === selectedMonth);
+    }
+    if (selectedYear !== 'All Years') {
+      filtered = filtered.filter(r => r.year === parseInt(selectedYear));
+    }
+    return filtered;
+  }, [deliveryRequests, selectedMonth, selectedYear]);
 
   // Calculate statistics from filtered data
   const totalLabRequests = filteredLabRequests.length;
@@ -228,9 +243,19 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
 
   return (
     <div className="space-y-6">
-      {/* Month Filter */}
-      <div className="flex items-center gap-3">
+      {/* Month and Year Filters */}
+      <div className="flex items-center gap-3 flex-wrap">
         <Filter className="h-5 w-5 text-muted-foreground" />
+        <Select value={selectedYear} onValueChange={setSelectedYear}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Select year" />
+          </SelectTrigger>
+          <SelectContent>
+            {YEARS.map(year => (
+              <SelectItem key={year} value={year}>{year}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select month" />
@@ -241,9 +266,9 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
             ))}
           </SelectContent>
         </Select>
-        {selectedMonth !== 'All Months' && (
+        {(selectedMonth !== 'All Months' || selectedYear !== 'All Years') && (
           <span className="text-sm text-muted-foreground">
-            Showing data for {selectedMonth}
+            Showing data for {selectedYear !== 'All Years' ? selectedYear : ''} {selectedMonth !== 'All Months' ? selectedMonth : ''}
           </span>
         )}
       </div>
