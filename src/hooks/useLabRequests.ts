@@ -25,6 +25,14 @@ export const useLabRequests = () => {
     return newRequest;
   };
 
+  const updateRequest = (id: string, updates: Partial<Omit<LabRequest, 'id' | 'createdAt'>>) => {
+    const updated = requests.map(r => 
+      r.id === id ? { ...r, ...updates } : r
+    );
+    setRequests(updated);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  };
+
   const deleteRequest = (id: string) => {
     const updated = requests.filter(r => r.id !== id);
     setRequests(updated);
@@ -36,5 +44,5 @@ export const useLabRequests = () => {
     localStorage.removeItem(STORAGE_KEY);
   };
 
-  return { requests, addRequest, deleteRequest, clearAll };
+  return { requests, addRequest, updateRequest, deleteRequest, clearAll };
 };

@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Download, FileSpreadsheet, ArrowLeft, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { EditableCell } from '@/components/EditableCell';
+import { LabRequest, CLOUD_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS } from '@/types/labRequest';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const Preview = () => {
-  const { requests, deleteRequest, clearAll } = useLabRequests();
+  const { requests, updateRequest, deleteRequest, clearAll } = useLabRequests();
   const { toast } = useToast();
 
   const handleExportCSV = () => {
@@ -68,6 +70,14 @@ const Preview = () => {
     }
   };
 
+  const handleCellUpdate = (id: string, field: keyof LabRequest, value: string | number) => {
+    updateRequest(id, { [field]: value });
+    toast({
+      title: 'Updated',
+      description: 'Cell value has been saved.',
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -86,7 +96,7 @@ const Preview = () => {
               <div>
                 <h1 className="text-xl font-bold text-foreground">Preview & Export</h1>
                 <p className="text-sm text-muted-foreground">
-                  {requests.length} {requests.length === 1 ? 'entry' : 'entries'} available
+                  {requests.length} {requests.length === 1 ? 'entry' : 'entries'} • Double-click to edit
                 </p>
               </div>
             </div>
@@ -173,45 +183,140 @@ const Preview = () => {
                         }`}
                       >
                         <td className="spreadsheet-cell text-muted-foreground">{index + 1}</td>
-                        <td className="spreadsheet-cell font-medium">{request.labName || '-'}</td>
-                        <td className="spreadsheet-cell">{request.client || '-'}</td>
-                        <td className="spreadsheet-cell">{request.vendor || '-'}</td>
-                        <td className="spreadsheet-cell text-center font-medium bg-accent/30">
-                          {request.userCount || 0}
-                        </td>
-                        <td className="spreadsheet-cell max-w-xs truncate" title={request.remarks}>
-                          {request.remarks || '-'}
-                        </td>
-                        <td className="spreadsheet-cell">{request.month || '-'}</td>
-                        <td className="spreadsheet-cell">{request.cloud || '-'}</td>
-                        <td className="spreadsheet-cell">{request.requester || '-'}</td>
-                        <td className="spreadsheet-cell">{request.agentName || '-'}</td>
-                        <td className="spreadsheet-cell">{request.accountManager || '-'}</td>
-                        <td className="spreadsheet-cell">{request.receivedOn || '-'}</td>
-                        <td className="spreadsheet-cell">{request.deliveredOn || '-'}</td>
-                        <td className="spreadsheet-cell text-center">{request.durationInDays || 0}</td>
-                        <td className="spreadsheet-cell text-right">₹{request.inputCostPerUser?.toLocaleString() || 0}</td>
-                        <td className="spreadsheet-cell text-right">₹{request.shellingCostPerUser?.toLocaleString() || 0}</td>
-                        <td className="spreadsheet-cell text-right font-medium">
-                          ₹{request.totalAmountForTraining?.toLocaleString() || 0}
-                        </td>
-                        <td className="spreadsheet-cell text-right">₹{request.margin?.toLocaleString() || 0}</td>
                         <td className="spreadsheet-cell">
-                          <span
-                            className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                              request.status === 'Completed'
-                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                : request.status === 'In Progress'
-                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
-                                : request.status === 'Pending'
-                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                : request.status === 'Cancelled'
-                                ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                : 'bg-muted text-muted-foreground'
-                            }`}
-                          >
-                            {request.status || '-'}
-                          </span>
+                          <EditableCell
+                            value={request.labName}
+                            onSave={(v) => handleCellUpdate(request.id, 'labName', v)}
+                            className="font-medium"
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.client}
+                            onSave={(v) => handleCellUpdate(request.id, 'client', v)}
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.vendor}
+                            onSave={(v) => handleCellUpdate(request.id, 'vendor', v)}
+                          />
+                        </td>
+                        <td className="spreadsheet-cell bg-accent/30">
+                          <EditableCell
+                            value={request.userCount}
+                            onSave={(v) => handleCellUpdate(request.id, 'userCount', v)}
+                            type="number"
+                            align="center"
+                            className="font-medium"
+                          />
+                        </td>
+                        <td className="spreadsheet-cell max-w-xs">
+                          <EditableCell
+                            value={request.remarks}
+                            onSave={(v) => handleCellUpdate(request.id, 'remarks', v)}
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.month}
+                            onSave={(v) => handleCellUpdate(request.id, 'month', v)}
+                            type="select"
+                            options={MONTH_OPTIONS}
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.cloud}
+                            onSave={(v) => handleCellUpdate(request.id, 'cloud', v)}
+                            type="select"
+                            options={CLOUD_OPTIONS}
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.requester}
+                            onSave={(v) => handleCellUpdate(request.id, 'requester', v)}
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.agentName}
+                            onSave={(v) => handleCellUpdate(request.id, 'agentName', v)}
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.accountManager}
+                            onSave={(v) => handleCellUpdate(request.id, 'accountManager', v)}
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.receivedOn}
+                            onSave={(v) => handleCellUpdate(request.id, 'receivedOn', v)}
+                            type="date"
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.deliveredOn}
+                            onSave={(v) => handleCellUpdate(request.id, 'deliveredOn', v)}
+                            type="date"
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.durationInDays}
+                            onSave={(v) => handleCellUpdate(request.id, 'durationInDays', v)}
+                            type="number"
+                            align="center"
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.inputCostPerUser}
+                            onSave={(v) => handleCellUpdate(request.id, 'inputCostPerUser', v)}
+                            type="number"
+                            align="right"
+                            prefix="₹"
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.shellingCostPerUser}
+                            onSave={(v) => handleCellUpdate(request.id, 'shellingCostPerUser', v)}
+                            type="number"
+                            align="right"
+                            prefix="₹"
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.totalAmountForTraining}
+                            onSave={(v) => handleCellUpdate(request.id, 'totalAmountForTraining', v)}
+                            type="number"
+                            align="right"
+                            prefix="₹"
+                            className="font-medium"
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.margin}
+                            onSave={(v) => handleCellUpdate(request.id, 'margin', v)}
+                            type="number"
+                            align="right"
+                            prefix="₹"
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.status}
+                            onSave={(v) => handleCellUpdate(request.id, 'status', v)}
+                            type="select"
+                            options={STATUS_OPTIONS}
+                          />
                         </td>
                         <td className="spreadsheet-cell text-center">
                           <Button
