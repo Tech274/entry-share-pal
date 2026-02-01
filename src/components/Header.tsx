@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
-import { FileSpreadsheet, Download, Trash2 } from 'lucide-react';
+import { FileSpreadsheet, Download, Trash2, Eye } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +33,13 @@ export const Header = ({ requestCount, onExportCSV, onExportXLS, onClearAll }: H
           </div>
 
           <div className="flex items-center gap-2">
+            <Link to="/preview">
+              <Button variant="outline">
+                <Eye className="w-4 h-4 mr-2" />
+                Preview
+              </Button>
+            </Link>
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" disabled={requestCount === 0}>

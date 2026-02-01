@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Spreadsheet styles */
+.spreadsheet-cell {
+  @apply px-3 py-2 border-r border-border whitespace-nowrap;
+}
+
+.spreadsheet-cell:last-child {
+  @apply border-r-0;
+}
+
 /* Lab Request Platform Design System
    Professional enterprise aesthetic with teal/blue accents
    All colors in HSL format
