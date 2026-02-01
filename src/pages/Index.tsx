@@ -3,12 +3,13 @@ import { LabRequestForm } from '@/components/LabRequestForm';
 import { DeliveryRequestForm } from '@/components/DeliveryRequestForm';
 import { RequestsTable } from '@/components/RequestsTable';
 import { DeliveryTable } from '@/components/DeliveryTable';
+import { Dashboard } from '@/components/Dashboard';
 import { Header } from '@/components/Header';
 import { useLabRequests } from '@/hooks/useLabRequests';
 import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { useToast } from '@/hooks/use-toast';
-import { ClipboardList, Truck, TableProperties } from 'lucide-react';
+import { ClipboardList, Truck, TableProperties, LayoutDashboard } from 'lucide-react';
 
 const Index = () => {
   const { requests, addRequest, deleteRequest, clearAll } = useLabRequests();
@@ -90,8 +91,12 @@ const Index = () => {
       />
 
       <main className="container mx-auto px-4 py-6">
-        <Tabs defaultValue="solutions" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-4">
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList className="grid w-full max-w-3xl grid-cols-5">
+            <TabsTrigger value="dashboard" className="gap-2">
+              <LayoutDashboard className="w-4 h-4" />
+              Dashboard
+            </TabsTrigger>
             <TabsTrigger value="solutions" className="gap-2">
               <ClipboardList className="w-4 h-4" />
               Solutions
@@ -109,6 +114,10 @@ const Index = () => {
               Delivery ({deliveryRequests.length})
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="dashboard" className="space-y-6">
+            <Dashboard labRequests={requests} deliveryRequests={deliveryRequests} />
+          </TabsContent>
 
           <TabsContent value="solutions" className="space-y-6">
             <LabRequestForm onSubmit={handleSubmit} />
