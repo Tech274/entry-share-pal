@@ -4,6 +4,8 @@ export interface DeliveryRequest {
   freshDeskTicketNumber: string;
   trainingName: string;
   numberOfUsers: number;
+  month: string;
+  receivedOn: string;
   client: string;
   cloud: string;
   labName: string;
@@ -20,6 +22,11 @@ export interface DeliveryRequest {
   totalAmount: number;
   createdAt: string;
 }
+
+export const MONTH_OPTIONS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
 
 export const LAB_STATUS_OPTIONS = ['Pending', 'In Progress', 'Ready', 'Completed'];
 export const LAB_TYPE_OPTIONS = ['Cloud', 'On-Premise', 'Hybrid', 'Virtual'];

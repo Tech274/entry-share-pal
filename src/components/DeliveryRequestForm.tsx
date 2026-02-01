@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DeliveryRequest, LAB_STATUS_OPTIONS, LAB_TYPE_OPTIONS, CLOUD_OPTIONS } from '@/types/deliveryRequest';
+import { DeliveryRequest, LAB_STATUS_OPTIONS, LAB_TYPE_OPTIONS, CLOUD_OPTIONS, MONTH_OPTIONS } from '@/types/deliveryRequest';
 import { Send, RotateCcw } from 'lucide-react';
 
 interface DeliveryRequestFormProps {
@@ -22,6 +22,8 @@ const initialFormState = {
   freshDeskTicketNumber: '',
   trainingName: '',
   numberOfUsers: 0,
+  month: '',
+  receivedOn: '',
   client: '',
   cloud: '',
   labName: '',
@@ -179,6 +181,35 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
               value={formData.accountManager}
               onChange={e => handleChange('accountManager', e.target.value)}
               placeholder="Account manager"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Dates */}
+      <div className="form-section">
+        <h3 className="form-section-title">Dates</h3>
+        <div className="form-grid">
+          <div className="space-y-2">
+            <Label htmlFor="month">Month</Label>
+            <Select value={formData.month} onValueChange={v => handleChange('month', v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select month" />
+              </SelectTrigger>
+              <SelectContent>
+                {MONTH_OPTIONS.map(m => (
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="receivedOn">Received On</Label>
+            <Input
+              id="receivedOn"
+              type="date"
+              value={formData.receivedOn}
+              onChange={e => handleChange('receivedOn', e.target.value)}
             />
           </div>
         </div>
