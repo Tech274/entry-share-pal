@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DeliveryRequest } from '@/types/deliveryRequest';
+import { sampleDeliveryRequests } from '@/lib/sampleData';
 
 const STORAGE_KEY = 'delivery-requests';
 
@@ -10,6 +11,15 @@ export const useDeliveryRequests = () => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       setRequests(JSON.parse(stored));
+    } else {
+      // Seed with sample data if empty
+      const seeded = sampleDeliveryRequests.map(r => ({
+        ...r,
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+      }));
+      setRequests(seeded);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
     }
   }, []);
 

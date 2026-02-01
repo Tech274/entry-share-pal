@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { LabRequest } from '@/types/labRequest';
+import { sampleLabRequests } from '@/lib/sampleData';
 
 const STORAGE_KEY = 'lab-requests';
 
@@ -10,6 +11,15 @@ export const useLabRequests = () => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       setRequests(JSON.parse(stored));
+    } else {
+      // Seed with sample data if empty
+      const seeded = sampleLabRequests.map(r => ({
+        ...r,
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+      }));
+      setRequests(seeded);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
     }
   }, []);
 
