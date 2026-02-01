@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LabRequestForm } from '@/components/LabRequestForm';
 import { DeliveryRequestForm } from '@/components/DeliveryRequestForm';
 import { RequestsTable } from '@/components/RequestsTable';
+import { DeliveryTable } from '@/components/DeliveryTable';
 import { Header } from '@/components/Header';
 import { useLabRequests } from '@/hooks/useLabRequests';
 import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
@@ -13,9 +14,19 @@ const Index = () => {
   const { requests, addRequest, deleteRequest, clearAll } = useLabRequests();
   const { 
     requests: deliveryRequests, 
-    addRequest: addDeliveryRequest 
+    addRequest: addDeliveryRequest,
+    deleteRequest: deleteDeliveryRequest
   } = useDeliveryRequests();
   const { toast } = useToast();
+
+  const handleDeliveryDelete = (id: string) => {
+    deleteDeliveryRequest(id);
+    toast({
+      title: 'Delivery Entry Deleted',
+      description: 'The delivery request has been removed.',
+      variant: 'destructive',
+    });
+  };
 
   const handleSubmit = (data: Parameters<typeof addRequest>[0]) => {
     addRequest(data);
@@ -80,7 +91,7 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="solutions" className="space-y-6">
-          <TabsList className="grid w-full max-w-lg grid-cols-3">
+          <TabsList className="grid w-full max-w-2xl grid-cols-4">
             <TabsTrigger value="solutions" className="gap-2">
               <ClipboardList className="w-4 h-4" />
               Solutions
@@ -89,9 +100,13 @@ const Index = () => {
               <Truck className="w-4 h-4" />
               Delivery
             </TabsTrigger>
-            <TabsTrigger value="table" className="gap-2">
+            <TabsTrigger value="solutions-table" className="gap-2">
               <TableProperties className="w-4 h-4" />
-              Entries ({requests.length})
+              Solutions ({requests.length})
+            </TabsTrigger>
+            <TabsTrigger value="delivery-table" className="gap-2">
+              <TableProperties className="w-4 h-4" />
+              Delivery ({deliveryRequests.length})
             </TabsTrigger>
           </TabsList>
 
@@ -103,8 +118,12 @@ const Index = () => {
             <DeliveryRequestForm onSubmit={handleDeliverySubmit} />
           </TabsContent>
 
-          <TabsContent value="table">
+          <TabsContent value="solutions-table">
             <RequestsTable requests={requests} onDelete={handleDelete} />
+          </TabsContent>
+
+          <TabsContent value="delivery-table">
+            <DeliveryTable requests={deliveryRequests} onDelete={handleDeliveryDelete} />
           </TabsContent>
         </Tabs>
       </main>
