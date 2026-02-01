@@ -4,10 +4,7 @@ export interface LabRequest {
   month: string;
   client: string;
   cloud: string;
-  vendor: string;
   labName: string;
-  solutionRequest: string;
-  deliveryRequest: string;
   requester: string;
   agentName: string;
   accountManager: string;
