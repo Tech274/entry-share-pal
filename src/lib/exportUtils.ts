@@ -15,7 +15,7 @@ const HEADERS = [
   'User Count',
   'Duration (in days)',
   'Input Cost Per User',
-  'Shelling Cost Per User',
+  'Selling Cost Per User',
   'Total Amount for Training',
   'Margin',
   'Status',
@@ -46,7 +46,7 @@ export const exportToCSV = (requests: LabRequest[]): void => {
     r.userCount,
     r.durationInDays,
     r.inputCostPerUser,
-    r.shellingCostPerUser,
+    r.sellingCostPerUser,
     r.totalAmountForTraining,
     r.margin,
     r.status,
@@ -79,7 +79,7 @@ export const exportToXLS = (requests: LabRequest[]): void => {
       <td>${r.userCount}</td>
       <td>${r.durationInDays}</td>
       <td>${r.inputCostPerUser}</td>
-      <td>${r.shellingCostPerUser}</td>
+      <td>${r.sellingCostPerUser}</td>
       <td>${r.totalAmountForTraining}</td>
       <td>${r.margin}</td>
       <td>${r.status}</td>
