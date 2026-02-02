@@ -12,28 +12,13 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
+import { getStatusColor, getCloudColor, getLOBColor } from '@/lib/statusColors';
+import { cn } from '@/lib/utils';
 
 interface RequestsTableProps {
   requests: LabRequest[];
   onDelete: (id: string) => void;
 }
-
-const getStatusVariant = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'completed':
-      return 'default';
-    case 'in progress':
-      return 'secondary';
-    case 'pending':
-      return 'outline';
-    case 'on hold':
-      return 'secondary';
-    case 'cancelled':
-      return 'destructive';
-    default:
-      return 'outline';
-  }
-};
 
 export const RequestsTable = ({ requests, onDelete }: RequestsTableProps) => {
   if (requests.length === 0) {
@@ -46,10 +31,10 @@ export const RequestsTable = ({ requests, onDelete }: RequestsTableProps) => {
 
   return (
     <div className="form-section p-0 overflow-hidden">
-      <ScrollArea className="w-full">
+      <ScrollArea className="w-full max-h-[calc(100vh-300px)]">
         <div className="min-w-[1200px]">
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 z-10 bg-muted">
               <TableRow className="bg-muted/50">
                 <TableHead className="font-semibold">Ticket #</TableHead>
                 <TableHead className="font-semibold">Client</TableHead>
@@ -72,8 +57,20 @@ export const RequestsTable = ({ requests, onDelete }: RequestsTableProps) => {
                   <TableCell className="font-medium">{request.freshDeskTicketNumber || '-'}</TableCell>
                   <TableCell>{request.client || '-'}</TableCell>
                   <TableCell>{request.labName || '-'}</TableCell>
-                  <TableCell>{request.cloud || '-'}</TableCell>
-                  <TableCell>{request.lineOfBusiness || '-'}</TableCell>
+                  <TableCell>
+                    {request.cloud ? (
+                      <Badge variant="outline" className={cn('text-xs', getCloudColor(request.cloud))}>
+                        {request.cloud}
+                      </Badge>
+                    ) : '-'}
+                  </TableCell>
+                  <TableCell>
+                    {request.lineOfBusiness ? (
+                      <Badge variant="outline" className={cn('text-xs', getLOBColor(request.lineOfBusiness))}>
+                        {request.lineOfBusiness}
+                      </Badge>
+                    ) : '-'}
+                  </TableCell>
                   <TableCell>{request.userCount || 0}</TableCell>
                   <TableCell>{request.durationInDays || 0} days</TableCell>
                   <TableCell>{formatINR(request.inputCostPerUser)}</TableCell>
@@ -82,7 +79,9 @@ export const RequestsTable = ({ requests, onDelete }: RequestsTableProps) => {
                   <TableCell>{formatPercentage(request.margin)}</TableCell>
                   <TableCell>
                     {request.status ? (
-                      <Badge variant={getStatusVariant(request.status)}>{request.status}</Badge>
+                      <Badge variant="outline" className={cn('text-xs', getStatusColor(request.status))}>
+                        {request.status}
+                      </Badge>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}

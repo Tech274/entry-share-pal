@@ -145,10 +145,10 @@ const Preview = () => {
           </div>
         ) : (
           <div className="bg-card rounded-lg border overflow-hidden">
-            <ScrollArea className="w-full">
+            <ScrollArea className="w-full max-h-[calc(100vh-200px)]">
               <div className="min-w-[2000px]">
                 <table className="w-full border-collapse text-sm">
-                  <thead>
+                  <thead className="sticky top-0 z-10">
                     <tr className="bg-primary text-primary-foreground">
                       <th className="spreadsheet-cell font-semibold text-left">#</th>
                       <th className="spreadsheet-cell font-semibold text-left">Training Name</th>
