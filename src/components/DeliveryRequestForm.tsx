@@ -10,7 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DeliveryRequest, LAB_STATUS_OPTIONS, LAB_TYPE_OPTIONS, CLOUD_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS } from '@/types/deliveryRequest';
+import { DeliveryRequest, LAB_STATUS_OPTIONS, LAB_TYPE_OPTIONS, CLOUD_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LINE_OF_BUSINESS_OPTIONS } from '@/types/deliveryRequest';
+import { CurrencyInput } from '@/components/CurrencyInput';
+import { IntegerInput } from '@/components/IntegerInput';
+import { formatINR } from '@/lib/formatUtils';
 import { Send, RotateCcw } from 'lucide-react';
 
 interface DeliveryRequestFormProps {
@@ -39,10 +42,12 @@ const initialFormState = {
   inputCostPerUser: 0,
   sellingCostPerUser: 0,
   totalAmount: 0,
+  lineOfBusiness: '',
 };
 
 export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
   const [formData, setFormData] = useState(initialFormState);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (field: string, value: string | number) => {
     setFormData(prev => {
@@ -52,20 +57,57 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
         const users = field === 'numberOfUsers' ? Number(value) : updated.numberOfUsers;
         const inputCost = field === 'inputCostPerUser' ? Number(value) : updated.inputCostPerUser;
         const sellingCost = field === 'sellingCostPerUser' ? Number(value) : updated.sellingCostPerUser;
-        updated.totalAmount = users * (inputCost + sellingCost);
+        updated.totalAmount = Math.round(users * (inputCost + sellingCost) * 100) / 100;
       }
       return updated;
     });
+    // Clear error when field is edited
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.lineOfBusiness) {
+      newErrors.lineOfBusiness = 'Line of Business is required';
+    }
+    if (!formData.client.trim()) {
+      newErrors.client = 'Client is required';
+    }
+    if (!formData.month) {
+      newErrors.month = 'Month is required';
+    }
+    if (formData.numberOfUsers <= 0) {
+      newErrors.numberOfUsers = 'Number of users must be greater than 0';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const isFormValid = (): boolean => {
+    return (
+      formData.lineOfBusiness !== '' &&
+      formData.client.trim() !== '' &&
+      formData.month !== '' &&
+      formData.numberOfUsers > 0
+    );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    setFormData(initialFormState);
+    if (validateForm()) {
+      onSubmit(formData);
+      setFormData(initialFormState);
+      setErrors({});
+    }
   };
 
   const handleReset = () => {
     setFormData(initialFormState);
+    setErrors({});
   };
 
   return (
@@ -74,6 +116,24 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
       <div className="form-section">
         <h3 className="form-section-title">Basic Information</h3>
         <div className="form-grid">
+          <div className="space-y-2">
+            <Label htmlFor="lineOfBusiness">
+              Line of Business <span className="text-destructive">*</span>
+            </Label>
+            <Select value={formData.lineOfBusiness} onValueChange={v => handleChange('lineOfBusiness', v)}>
+              <SelectTrigger className={errors.lineOfBusiness ? 'border-destructive' : ''}>
+                <SelectValue placeholder="Select LOB" />
+              </SelectTrigger>
+              <SelectContent>
+                {LINE_OF_BUSINESS_OPTIONS.map(lob => (
+                  <SelectItem key={lob} value={lob}>{lob}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.lineOfBusiness && (
+              <p className="text-sm text-destructive">{errors.lineOfBusiness}</p>
+            )}
+          </div>
           <div className="space-y-2">
             <Label htmlFor="potentialId">Potential ID</Label>
             <Input
@@ -101,17 +161,6 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
               placeholder="Enter training name"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="numberOfUsers">No. of Users</Label>
-            <Input
-              id="numberOfUsers"
-              type="number"
-              min="0"
-              value={formData.numberOfUsers || ''}
-              onChange={e => handleChange('numberOfUsers', parseInt(e.target.value) || 0)}
-              placeholder="0"
-            />
-          </div>
         </div>
       </div>
 
@@ -120,13 +169,19 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
         <h3 className="form-section-title">Client & Lab Details</h3>
         <div className="form-grid">
           <div className="space-y-2">
-            <Label htmlFor="client">Client</Label>
+            <Label htmlFor="client">
+              Client <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="client"
               value={formData.client}
               onChange={e => handleChange('client', e.target.value)}
               placeholder="Client name"
+              className={errors.client ? 'border-destructive' : ''}
             />
+            {errors.client && (
+              <p className="text-sm text-destructive">{errors.client}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="cloud">Cloud</Label>
@@ -192,9 +247,11 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
         <h3 className="form-section-title">Dates</h3>
         <div className="form-grid">
           <div className="space-y-2">
-            <Label htmlFor="month">Month</Label>
+            <Label htmlFor="month">
+              Month <span className="text-destructive">*</span>
+            </Label>
             <Select value={formData.month} onValueChange={v => handleChange('month', v)}>
-              <SelectTrigger>
+              <SelectTrigger className={errors.month ? 'border-destructive' : ''}>
                 <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
@@ -203,6 +260,9 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
                 ))}
               </SelectContent>
             </Select>
+            {errors.month && (
+              <p className="text-sm text-destructive">{errors.month}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="year">Year</Label>
@@ -300,39 +360,40 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
       <div className="form-section">
         <h3 className="form-section-title">Metrics & Costs</h3>
         <div className="form-grid">
-          <div className="space-y-2">
-            <Label htmlFor="inputCostPerUser">Input Cost Per User</Label>
-            <Input
-              id="inputCostPerUser"
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.inputCostPerUser || ''}
-              onChange={e => handleChange('inputCostPerUser', parseFloat(e.target.value) || 0)}
-              placeholder="0.00"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="sellingCostPerUser">Selling Cost Per User</Label>
-            <Input
-              id="sellingCostPerUser"
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.sellingCostPerUser || ''}
-              onChange={e => handleChange('sellingCostPerUser', parseFloat(e.target.value) || 0)}
-              placeholder="0.00"
-            />
-          </div>
+          <IntegerInput
+            id="numberOfUsers"
+            label="Number of Users"
+            value={formData.numberOfUsers}
+            onChange={v => handleChange('numberOfUsers', v)}
+            error={errors.numberOfUsers}
+            required
+          />
+          <CurrencyInput
+            id="inputCostPerUser"
+            label="Input Cost Per User"
+            value={formData.inputCostPerUser}
+            onChange={v => handleChange('inputCostPerUser', v)}
+          />
+          <CurrencyInput
+            id="sellingCostPerUser"
+            label="Selling Cost Per User"
+            value={formData.sellingCostPerUser}
+            onChange={v => handleChange('sellingCostPerUser', v)}
+          />
           <div className="space-y-2">
             <Label htmlFor="totalAmount">Total Amount</Label>
-            <Input
-              id="totalAmount"
-              type="number"
-              value={formData.totalAmount.toFixed(2)}
-              readOnly
-              className="bg-muted font-semibold"
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                ₹
+              </span>
+              <Input
+                id="totalAmount"
+                type="text"
+                value={formData.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                readOnly
+                className="bg-muted font-semibold pl-8"
+              />
+            </div>
             <p className="text-xs text-muted-foreground">
               Auto-calculated: (Input + Selling) × Users
             </p>
@@ -346,7 +407,7 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
           <RotateCcw className="w-4 h-4 mr-2" />
           Reset
         </Button>
-        <Button type="submit">
+        <Button type="submit" disabled={!isFormValid()}>
           <Send className="w-4 h-4 mr-2" />
           Submit Delivery Request
         </Button>

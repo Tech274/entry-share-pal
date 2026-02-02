@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatINR } from '@/lib/formatUtils';
 
 interface DeliveryTableProps {
   requests: DeliveryRequest[];
@@ -47,6 +48,7 @@ export const DeliveryTable = ({ requests, onDelete }: DeliveryTableProps) => {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
+                <TableHead className="font-semibold">LOB</TableHead>
                 <TableHead className="font-semibold">Potential ID</TableHead>
                 <TableHead className="font-semibold">Ticket #</TableHead>
                 <TableHead className="font-semibold">Training Name</TableHead>
@@ -57,6 +59,8 @@ export const DeliveryTable = ({ requests, onDelete }: DeliveryTableProps) => {
                 <TableHead className="font-semibold">Lab Type</TableHead>
                 <TableHead className="font-semibold">Start Date</TableHead>
                 <TableHead className="font-semibold">End Date</TableHead>
+                <TableHead className="font-semibold">Input Cost</TableHead>
+                <TableHead className="font-semibold">Selling Cost</TableHead>
                 <TableHead className="font-semibold">Total Amount</TableHead>
                 <TableHead className="font-semibold w-[80px]">Actions</TableHead>
               </TableRow>
@@ -64,6 +68,7 @@ export const DeliveryTable = ({ requests, onDelete }: DeliveryTableProps) => {
             <TableBody>
               {requests.map((request) => (
                 <TableRow key={request.id} className="hover:bg-muted/30 transition-colors">
+                  <TableCell>{request.lineOfBusiness || '-'}</TableCell>
                   <TableCell className="font-medium">{request.potentialId || '-'}</TableCell>
                   <TableCell>{request.freshDeskTicketNumber || '-'}</TableCell>
                   <TableCell>{request.trainingName || '-'}</TableCell>
@@ -80,7 +85,9 @@ export const DeliveryTable = ({ requests, onDelete }: DeliveryTableProps) => {
                   <TableCell>{request.labType || '-'}</TableCell>
                   <TableCell>{request.startDate || '-'}</TableCell>
                   <TableCell>{request.endDate || '-'}</TableCell>
-                  <TableCell>₹{request.totalAmount?.toLocaleString() || 0}</TableCell>
+                  <TableCell>{formatINR(request.inputCostPerUser)}</TableCell>
+                  <TableCell>{formatINR(request.sellingCostPerUser)}</TableCell>
+                  <TableCell className="font-semibold">{formatINR(request.totalAmount)}</TableCell>
                   <TableCell>
                     <Button
                       variant="ghost"

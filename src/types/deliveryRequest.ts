@@ -21,8 +21,11 @@ export interface DeliveryRequest {
   inputCostPerUser: number;
   sellingCostPerUser: number;
   totalAmount: number;
+  lineOfBusiness: string;
   createdAt: string;
 }
+
+export const LINE_OF_BUSINESS_OPTIONS = ['Standalone', 'VILT', 'Blended'];
 
 export const MONTH_OPTIONS = [
   'January', 'February', 'March', 'April', 'May', 'June',

@@ -29,6 +29,7 @@ export type Database = {
           lab_setup_requirement: string | null
           lab_status: string | null
           lab_type: string | null
+          line_of_business: string | null
           month: string
           number_of_users: number | null
           potential_id: string | null
@@ -55,6 +56,7 @@ export type Database = {
           lab_setup_requirement?: string | null
           lab_status?: string | null
           lab_type?: string | null
+          line_of_business?: string | null
           month: string
           number_of_users?: number | null
           potential_id?: string | null
@@ -81,6 +83,7 @@ export type Database = {
           lab_setup_requirement?: string | null
           lab_status?: string | null
           lab_type?: string | null
+          line_of_business?: string | null
           month?: string
           number_of_users?: number | null
           potential_id?: string | null
