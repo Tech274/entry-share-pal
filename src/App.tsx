@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import Landing from "./pages/Landing";
+import SubmitRequest from "./pages/SubmitRequest";
+import MyRequests from "./pages/MyRequests";
 import Index from "./pages/Index";
 import Preview from "./pages/Preview";
 import Auth from "./pages/Auth";
@@ -20,9 +23,15 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public routes - no auth required */}
+            <Route path="/" element={<Landing />} />
+            <Route path="/submit-request" element={<SubmitRequest />} />
+            <Route path="/my-requests" element={<MyRequests />} />
             <Route path="/auth" element={<Auth />} />
+            
+            {/* Protected routes - internal staff only */}
             <Route 
-              path="/" 
+              path="/dashboard" 
               element={
                 <ProtectedRoute>
                   <Index />

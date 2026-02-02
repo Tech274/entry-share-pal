@@ -31,7 +31,7 @@ export const Header = ({ requestCount, onExportCSV, onExportXLS, onClearAll, lab
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/auth');
+    navigate('/');
   };
 
   const canClearAll = isAdmin || isOpsLead;
