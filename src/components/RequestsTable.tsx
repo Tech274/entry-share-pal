@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatINR, formatPercentage } from '@/lib/formatUtils';
 
 interface RequestsTableProps {
   requests: LabRequest[];
@@ -54,9 +55,13 @@ export const RequestsTable = ({ requests, onDelete }: RequestsTableProps) => {
                 <TableHead className="font-semibold">Client</TableHead>
                 <TableHead className="font-semibold">Lab Name</TableHead>
                 <TableHead className="font-semibold">Cloud</TableHead>
+                <TableHead className="font-semibold">LOB</TableHead>
                 <TableHead className="font-semibold">User Count</TableHead>
                 <TableHead className="font-semibold">Duration</TableHead>
+                <TableHead className="font-semibold">Input Cost</TableHead>
+                <TableHead className="font-semibold">Selling Cost</TableHead>
                 <TableHead className="font-semibold">Total Amount</TableHead>
+                <TableHead className="font-semibold">Margin</TableHead>
                 <TableHead className="font-semibold">Status</TableHead>
                 <TableHead className="font-semibold w-[80px]">Actions</TableHead>
               </TableRow>
@@ -68,9 +73,13 @@ export const RequestsTable = ({ requests, onDelete }: RequestsTableProps) => {
                   <TableCell>{request.client || '-'}</TableCell>
                   <TableCell>{request.labName || '-'}</TableCell>
                   <TableCell>{request.cloud || '-'}</TableCell>
+                  <TableCell>{request.lineOfBusiness || '-'}</TableCell>
                   <TableCell>{request.userCount || 0}</TableCell>
                   <TableCell>{request.durationInDays || 0} days</TableCell>
-                  <TableCell>₹{request.totalAmountForTraining?.toLocaleString() || 0}</TableCell>
+                  <TableCell>{formatINR(request.inputCostPerUser)}</TableCell>
+                  <TableCell>{formatINR(request.sellingCostPerUser)}</TableCell>
+                  <TableCell className="font-semibold">{formatINR(request.totalAmountForTraining)}</TableCell>
+                  <TableCell>{formatPercentage(request.margin)}</TableCell>
                   <TableCell>
                     {request.status ? (
                       <Badge variant={getStatusVariant(request.status)}>{request.status}</Badge>
