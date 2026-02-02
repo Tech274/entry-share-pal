@@ -65,6 +65,10 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
+    // Clear date error when either date changes
+    if (field === 'startDate' || field === 'endDate') {
+      setErrors(prev => ({ ...prev, endDate: '' }));
+    }
   };
 
   const validateForm = (): boolean => {
@@ -81,6 +85,15 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
     }
     if (formData.numberOfUsers <= 0) {
       newErrors.numberOfUsers = 'Number of users must be greater than 0';
+    }
+    
+    // Date validation: end date must be after start date
+    if (formData.startDate && formData.endDate) {
+      const startDate = new Date(formData.startDate);
+      const endDate = new Date(formData.endDate);
+      if (endDate < startDate) {
+        newErrors.endDate = 'End date cannot be before start date';
+      }
     }
 
     setErrors(newErrors);
@@ -335,7 +348,12 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
               type="date"
               value={formData.endDate}
               onChange={e => handleChange('endDate', e.target.value)}
+              min={formData.startDate || undefined}
+              className={errors.endDate ? 'border-destructive' : ''}
             />
+            {errors.endDate && (
+              <p className="text-sm text-destructive">{errors.endDate}</p>
+            )}
           </div>
         </div>
       </div>
