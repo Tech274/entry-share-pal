@@ -1,8 +1,10 @@
 import { LabRequest } from '@/types/labRequest';
+import { formatINR, formatPercentage } from '@/lib/formatUtils';
 
 const HEADERS = [
   'FreshDesk Ticket Number',
   'Month',
+  'Line of Business',
   'Client',
   'Cloud',
   'Lab Name',
@@ -34,6 +36,7 @@ export const exportToCSV = (requests: LabRequest[]): void => {
   const rows = requests.map(r => [
     r.freshDeskTicketNumber,
     r.month,
+    r.lineOfBusiness || '',
     r.client,
     r.cloud,
     r.labName,
@@ -45,10 +48,10 @@ export const exportToCSV = (requests: LabRequest[]): void => {
     r.labEndDate,
     r.userCount,
     r.durationInDays,
-    r.inputCostPerUser,
-    r.sellingCostPerUser,
-    r.totalAmountForTraining,
-    r.margin,
+    formatINR(r.inputCostPerUser),
+    formatINR(r.sellingCostPerUser),
+    formatINR(r.totalAmountForTraining),
+    formatPercentage(r.margin),
     r.status,
     r.remarks,
   ]);
@@ -67,6 +70,7 @@ export const exportToXLS = (requests: LabRequest[]): void => {
     <tr>
       <td>${r.freshDeskTicketNumber}</td>
       <td>${r.month}</td>
+      <td>${r.lineOfBusiness || ''}</td>
       <td>${r.client}</td>
       <td>${r.cloud}</td>
       <td>${r.labName}</td>
@@ -78,10 +82,10 @@ export const exportToXLS = (requests: LabRequest[]): void => {
       <td>${r.labEndDate}</td>
       <td>${r.userCount}</td>
       <td>${r.durationInDays}</td>
-      <td>${r.inputCostPerUser}</td>
-      <td>${r.sellingCostPerUser}</td>
-      <td>${r.totalAmountForTraining}</td>
-      <td>${r.margin}</td>
+      <td>${formatINR(r.inputCostPerUser)}</td>
+      <td>${formatINR(r.sellingCostPerUser)}</td>
+      <td>${formatINR(r.totalAmountForTraining)}</td>
+      <td>${formatPercentage(r.margin)}</td>
       <td>${r.status}</td>
       <td>${r.remarks}</td>
     </tr>

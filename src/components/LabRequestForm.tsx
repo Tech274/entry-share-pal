@@ -29,6 +29,7 @@ interface FormErrors {
   inputCostPerUser?: string;
   sellingCostPerUser?: string;
   totalAmountForTraining?: string;
+  labEndDate?: string;
   margin?: string;
 }
 
@@ -94,6 +95,11 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
     if (errors[field as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
+    
+    // Clear date error when either date changes
+    if (field === 'labStartDate' || field === 'labEndDate') {
+      setErrors(prev => ({ ...prev, labEndDate: undefined }));
+    }
   };
 
   const validateForm = (): boolean => {
@@ -128,6 +134,15 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
     }
     if (formData.margin < 0 || formData.margin > 100) {
       newErrors.margin = 'Margin must be between 0% and 100%';
+    }
+    
+    // Date validation: end date must be after start date
+    if (formData.labStartDate && formData.labEndDate) {
+      const startDate = new Date(formData.labStartDate);
+      const endDate = new Date(formData.labEndDate);
+      if (endDate < startDate) {
+        newErrors.labEndDate = 'End date cannot be before start date';
+      }
     }
     
     setErrors(newErrors);
@@ -359,7 +374,10 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
               type="date"
               value={formData.labEndDate}
               onChange={e => handleChange('labEndDate', e.target.value)}
+              min={formData.labStartDate || undefined}
+              className={errors.labEndDate ? 'border-destructive' : ''}
             />
+            {errors.labEndDate && <p className="text-sm text-destructive">{errors.labEndDate}</p>}
           </div>
         </div>
       </div>

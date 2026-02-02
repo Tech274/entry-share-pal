@@ -6,7 +6,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Download, ArrowLeft, Trash2, Table } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EditableCell } from '@/components/EditableCell';
-import { LabRequest, CLOUD_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS } from '@/types/labRequest';
+import { LabRequest, CLOUD_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, LOB_OPTIONS } from '@/types/labRequest';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -153,6 +153,7 @@ const Preview = () => {
                       <th className="spreadsheet-cell font-semibold text-left">#</th>
                       <th className="spreadsheet-cell font-semibold text-left">Training Name</th>
                       <th className="spreadsheet-cell font-semibold text-left">Client Name</th>
+                      <th className="spreadsheet-cell font-semibold text-left">LOB</th>
                       <th className="spreadsheet-cell font-semibold text-center">User Count</th>
                       <th className="spreadsheet-cell font-semibold text-left">Remarks</th>
                       <th className="spreadsheet-cell font-semibold text-left">Month</th>
@@ -167,7 +168,7 @@ const Preview = () => {
                       <th className="spreadsheet-cell font-semibold text-right">Input Cost</th>
                       <th className="spreadsheet-cell font-semibold text-right">Selling Cost</th>
                       <th className="spreadsheet-cell font-semibold text-right">Total Amount</th>
-                      <th className="spreadsheet-cell font-semibold text-right">Margin</th>
+                      <th className="spreadsheet-cell font-semibold text-right">Margin %</th>
                       <th className="spreadsheet-cell font-semibold text-left">Status</th>
                       <th className="spreadsheet-cell font-semibold text-center">Actions</th>
                     </tr>
@@ -192,6 +193,14 @@ const Preview = () => {
                           <EditableCell
                             value={request.client}
                             onSave={(v) => handleCellUpdate(request.id, 'client', v)}
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.lineOfBusiness}
+                            onSave={(v) => handleCellUpdate(request.id, 'lineOfBusiness', v)}
+                            type="select"
+                            options={LOB_OPTIONS}
                           />
                         </td>
                         <td className="spreadsheet-cell bg-accent/30">
@@ -306,7 +315,7 @@ const Preview = () => {
                             onSave={(v) => handleCellUpdate(request.id, 'margin', v)}
                             type="number"
                             align="right"
-                            prefix="₹"
+                            suffix="%"
                           />
                         </td>
                         <td className="spreadsheet-cell">
