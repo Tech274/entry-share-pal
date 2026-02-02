@@ -109,6 +109,7 @@ export type Database = {
           lab_end_date: string | null
           lab_name: string | null
           lab_start_date: string | null
+          line_of_business: string | null
           margin: number | null
           month: string
           potential_id: string | null
@@ -135,6 +136,7 @@ export type Database = {
           lab_end_date?: string | null
           lab_name?: string | null
           lab_start_date?: string | null
+          line_of_business?: string | null
           margin?: number | null
           month: string
           potential_id?: string | null
@@ -161,6 +163,7 @@ export type Database = {
           lab_end_date?: string | null
           lab_name?: string | null
           lab_start_date?: string | null
+          line_of_business?: string | null
           margin?: number | null
           month?: string
           potential_id?: string | null

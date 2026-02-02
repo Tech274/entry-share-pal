@@ -27,6 +27,7 @@ const mapRowToLabRequest = (row: any): LabRequest => ({
   margin: Number(row.margin) || 0,
   status: row.status || 'Solution Pending',
   remarks: row.remarks || '',
+  lineOfBusiness: row.line_of_business || '',
   createdAt: row.created_at,
 });
 
@@ -53,6 +54,7 @@ const mapLabRequestToRow = (request: Omit<LabRequest, 'id' | 'createdAt'>) => ({
   margin: request.margin,
   status: request.status,
   remarks: request.remarks,
+  line_of_business: request.lineOfBusiness,
 });
 
 export const useLabRequests = () => {
@@ -77,12 +79,8 @@ export const useLabRequests = () => {
         return;
       }
 
-      // If no data exists, seed with sample data
-      if (!data || data.length === 0) {
-        await seedSampleData();
-      } else {
-        setRequests(data.map(mapRowToLabRequest));
-      }
+      // Map data to LabRequest format (no auto-seeding of sample data)
+      setRequests(data ? data.map(mapRowToLabRequest) : []);
     } catch (error) {
       console.error('Error fetching lab requests:', error);
     } finally {
@@ -157,6 +155,7 @@ export const useLabRequests = () => {
       if (data.margin !== undefined) updateData.margin = data.margin;
       if (data.status !== undefined) updateData.status = data.status;
       if (data.remarks !== undefined) updateData.remarks = data.remarks;
+      if (data.lineOfBusiness !== undefined) updateData.line_of_business = data.lineOfBusiness;
 
       const { data: updatedRow, error } = await supabase
         .from('lab_requests')
