@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,11 +10,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CLOUD_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LabRequest } from '@/types/labRequest';
+import { CLOUD_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LOB_OPTIONS, LabRequest } from '@/types/labRequest';
+import { CurrencyInput } from '@/components/CurrencyInput';
+import { IntegerInput } from '@/components/IntegerInput';
+import { PercentageInput } from '@/components/PercentageInput';
 import { Send, RotateCcw } from 'lucide-react';
 
 interface LabRequestFormProps {
   onSubmit: (data: Omit<LabRequest, 'id' | 'createdAt'>) => void;
+}
+
+interface FormErrors {
+  lineOfBusiness?: string;
+  client?: string;
+  month?: string;
+  userCount?: string;
+  durationInDays?: string;
+  inputCostPerUser?: string;
+  sellingCostPerUser?: string;
+  totalAmountForTraining?: string;
+  margin?: string;
 }
 
 const initialFormState = {
@@ -39,36 +54,116 @@ const initialFormState = {
   margin: 0,
   status: '',
   remarks: '',
+  lineOfBusiness: '',
 };
 
 export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
   const [formData, setFormData] = useState(initialFormState);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState<Set<string>>(new Set());
 
   const handleChange = (field: string, value: string | number) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
       
-      // Auto-calculate margin: totalAmountForTraining - (userCount * durationInDays * inputCostPerUser)
+      // Auto-calculate margin percentage: ((Total - (UserCount * Days * InputCost)) / Total) * 100
       if (field === 'userCount' || field === 'durationInDays' || field === 'inputCostPerUser' || field === 'totalAmountForTraining') {
         const userCount = field === 'userCount' ? Number(value) : updated.userCount;
         const days = field === 'durationInDays' ? Number(value) : updated.durationInDays;
         const inputCost = field === 'inputCostPerUser' ? Number(value) : updated.inputCostPerUser;
         const totalAmount = field === 'totalAmountForTraining' ? Number(value) : updated.totalAmountForTraining;
-        updated.margin = totalAmount - (userCount * days * inputCost);
+        
+        const totalCost = userCount * days * inputCost;
+        const marginValue = totalAmount - totalCost;
+        
+        // Calculate margin as percentage of total if total > 0
+        if (totalAmount > 0) {
+          updated.margin = Math.round((marginValue / totalAmount) * 10000) / 100; // Percentage with 2 decimals
+        } else {
+          updated.margin = 0;
+        }
       }
       
       return updated;
     });
+    
+    // Mark field as touched
+    setTouched(prev => new Set(prev).add(field));
+    
+    // Clear error when field is modified
+    if (errors[field as keyof FormErrors]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
   };
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+    
+    // Mandatory fields
+    if (!formData.lineOfBusiness) {
+      newErrors.lineOfBusiness = 'Line of Business is required';
+    }
+    if (!formData.client.trim()) {
+      newErrors.client = 'Client name is required';
+    }
+    if (!formData.month) {
+      newErrors.month = 'Month is required';
+    }
+    
+    // Numeric validations
+    if (formData.userCount <= 0) {
+      newErrors.userCount = 'User count must be greater than zero';
+    }
+    if (formData.durationInDays <= 0) {
+      newErrors.durationInDays = 'Duration must be greater than zero';
+    }
+    if (formData.inputCostPerUser < 0) {
+      newErrors.inputCostPerUser = 'Input cost cannot be negative';
+    }
+    if (formData.sellingCostPerUser < 0) {
+      newErrors.sellingCostPerUser = 'Selling cost cannot be negative';
+    }
+    if (formData.totalAmountForTraining < 0) {
+      newErrors.totalAmountForTraining = 'Total cost cannot be negative';
+    }
+    if (formData.margin < 0 || formData.margin > 100) {
+      newErrors.margin = 'Margin must be between 0% and 100%';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const isFormValid = useMemo(() => {
+    return (
+      formData.lineOfBusiness !== '' &&
+      formData.client.trim() !== '' &&
+      formData.month !== '' &&
+      formData.userCount > 0 &&
+      formData.durationInDays > 0 &&
+      formData.inputCostPerUser >= 0 &&
+      formData.sellingCostPerUser >= 0 &&
+      formData.totalAmountForTraining >= 0 &&
+      formData.margin >= 0 &&
+      formData.margin <= 100
+    );
+  }, [formData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    setFormData(initialFormState);
+    
+    if (validateForm()) {
+      onSubmit(formData);
+      setFormData(initialFormState);
+      setTouched(new Set());
+      setErrors({});
+    }
   };
 
   const handleReset = () => {
     setFormData(initialFormState);
+    setTouched(new Set());
+    setErrors({});
   };
 
   return (
@@ -96,9 +191,12 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="month">Month</Label>
+            <Label htmlFor="month">
+              Month
+              <span className="text-destructive ml-1">*</span>
+            </Label>
             <Select value={formData.month} onValueChange={v => handleChange('month', v)}>
-              <SelectTrigger>
+              <SelectTrigger className={errors.month ? 'border-destructive' : ''}>
                 <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
@@ -107,6 +205,7 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
                 ))}
               </SelectContent>
             </Select>
+            {errors.month && <p className="text-sm text-destructive">{errors.month}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="year">Year</Label>
@@ -134,6 +233,23 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="lineOfBusiness">
+              LOB (Line of Business)
+              <span className="text-destructive ml-1">*</span>
+            </Label>
+            <Select value={formData.lineOfBusiness} onValueChange={v => handleChange('lineOfBusiness', v)}>
+              <SelectTrigger className={errors.lineOfBusiness ? 'border-destructive' : ''}>
+                <SelectValue placeholder="Select line of business" />
+              </SelectTrigger>
+              <SelectContent>
+                {LOB_OPTIONS.map(lob => (
+                  <SelectItem key={lob} value={lob}>{lob}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.lineOfBusiness && <p className="text-sm text-destructive">{errors.lineOfBusiness}</p>}
+          </div>
         </div>
       </div>
 
@@ -142,13 +258,18 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
         <h3 className="form-section-title">Client & Lab Details</h3>
         <div className="form-grid">
           <div className="space-y-2">
-            <Label htmlFor="client">Client</Label>
+            <Label htmlFor="client">
+              Client
+              <span className="text-destructive ml-1">*</span>
+            </Label>
             <Input
               id="client"
               value={formData.client}
               onChange={e => handleChange('client', e.target.value)}
               placeholder="Client name"
+              className={errors.client ? 'border-destructive' : ''}
             />
+            {errors.client && <p className="text-sm text-destructive">{errors.client}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="cloud">Cloud</Label>
@@ -247,75 +368,56 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
       <div className="form-section">
         <h3 className="form-section-title">Metrics & Costs</h3>
         <div className="form-grid">
-          <div className="space-y-2">
-            <Label htmlFor="userCount">User Count</Label>
-            <Input
-              id="userCount"
-              type="number"
-              min="0"
-              value={formData.userCount || ''}
-              onChange={e => handleChange('userCount', parseInt(e.target.value) || 0)}
-              placeholder="0"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="durationInDays">Duration (in days)</Label>
-            <Input
-              id="durationInDays"
-              type="number"
-              min="0"
-              value={formData.durationInDays || ''}
-              onChange={e => handleChange('durationInDays', parseInt(e.target.value) || 0)}
-              placeholder="0"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="inputCostPerUser">Input Cost Per User</Label>
-            <Input
-              id="inputCostPerUser"
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.inputCostPerUser || ''}
-              onChange={e => handleChange('inputCostPerUser', parseFloat(e.target.value) || 0)}
-              placeholder="0.00"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="sellingCostPerUser">Selling Cost Per User</Label>
-            <Input
-              id="sellingCostPerUser"
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.sellingCostPerUser || ''}
-              onChange={e => handleChange('sellingCostPerUser', parseFloat(e.target.value) || 0)}
-              placeholder="0.00"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="totalAmountForTraining">Total Amount for Training</Label>
-            <Input
-              id="totalAmountForTraining"
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.totalAmountForTraining || ''}
-              onChange={e => handleChange('totalAmountForTraining', parseFloat(e.target.value) || 0)}
-              placeholder="0.00"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="margin">Margin</Label>
-            <Input
-              id="margin"
-              type="number"
-              step="0.01"
-              value={formData.margin || ''}
-              onChange={e => handleChange('margin', parseFloat(e.target.value) || 0)}
-              placeholder="0.00"
-            />
-          </div>
+          <IntegerInput
+            id="userCount"
+            label="User Count"
+            value={formData.userCount}
+            onChange={v => handleChange('userCount', v)}
+            error={errors.userCount}
+            required
+            min={1}
+          />
+          <IntegerInput
+            id="durationInDays"
+            label="Duration (Days)"
+            value={formData.durationInDays}
+            onChange={v => handleChange('durationInDays', v)}
+            error={errors.durationInDays}
+            required
+            min={1}
+          />
+          <CurrencyInput
+            id="inputCostPerUser"
+            label="Input Cost (per User)"
+            value={formData.inputCostPerUser}
+            onChange={v => handleChange('inputCostPerUser', v)}
+            error={errors.inputCostPerUser}
+            required
+          />
+          <CurrencyInput
+            id="sellingCostPerUser"
+            label="Selling Cost (per User)"
+            value={formData.sellingCostPerUser}
+            onChange={v => handleChange('sellingCostPerUser', v)}
+            error={errors.sellingCostPerUser}
+            required
+          />
+          <CurrencyInput
+            id="totalAmountForTraining"
+            label="Total Cost"
+            value={formData.totalAmountForTraining}
+            onChange={v => handleChange('totalAmountForTraining', v)}
+            error={errors.totalAmountForTraining}
+            required
+          />
+          <PercentageInput
+            id="margin"
+            label="Margin"
+            value={formData.margin}
+            onChange={v => handleChange('margin', v)}
+            error={errors.margin}
+            readOnly
+          />
         </div>
       </div>
 
@@ -337,7 +439,7 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
           <RotateCcw className="w-4 h-4 mr-2" />
           Reset
         </Button>
-        <Button type="submit">
+        <Button type="submit" disabled={!isFormValid}>
           <Send className="w-4 h-4 mr-2" />
           Submit Request
         </Button>
