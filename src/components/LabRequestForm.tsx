@@ -67,10 +67,24 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
       
+      // Auto-calculate duration when dates change
+      if (field === 'labStartDate' || field === 'labEndDate') {
+        const startDate = field === 'labStartDate' ? String(value) : updated.labStartDate;
+        const endDate = field === 'labEndDate' ? String(value) : updated.labEndDate;
+        
+        if (startDate && endDate) {
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          const diffTime = end.getTime() - start.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          updated.durationInDays = diffDays > 0 ? diffDays + 1 : 0; // Include both start and end days
+        }
+      }
+      
       // Auto-calculate margin percentage: ((Total - (UserCount * Days * InputCost)) / Total) * 100
-      if (field === 'userCount' || field === 'durationInDays' || field === 'inputCostPerUser' || field === 'totalAmountForTraining') {
+      if (field === 'userCount' || field === 'durationInDays' || field === 'inputCostPerUser' || field === 'totalAmountForTraining' || field === 'labStartDate' || field === 'labEndDate') {
         const userCount = field === 'userCount' ? Number(value) : updated.userCount;
-        const days = field === 'durationInDays' ? Number(value) : updated.durationInDays;
+        const days = updated.durationInDays; // Use the potentially updated duration
         const inputCost = field === 'inputCostPerUser' ? Number(value) : updated.inputCostPerUser;
         const totalAmount = field === 'totalAmountForTraining' ? Number(value) : updated.totalAmountForTraining;
         
@@ -395,15 +409,22 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
             required
             min={1}
           />
-          <IntegerInput
-            id="durationInDays"
-            label="Duration (Days)"
-            value={formData.durationInDays}
-            onChange={v => handleChange('durationInDays', v)}
-            error={errors.durationInDays}
-            required
-            min={1}
-          />
+          <div className="space-y-2">
+            <IntegerInput
+              id="durationInDays"
+              label="Duration (Days)"
+              value={formData.durationInDays}
+              onChange={v => handleChange('durationInDays', v)}
+              error={errors.durationInDays}
+              required
+              min={1}
+            />
+            {formData.labStartDate && formData.labEndDate && (
+              <p className="text-xs text-muted-foreground">
+                Auto-calculated from dates
+              </p>
+            )}
+          </div>
           <CurrencyInput
             id="inputCostPerUser"
             label="Input Cost (per User)"
