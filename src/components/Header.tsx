@@ -32,7 +32,7 @@ export const Header = ({ requestCount, onExportCSV, onExportXLS, onClearAll }: H
 
           <div className="flex items-center gap-2">
             <Link to="/preview">
-              <Button variant="outline">
+              <Button>
                 <Eye className="w-4 h-4 mr-2" />
                 Preview
               </Button>
@@ -40,7 +40,7 @@ export const Header = ({ requestCount, onExportCSV, onExportXLS, onClearAll }: H
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" disabled={requestCount === 0}>
+                <Button disabled={requestCount === 0}>
                   <Download className="w-4 h-4 mr-2" />
                   Export
                 </Button>
