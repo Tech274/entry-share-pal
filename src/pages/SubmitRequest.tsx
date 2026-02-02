@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Home, Search, User, Paperclip } from 'lucide-react';
+import { Home, Search, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -22,6 +21,8 @@ import {
 } from '@/components/ui/breadcrumb';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { RichTextEditor } from '@/components/RichTextEditor';
+import { FileUpload } from '@/components/FileUpload';
 import logo from '@/assets/makemylabs-logo.png';
 
 const TASK_OPTIONS = ['Lab Request - Solutions', 'Lab Request - Delivery'];
@@ -42,11 +43,17 @@ interface RequestFormData {
   description: string;
 }
 
+interface AttachmentFile {
+  url: string;
+  name: string;
+}
+
 const SubmitRequest = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [attachment, setAttachment] = useState<AttachmentFile | null>(null);
   
   const [formData, setFormData] = useState<RequestFormData>({
     requesterEmail: '',
@@ -63,6 +70,14 @@ const SubmitRequest = () => {
 
   const handleChange = (field: keyof RequestFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileUploaded = (url: string, name: string) => {
+    setAttachment({ url, name });
+  };
+
+  const handleFileRemoved = () => {
+    setAttachment(null);
   };
 
   const validateForm = (): boolean => {
@@ -90,7 +105,9 @@ const SubmitRequest = () => {
       toast({ title: 'Validation Error', description: 'Subject is required', variant: 'destructive' });
       return false;
     }
-    if (!formData.description) {
+    // Check for empty or minimal HTML content
+    const strippedDescription = formData.description.replace(/<[^>]*>/g, '').trim();
+    if (!strippedDescription) {
       toast({ title: 'Validation Error', description: 'Description is required', variant: 'destructive' });
       return false;
     }
@@ -110,6 +127,11 @@ const SubmitRequest = () => {
       const month = startDate.toLocaleString('en-US', { month: 'long' });
       const year = startDate.getFullYear();
 
+      // Include attachment URL in remarks/description if present
+      const descriptionWithAttachment = attachment 
+        ? `${formData.description}\n\n<p><strong>Attachment:</strong> <a href="${attachment.url}" target="_blank">${attachment.name}</a></p>`
+        : formData.description;
+
       if (formData.taskType === 'Lab Request - Solutions') {
         // Insert into lab_requests table
         const { error } = await supabase.from('lab_requests').insert({
@@ -120,7 +142,7 @@ const SubmitRequest = () => {
           lab_start_date: formData.startDate,
           lab_end_date: formData.endDate,
           line_of_business: formData.lineOfBusiness || null,
-          remarks: formData.description,
+          remarks: descriptionWithAttachment,
           status: 'Solution Pending',
           month,
           year,
@@ -362,25 +384,28 @@ const SubmitRequest = () => {
               />
             </div>
 
-            {/* Description */}
+            {/* Description - Rich Text Editor */}
             <div className="space-y-2">
-              <Label htmlFor="description">
+              <Label>
                 Description <span className="text-destructive">*</span>
               </Label>
-              <Textarea
-                id="description"
-                placeholder="Type something..."
+              <RichTextEditor
                 value={formData.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-                rows={6}
-                className="resize-none"
+                onChange={(value) => handleChange('description', value)}
+                placeholder="Type something..."
               />
             </div>
 
-            {/* Attachment placeholder */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Paperclip className="h-4 w-4" />
-              <span>Attachment (coming soon)</span>
+            {/* File Attachment */}
+            <div className="space-y-2">
+              <Label>Attachment</Label>
+              <FileUpload
+                onFileUploaded={handleFileUploaded}
+                onFileRemoved={handleFileRemoved}
+                currentFile={attachment}
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.zip"
+                maxSizeMB={10}
+              />
             </div>
 
             {/* Action Buttons */}
