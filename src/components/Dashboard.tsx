@@ -296,10 +296,10 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
       {/* Charts Row */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Monthly Requests Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Monthly Requests Trend</CardTitle>
-            <CardDescription>Solutions vs Delivery requests by month</CardDescription>
+        <Card className="overflow-hidden">
+          <CardHeader variant="primary">
+            <CardTitle className="text-primary-foreground">Monthly Requests Trend</CardTitle>
+            <CardDescription className="text-primary-foreground/70">Solutions vs Delivery requests by month</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -323,10 +323,10 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
         </Card>
 
         {/* Revenue Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue & Margin Trend</CardTitle>
-            <CardDescription>Monthly revenue and margin analysis</CardDescription>
+        <Card className="overflow-hidden">
+          <CardHeader variant="primary">
+            <CardTitle className="text-primary-foreground">Revenue & Margin Trend</CardTitle>
+            <CardDescription className="text-primary-foreground/70">Monthly revenue and margin analysis</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -352,10 +352,10 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
         </Card>
 
         {/* Revenue by Cloud Provider */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue by Cloud Provider</CardTitle>
-            <CardDescription>Distribution across cloud platforms</CardDescription>
+        <Card className="overflow-hidden">
+          <CardHeader variant="primary">
+            <CardTitle className="text-primary-foreground">Revenue by Cloud Provider</CardTitle>
+            <CardDescription className="text-primary-foreground/70">Distribution across cloud platforms</CardDescription>
           </CardHeader>
           <CardContent>
             {revenueByCloud.length === 0 ? (
@@ -394,10 +394,10 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
         </Card>
 
         {/* Status Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Status Breakdown</CardTitle>
-            <CardDescription>Current status of all requests</CardDescription>
+        <Card className="overflow-hidden">
+          <CardHeader variant="primary">
+            <CardTitle className="text-primary-foreground">Status Breakdown</CardTitle>
+            <CardDescription className="text-primary-foreground/70">Current status of all requests</CardDescription>
           </CardHeader>
           <CardContent>
             {statusBreakdown.length === 0 ? (
@@ -438,10 +438,10 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
       {/* Personnel Analytics Row */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Revenue by Agent */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue by Agent</CardTitle>
-            <CardDescription>Revenue contribution by personnel</CardDescription>
+        <Card className="overflow-hidden">
+          <CardHeader variant="primary">
+            <CardTitle className="text-primary-foreground">Revenue by Agent</CardTitle>
+            <CardDescription className="text-primary-foreground/70">Revenue contribution by personnel</CardDescription>
           </CardHeader>
           <CardContent>
             {revenueByAgent.length === 0 ? (
@@ -472,10 +472,10 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
         </Card>
 
         {/* Requests by Agent */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Requests by Agent</CardTitle>
-            <CardDescription>Number of requests handled by each agent</CardDescription>
+        <Card className="overflow-hidden">
+          <CardHeader variant="primary">
+            <CardTitle className="text-primary-foreground">Requests by Agent</CardTitle>
+            <CardDescription className="text-primary-foreground/70">Number of requests handled by each agent</CardDescription>
           </CardHeader>
           <CardContent>
             {requestsByAgent.length === 0 ? (
@@ -517,13 +517,13 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
       {/* Recent Activity */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Recent Solutions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-blue-500" />
+        <Card className="overflow-hidden">
+          <CardHeader variant="primary">
+            <CardTitle className="flex items-center gap-2 text-primary-foreground">
+              <ClipboardList className="h-5 w-5 text-accent" />
               Recent Solutions
             </CardTitle>
-            <CardDescription>Latest solution requests</CardDescription>
+            <CardDescription className="text-primary-foreground/70">Latest solution requests</CardDescription>
           </CardHeader>
           <CardContent>
             {recentLabRequests.length === 0 ? (
@@ -552,13 +552,13 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
         </Card>
 
         {/* Recent Deliveries */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Truck className="h-5 w-5 text-green-500" />
+        <Card className="overflow-hidden">
+          <CardHeader variant="primary">
+            <CardTitle className="flex items-center gap-2 text-primary-foreground">
+              <Truck className="h-5 w-5 text-accent" />
               Recent Deliveries
             </CardTitle>
-            <CardDescription>Latest delivery requests</CardDescription>
+            <CardDescription className="text-primary-foreground/70">Latest delivery requests</CardDescription>
           </CardHeader>
           <CardContent>
             {recentDeliveryRequests.length === 0 ? (
