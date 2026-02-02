@@ -276,16 +276,16 @@ export const Dashboard = ({ labRequests, deliveryRequests }: DashboardProps) => 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {stats.map((stat) => (
-          <Card key={stat.title} className="hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+          <Card key={stat.title} className="hover:shadow-md transition-shadow overflow-hidden">
+            <CardHeader variant="primary" className="flex flex-row items-center justify-between pb-2 pt-3">
+              <CardTitle className="text-sm font-medium text-primary-foreground">
                 {stat.title}
               </CardTitle>
-              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              <div className="p-2 rounded-lg bg-accent">
+                <stat.icon className="h-4 w-4 text-accent-foreground" />
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <div className="text-2xl font-bold">{stat.value}</div>
               <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
             </CardContent>
