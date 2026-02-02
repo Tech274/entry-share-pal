@@ -122,51 +122,26 @@ const SubmitRequest = () => {
     setIsSubmitting(true);
 
     try {
-      // Determine the current month and year
-      const startDate = new Date(formData.startDate);
-      const month = startDate.toLocaleString('en-US', { month: 'long' });
-      const year = startDate.getFullYear();
+      // Use edge function to bypass RLS for public submissions
+      const { data, error } = await supabase.functions.invoke('submit-request', {
+        body: {
+          taskType: formData.taskType,
+          requesterEmail: formData.requesterEmail,
+          tenantName: formData.tenantName,
+          potentialId: formData.potentialId,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          labType: formData.labType,
+          lineOfBusiness: formData.lineOfBusiness,
+          subject: formData.subject,
+          description: formData.description,
+          attachmentUrl: attachment?.url,
+          attachmentName: attachment?.name,
+        },
+      });
 
-      // Include attachment URL in remarks/description if present
-      const descriptionWithAttachment = attachment 
-        ? `${formData.description}\n\n<p><strong>Attachment:</strong> <a href="${attachment.url}" target="_blank">${attachment.name}</a></p>`
-        : formData.description;
-
-      if (formData.taskType === 'Lab Request - Solutions') {
-        // Insert into lab_requests table
-        const { error } = await supabase.from('lab_requests').insert({
-          potential_id: formData.potentialId,
-          client: formData.tenantName || 'Unknown',
-          lab_name: formData.subject,
-          requester: formData.requesterEmail,
-          lab_start_date: formData.startDate,
-          lab_end_date: formData.endDate,
-          line_of_business: formData.lineOfBusiness || null,
-          remarks: descriptionWithAttachment,
-          status: 'Solution Pending',
-          month,
-          year,
-        });
-
-        if (error) throw error;
-      } else {
-        // Insert into delivery_requests table
-        const { error } = await supabase.from('delivery_requests').insert({
-          potential_id: formData.potentialId,
-          client: formData.tenantName || 'Unknown',
-          training_name: formData.subject,
-          requester: formData.requesterEmail,
-          start_date: formData.startDate,
-          end_date: formData.endDate,
-          lab_type: formData.labType || null,
-          line_of_business: formData.lineOfBusiness || null,
-          lab_status: 'Pending',
-          month,
-          year,
-        });
-
-        if (error) throw error;
-      }
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       // Send email notification
       try {
