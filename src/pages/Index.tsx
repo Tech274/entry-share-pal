@@ -4,12 +4,13 @@ import { DeliveryRequestForm } from '@/components/DeliveryRequestForm';
 import { RequestsTable } from '@/components/RequestsTable';
 import { DeliveryTable } from '@/components/DeliveryTable';
 import { Dashboard } from '@/components/Dashboard';
+import { CalendarView } from '@/components/CalendarView';
 import { Header } from '@/components/Header';
 import { useLabRequests } from '@/hooks/useLabRequests';
 import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { useToast } from '@/hooks/use-toast';
-import { ClipboardList, Truck, TableProperties, LayoutDashboard } from 'lucide-react';
+import { ClipboardList, Truck, TableProperties, LayoutDashboard, Calendar } from 'lucide-react';
 
 const Index = () => {
   const { requests, addRequest, deleteRequest, clearAll } = useLabRequests();
@@ -88,14 +89,20 @@ const Index = () => {
         onExportCSV={handleExportCSV}
         onExportXLS={handleExportXLS}
         onClearAll={handleClearAll}
+        labRequests={requests}
+        deliveryRequests={deliveryRequests}
       />
 
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full max-w-3xl grid-cols-5">
+          <TabsList className="grid w-full max-w-4xl grid-cols-6">
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="w-4 h-4" />
               Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="gap-2">
+              <Calendar className="w-4 h-4" />
+              Calendar
             </TabsTrigger>
             <TabsTrigger value="solutions" className="gap-2">
               <ClipboardList className="w-4 h-4" />
@@ -117,6 +124,10 @@ const Index = () => {
 
           <TabsContent value="dashboard" className="space-y-6">
             <Dashboard labRequests={requests} deliveryRequests={deliveryRequests} />
+          </TabsContent>
+
+          <TabsContent value="calendar" className="space-y-6">
+            <CalendarView labRequests={requests} deliveryRequests={deliveryRequests} />
           </TabsContent>
 
           <TabsContent value="solutions" className="space-y-6">
