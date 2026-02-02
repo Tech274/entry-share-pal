@@ -7,6 +7,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { GlobalSearch } from '@/components/GlobalSearch';
+import { LabRequest } from '@/types/labRequest';
+import { DeliveryRequest } from '@/types/deliveryRequest';
 import logo from '@/assets/makemylabs-logo.png';
 
 interface HeaderProps {
@@ -14,9 +17,11 @@ interface HeaderProps {
   onExportCSV: () => void;
   onExportXLS: () => void;
   onClearAll: () => void;
+  labRequests: LabRequest[];
+  deliveryRequests: DeliveryRequest[];
 }
 
-export const Header = ({ requestCount, onExportCSV, onExportXLS, onClearAll }: HeaderProps) => {
+export const Header = ({ requestCount, onExportCSV, onExportXLS, onClearAll, labRequests, deliveryRequests }: HeaderProps) => {
   return (
     <header className="bg-primary border-b sticky top-0 z-10">
       <div className="container mx-auto px-4 py-3">
@@ -31,6 +36,8 @@ export const Header = ({ requestCount, onExportCSV, onExportXLS, onClearAll }: H
           </div>
 
           <div className="flex items-center gap-2">
+            <GlobalSearch labRequests={labRequests} deliveryRequests={deliveryRequests} />
+            
             <Link to="/preview">
               <Button variant="secondary" className="bg-accent text-accent-foreground hover:bg-accent/90">
                 <Eye className="w-4 h-4 mr-2" />
