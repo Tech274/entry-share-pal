@@ -168,9 +168,29 @@ const SubmitRequest = () => {
         if (error) throw error;
       }
 
+      // Send email notification
+      try {
+        await supabase.functions.invoke('send-notification-email', {
+          body: {
+            type: 'submission',
+            recipientEmail: formData.requesterEmail,
+            requestDetails: {
+              potentialId: formData.potentialId,
+              client: formData.tenantName,
+              subject: formData.subject,
+              taskType: formData.taskType,
+            },
+          },
+        });
+        console.log('Notification email sent successfully');
+      } catch (emailError) {
+        console.error('Failed to send notification email:', emailError);
+        // Don't fail the submission if email fails
+      }
+
       toast({
         title: 'Request Submitted',
-        description: 'Your request has been submitted successfully. You will receive updates via email.',
+        description: 'Your request has been submitted successfully. You will receive a confirmation email shortly.',
       });
 
       navigate('/');
