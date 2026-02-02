@@ -16,7 +16,7 @@ const CardHeader = React.forwardRef<HTMLDivElement, CardHeaderProps>(
     <div 
       ref={ref} 
       className={cn(
-        "flex flex-col space-y-1.5 p-6",
+        "flex flex-col space-y-1 p-4",
         variant === "primary" && "bg-primary text-primary-foreground rounded-t-lg",
         className
       )} 
@@ -28,9 +28,10 @@ CardHeader.displayName = "CardHeader";
 
 const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn("text-2xl font-semibold leading-none tracking-tight", className)} {...props} />
+    <h3 ref={ref} className={cn("text-lg font-semibold leading-none tracking-tight", className)} {...props} />
   ),
 );
+CardTitle.displayName = "CardTitle";
 CardTitle.displayName = "CardTitle";
 
 const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
