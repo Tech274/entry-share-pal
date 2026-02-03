@@ -14,7 +14,7 @@ import { DeliveryRequest } from '@/types/deliveryRequest';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { ROLE_LABELS, ROLE_COLORS } from '@/types/roles';
-import logo from '@/assets/makemylabs-logo.png';
+import logo from '@/assets/mml-logo.png';
 
 interface HeaderProps {
   requestCount: number;

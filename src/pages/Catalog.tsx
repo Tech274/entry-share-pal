@@ -6,7 +6,7 @@ import { Layers, Server, Cloud, Database, Shield, GitBranch, Cpu, Building2, Spa
 import { cn } from '@/lib/utils';
 import { useLabCatalog, groupByCategory } from '@/hooks/useLabCatalog';
 import { Link } from 'react-router-dom';
-import logoImage from '@/assets/makemylabs-logo.png';
+import logoImage from '@/assets/mml-logo.png';
 
 const categories = [
   { id: 'cloud', label: 'Cloud Labs', icon: Cloud },

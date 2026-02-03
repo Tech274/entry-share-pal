@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import logo from '@/assets/makemylabs-logo.png';
+import logo from '@/assets/mml-logo.png';
 
 const PublicHeader = () => {
   return (
