@@ -151,6 +151,7 @@ const Preview = () => {
                   <thead className="sticky top-0 z-10">
                     <tr className="bg-primary text-primary-foreground">
                       <th className="spreadsheet-cell font-semibold text-left">#</th>
+                      <th className="spreadsheet-cell font-semibold text-left">Potential ID</th>
                       <th className="spreadsheet-cell font-semibold text-left">Training Name</th>
                       <th className="spreadsheet-cell font-semibold text-left">Client Name</th>
                       <th className="spreadsheet-cell font-semibold text-left">LOB</th>
@@ -182,6 +183,13 @@ const Preview = () => {
                         }`}
                       >
                         <td className="spreadsheet-cell text-muted-foreground">{index + 1}</td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.potentialId}
+                            onSave={(v) => handleCellUpdate(request.id, 'potentialId', v)}
+                            className="font-medium"
+                          />
+                        </td>
                         <td className="spreadsheet-cell">
                           <EditableCell
                             value={request.labName}
