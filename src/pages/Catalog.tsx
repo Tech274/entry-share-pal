@@ -130,9 +130,9 @@ const Catalog = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-background border-b sticky top-0 z-50">
+      <header className="bg-background border-b sticky top-0 z-50 animate-fade-in">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 hover-scale">
             <img src={logoImage} alt="MakeMyLabs" className="h-8 w-auto" />
             <div className="hidden sm:block">
               <span className="text-lg font-bold text-foreground">MML Labs</span>
@@ -141,30 +141,30 @@ const Catalog = () => {
           </Link>
           <div className="flex items-center gap-4">
             <Link to="/lab-catalog">
-              <Button variant="ghost" size="sm">Browse All Labs</Button>
+              <Button variant="ghost" size="sm" className="transition-all duration-200 hover:scale-105">Browse All Labs</Button>
             </Link>
             <Link to="/submit-request">
-              <Button size="sm">Request a Lab</Button>
+              <Button size="sm" className="transition-all duration-200 hover:scale-105 hover:shadow-md">Request a Lab</Button>
             </Link>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground py-20">
+      <section className="bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground py-20 overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-primary-foreground/10 px-4 py-2 rounded-full mb-6">
-              <Layers className="h-5 w-5" />
+            <div className="inline-flex items-center gap-2 bg-primary-foreground/10 px-4 py-2 rounded-full mb-6 animate-fade-in opacity-0 [animation-delay:100ms] [animation-fill-mode:forwards]">
+              <Layers className="h-5 w-5 animate-pulse" />
               <span className="text-sm font-medium">Enterprise Lab Solutions</span>
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in opacity-0 [animation-delay:200ms] [animation-fill-mode:forwards]">
               MML Labs Catalog
             </h1>
-            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-10">
+            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-10 animate-fade-in opacity-0 [animation-delay:300ms] [animation-fill-mode:forwards]">
               Discover our comprehensive collection of pre-built, enterprise-ready lab environments for training, development, and certification preparation.
             </p>
-            <div className="relative max-w-xl mx-auto">
+            <div className="relative max-w-xl mx-auto animate-scale-in opacity-0 [animation-delay:400ms] [animation-fill-mode:forwards]">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 type="text"
@@ -175,7 +175,7 @@ const Catalog = () => {
                   if (e.target.value.trim()) setActiveCategory(null);
                   else setActiveCategory('cloud');
                 }}
-                className="pl-12 h-14 text-lg bg-background text-foreground rounded-full shadow-lg"
+                className="pl-12 h-14 text-lg bg-background text-foreground rounded-full shadow-lg transition-shadow duration-300 focus:shadow-xl"
               />
             </div>
           </div>
@@ -187,7 +187,11 @@ const Catalog = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {features.map((feature, idx) => (
-              <div key={idx} className="flex items-start gap-3">
+              <div 
+                key={idx} 
+                className="flex items-start gap-3 animate-fade-in opacity-0 [animation-fill-mode:forwards] hover-scale"
+                style={{ animationDelay: `${500 + idx * 100}ms` }}
+              >
                 <feature.icon className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                 <div>
                   <h3 className="font-semibold text-sm">{feature.title}</h3>
@@ -204,7 +208,7 @@ const Catalog = () => {
         <section className="py-6 bg-background border-b sticky top-[73px] z-40">
           <div className="container mx-auto px-4">
             <div className="flex flex-wrap justify-center gap-2">
-              {categories.map((category) => {
+              {categories.map((category, idx) => {
                 const Icon = category.icon;
                 const isActive = activeCategory === category.id;
                 return (
@@ -212,13 +216,21 @@ const Catalog = () => {
                     key={category.id}
                     onClick={() => setActiveCategory(category.id)}
                     className={cn(
-                      "flex items-center gap-2 px-4 py-2.5 rounded-full font-medium transition-all text-sm",
+                      "flex items-center gap-2 px-4 py-2.5 rounded-full font-medium text-sm",
+                      "transition-all duration-300 ease-out transform",
+                      "hover:scale-105 active:scale-95",
                       isActive
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:shadow-md"
                     )}
+                    style={{ 
+                      animationDelay: `${idx * 50}ms`,
+                    }}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className={cn(
+                      "h-4 w-4 transition-transform duration-300",
+                      isActive && "animate-pulse"
+                    )} />
                     <span>{category.label}</span>
                   </button>
                 );
@@ -233,39 +245,52 @@ const Catalog = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-3">
+              <h2 className="text-3xl font-bold mb-3 animate-fade-in">
                 {isSearching 
                   ? `Search Results for "${searchQuery}"` 
                   : categories.find(c => c.id === activeCategory)?.label}
               </h2>
               {!isSearching && (
-                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto animate-fade-in [animation-delay:100ms]">
                   {currentDescription}
                 </p>
               )}
               {isSearching && (
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground animate-fade-in">
                   Found {currentTemplates.length} matching template{currentTemplates.length !== 1 ? 's' : ''}
                 </p>
               )}
             </div>
 
             {isLoading ? (
-              <div className="text-center py-12 text-muted-foreground">Loading templates...</div>
-            ) : currentTemplates.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
+                <div className="inline-block animate-pulse">Loading templates...</div>
+              </div>
+            ) : currentTemplates.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground animate-fade-in">
                 No templates found. Try a different search term.
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {currentTemplates.map((template: any, index) => (
-                  <Card key={index} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/20">
+                  <Card 
+                    key={`${activeCategory}-${index}`} 
+                    className={cn(
+                      "group border-2 hover:border-primary/20",
+                      "transition-all duration-300 ease-out",
+                      "hover:shadow-xl hover:-translate-y-2",
+                      "animate-fade-in opacity-0 [animation-fill-mode:forwards]"
+                    )}
+                    style={{ animationDelay: `${index * 75}ms` }}
+                  >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between gap-2">
-                        <CardTitle className="text-lg leading-tight">{template.name}</CardTitle>
+                        <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors duration-300">
+                          {template.name}
+                        </CardTitle>
                       </div>
                       {isSearching && template.categoryLabel && (
-                        <span className="text-xs text-primary bg-primary/10 px-2.5 py-1 rounded-full w-fit font-medium">
+                        <span className="text-xs text-primary bg-primary/10 px-2.5 py-1 rounded-full w-fit font-medium transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
                           {template.categoryLabel}
                         </span>
                       )}
@@ -275,9 +300,13 @@ const Catalog = () => {
                         {template.description}
                       </CardDescription>
                       <Link to="/submit-request">
-                        <Button variant="ghost" size="sm" className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
+                        >
                           Request This Lab
-                          <ArrowRight className="h-4 w-4 ml-1" />
+                          <ArrowRight className="h-4 w-4 ml-1 transition-transform duration-300 group-hover:translate-x-1" />
                         </Button>
                       </Link>
                     </CardContent>
@@ -290,7 +319,7 @@ const Catalog = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary text-primary-foreground">
+      <section className="py-20 bg-primary text-primary-foreground overflow-hidden">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Need a Custom Lab Environment?
@@ -300,13 +329,21 @@ const Catalog = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/submit-request">
-              <Button size="lg" variant="secondary" className="min-w-[200px]">
+              <Button 
+                size="lg" 
+                variant="secondary" 
+                className="min-w-[200px] transition-all duration-300 hover:scale-105 hover:shadow-lg"
+              >
                 Submit a Request
-                <ArrowRight className="h-5 w-5 ml-2" />
+                <ArrowRight className="h-5 w-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
               </Button>
             </Link>
             <Link to="/docs">
-              <Button size="lg" variant="outline" className="min-w-[200px] border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="min-w-[200px] border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-300 hover:scale-105"
+              >
                 View Documentation
               </Button>
             </Link>
