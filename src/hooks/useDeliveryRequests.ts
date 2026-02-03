@@ -225,6 +225,71 @@ export const useDeliveryRequests = () => {
     }
   };
 
+  const bulkDelete = async (ids: string[]) => {
+    try {
+      const { error } = await supabase
+        .from('delivery_requests')
+        .delete()
+        .in('id', ids);
+
+      if (error) {
+        console.error('Error bulk deleting delivery requests:', error);
+        return false;
+      }
+
+      setRequests(prev => prev.filter(req => !ids.includes(req.id)));
+      return true;
+    } catch (error) {
+      console.error('Error bulk deleting delivery requests:', error);
+      return false;
+    }
+  };
+
+  const bulkUpdateStatus = async (ids: string[], status: string) => {
+    try {
+      const { error } = await supabase
+        .from('delivery_requests')
+        .update({ lab_status: status })
+        .in('id', ids);
+
+      if (error) {
+        console.error('Error bulk updating delivery requests:', error);
+        return false;
+      }
+
+      setRequests(prev =>
+        prev.map(req => (ids.includes(req.id) ? { ...req, labStatus: status } : req))
+      );
+      return true;
+    } catch (error) {
+      console.error('Error bulk updating delivery requests:', error);
+      return false;
+    }
+  };
+
+  const bulkInsert = async (data: Omit<DeliveryRequest, 'id' | 'createdAt'>[]) => {
+    try {
+      const rows = data.map(mapDeliveryRequestToRow);
+      const { data: newRows, error } = await supabase
+        .from('delivery_requests')
+        .insert(rows)
+        .select();
+
+      if (error) {
+        console.error('Error bulk inserting delivery requests:', error);
+        throw error;
+      }
+
+      if (newRows) {
+        setRequests(prev => [...newRows.map(mapRowToDeliveryRequest), ...prev]);
+      }
+      return true;
+    } catch (error) {
+      console.error('Error bulk inserting delivery requests:', error);
+      throw error;
+    }
+  };
+
   return {
     requests,
     loading,
@@ -232,6 +297,9 @@ export const useDeliveryRequests = () => {
     updateRequest,
     deleteRequest,
     clearAll,
+    bulkDelete,
+    bulkUpdateStatus,
+    bulkInsert,
     refetch: fetchRequests,
   };
 };
