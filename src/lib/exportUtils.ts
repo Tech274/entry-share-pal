@@ -6,7 +6,9 @@ const HEADERS = [
   'Month',
   'Line of Business',
   'Client',
-  'Cloud',
+  'Lab Type',
+  'Cloud Type',
+  'TP Lab Type',
   'Lab Name',
   'Requester',
   'Agent Name',
@@ -38,7 +40,9 @@ export const exportToCSV = (requests: LabRequest[]): void => {
     r.month,
     r.lineOfBusiness || '',
     r.client,
-    r.cloud,
+    r.cloud || '',
+    r.cloudType || '',
+    r.tpLabType || '',
     r.labName,
     r.requester,
     r.agentName,
@@ -72,7 +76,9 @@ export const exportToXLS = (requests: LabRequest[]): void => {
       <td>${r.month}</td>
       <td>${r.lineOfBusiness || ''}</td>
       <td>${r.client}</td>
-      <td>${r.cloud}</td>
+      <td>${r.cloud || ''}</td>
+      <td>${r.cloudType || ''}</td>
+      <td>${r.tpLabType || ''}</td>
       <td>${r.labName}</td>
       <td>${r.requester}</td>
       <td>${r.agentName}</td>
