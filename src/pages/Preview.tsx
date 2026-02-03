@@ -146,7 +146,7 @@ const Preview = () => {
         ) : (
           <div className="bg-card rounded-lg border overflow-hidden">
             <ScrollArea className="w-full max-h-[calc(100vh-200px)]">
-              <div className="min-w-[2000px]">
+              <div className="min-w-[2400px]">
                 <table className="w-full border-collapse text-sm">
                   <thead className="sticky top-0 z-10">
                     <tr className="bg-primary text-primary-foreground">
@@ -245,20 +245,28 @@ const Preview = () => {
                           />
                         </td>
                         <td className="spreadsheet-cell">
-                          <EditableCell
-                            value={request.cloudType || ''}
-                            onSave={(v) => handleCellUpdate(request.id, 'cloudType', v)}
-                            type="select"
-                            options={CLOUD_TYPE_OPTIONS}
-                          />
+                          {request.cloud === 'Public Cloud' ? (
+                            <EditableCell
+                              value={request.cloudType || ''}
+                              onSave={(v) => handleCellUpdate(request.id, 'cloudType', v)}
+                              type="select"
+                              options={CLOUD_TYPE_OPTIONS}
+                            />
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
                         </td>
                         <td className="spreadsheet-cell">
-                          <EditableCell
-                            value={request.tpLabType || ''}
-                            onSave={(v) => handleCellUpdate(request.id, 'tpLabType', v)}
-                            type="select"
-                            options={TP_LAB_TYPE_OPTIONS}
-                          />
+                          {request.cloud === 'TP Labs' ? (
+                            <EditableCell
+                              value={request.tpLabType || ''}
+                              onSave={(v) => handleCellUpdate(request.id, 'tpLabType', v)}
+                              type="select"
+                              options={TP_LAB_TYPE_OPTIONS}
+                            />
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
                         </td>
                         <td className="spreadsheet-cell">
                           <EditableCell
