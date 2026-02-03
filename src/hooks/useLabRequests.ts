@@ -221,6 +221,71 @@ export const useLabRequests = () => {
     }
   };
 
+  const bulkDelete = async (ids: string[]) => {
+    try {
+      const { error } = await supabase
+        .from('lab_requests')
+        .delete()
+        .in('id', ids);
+
+      if (error) {
+        console.error('Error bulk deleting lab requests:', error);
+        return false;
+      }
+
+      setRequests(prev => prev.filter(req => !ids.includes(req.id)));
+      return true;
+    } catch (error) {
+      console.error('Error bulk deleting lab requests:', error);
+      return false;
+    }
+  };
+
+  const bulkUpdateStatus = async (ids: string[], status: string) => {
+    try {
+      const { error } = await supabase
+        .from('lab_requests')
+        .update({ status })
+        .in('id', ids);
+
+      if (error) {
+        console.error('Error bulk updating lab requests:', error);
+        return false;
+      }
+
+      setRequests(prev =>
+        prev.map(req => (ids.includes(req.id) ? { ...req, status } : req))
+      );
+      return true;
+    } catch (error) {
+      console.error('Error bulk updating lab requests:', error);
+      return false;
+    }
+  };
+
+  const bulkInsert = async (data: Omit<LabRequest, 'id' | 'createdAt'>[]) => {
+    try {
+      const rows = data.map(mapLabRequestToRow);
+      const { data: newRows, error } = await supabase
+        .from('lab_requests')
+        .insert(rows)
+        .select();
+
+      if (error) {
+        console.error('Error bulk inserting lab requests:', error);
+        throw error;
+      }
+
+      if (newRows) {
+        setRequests(prev => [...newRows.map(mapRowToLabRequest), ...prev]);
+      }
+      return true;
+    } catch (error) {
+      console.error('Error bulk inserting lab requests:', error);
+      throw error;
+    }
+  };
+
   return {
     requests,
     loading,
@@ -228,6 +293,9 @@ export const useLabRequests = () => {
     updateRequest,
     deleteRequest,
     clearAll,
+    bulkDelete,
+    bulkUpdateStatus,
+    bulkInsert,
     refetch: fetchRequests,
   };
 };
