@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, FileText, PlusCircle, User, BookOpen } from 'lucide-react';
+import { Search, FileText, PlusCircle, User, BookOpen, Layers } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,6 +29,9 @@ const Landing = () => {
               </Button>
               <Button variant="ghost" asChild className="font-medium">
                 <Link to="/docs">Docs</Link>
+              </Button>
+              <Button variant="ghost" asChild className="font-medium">
+                <Link to="/lab-catalog">Lab Catalog</Link>
               </Button>
               <Button variant="outline" asChild>
                 <Link to="/submit-request">Submit a Request</Link>
@@ -72,7 +75,7 @@ const Landing = () => {
       {/* Action Cards */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {/* View All Requests Card */}
             <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
               <Link to="/my-requests">
@@ -119,6 +122,23 @@ const Landing = () => {
                 <CardContent>
                   <CardDescription className="text-base">
                     Access documentation, guides, and resources for MakeMyLabs platform.
+                  </CardDescription>
+                </CardContent>
+              </Link>
+            </Card>
+
+            {/* Lab Catalog Card */}
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+              <Link to="/lab-catalog">
+                <CardHeader className="pb-2">
+                  <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                    <Layers className="h-8 w-8 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl">Lab Catalog</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base">
+                    Browse pre-built lab environments and templates for your training needs.
                   </CardDescription>
                 </CardContent>
               </Link>
