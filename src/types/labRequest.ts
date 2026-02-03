@@ -6,6 +6,7 @@ export interface LabRequest {
   year: number;
   client: string;
   cloud: string;
+  cloudType: string;
   labName: string;
   requester: string;
   agentName: string;

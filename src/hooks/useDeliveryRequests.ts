@@ -15,6 +15,7 @@ const mapRowToDeliveryRequest = (row: any): DeliveryRequest => ({
   receivedOn: row.received_on || '',
   client: row.client,
   cloud: row.cloud || '',
+  cloudType: row.cloud_type || '',
   labName: row.lab_name || '',
   requester: row.requester || '',
   agentName: row.agent_name || '',
@@ -42,6 +43,7 @@ const mapDeliveryRequestToRow = (request: Omit<DeliveryRequest, 'id' | 'createdA
   received_on: request.receivedOn,
   client: request.client,
   cloud: request.cloud,
+  cloud_type: request.cloudType,
   lab_name: request.labName,
   requester: request.requester,
   agent_name: request.agentName,
@@ -147,6 +149,7 @@ export const useDeliveryRequests = () => {
       if (data.receivedOn !== undefined) updateData.received_on = data.receivedOn;
       if (data.client !== undefined) updateData.client = data.client;
       if (data.cloud !== undefined) updateData.cloud = data.cloud;
+      if (data.cloudType !== undefined) updateData.cloud_type = data.cloudType;
       if (data.labName !== undefined) updateData.lab_name = data.labName;
       if (data.requester !== undefined) updateData.requester = data.requester;
       if (data.agentName !== undefined) updateData.agent_name = data.agentName;

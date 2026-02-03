@@ -21,6 +21,7 @@ export type Database = {
           assigned_to: string | null
           client: string
           cloud: string | null
+          cloud_type: string | null
           created_at: string
           end_date: string | null
           fresh_desk_ticket_number: string | null
@@ -49,6 +50,7 @@ export type Database = {
           assigned_to?: string | null
           client: string
           cloud?: string | null
+          cloud_type?: string | null
           created_at?: string
           end_date?: string | null
           fresh_desk_ticket_number?: string | null
@@ -77,6 +79,7 @@ export type Database = {
           assigned_to?: string | null
           client?: string
           cloud?: string | null
+          cloud_type?: string | null
           created_at?: string
           end_date?: string | null
           fresh_desk_ticket_number?: string | null
@@ -144,6 +147,7 @@ export type Database = {
           assigned_to: string | null
           client: string
           cloud: string | null
+          cloud_type: string | null
           created_at: string
           duration_in_days: number | null
           fresh_desk_ticket_number: string | null
@@ -172,6 +176,7 @@ export type Database = {
           assigned_to?: string | null
           client: string
           cloud?: string | null
+          cloud_type?: string | null
           created_at?: string
           duration_in_days?: number | null
           fresh_desk_ticket_number?: string | null
@@ -200,6 +205,7 @@ export type Database = {
           assigned_to?: string | null
           client?: string
           cloud?: string | null
+          cloud_type?: string | null
           created_at?: string
           duration_in_days?: number | null
           fresh_desk_ticket_number?: string | null

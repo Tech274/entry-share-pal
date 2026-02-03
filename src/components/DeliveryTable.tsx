@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatINR } from '@/lib/formatUtils';
-import { getStatusColor, getCloudColor, getLOBColor, getLabTypeColor } from '@/lib/statusColors';
+import { getStatusColor, getCloudColor, getCloudTypeColor, getLOBColor, getLabTypeColor } from '@/lib/statusColors';
 import { cn } from '@/lib/utils';
 
 interface DeliveryTableProps {
@@ -42,6 +42,7 @@ export const DeliveryTable = ({ requests, onDelete }: DeliveryTableProps) => {
                 <TableHead className="font-semibold">Training Name</TableHead>
                 <TableHead className="font-semibold">Client</TableHead>
                 <TableHead className="font-semibold">Cloud</TableHead>
+                <TableHead className="font-semibold">Cloud Type</TableHead>
                 <TableHead className="font-semibold">Users</TableHead>
                 <TableHead className="font-semibold">Lab Status</TableHead>
                 <TableHead className="font-semibold">Lab Type</TableHead>
@@ -71,6 +72,13 @@ export const DeliveryTable = ({ requests, onDelete }: DeliveryTableProps) => {
                     {request.cloud ? (
                       <Badge variant="outline" className={cn('text-xs', getCloudColor(request.cloud))}>
                         {request.cloud}
+                      </Badge>
+                    ) : '-'}
+                  </TableCell>
+                  <TableCell>
+                    {request.cloudType ? (
+                      <Badge variant="outline" className={cn('text-xs', getCloudTypeColor(request.cloudType))}>
+                        {request.cloudType}
                       </Badge>
                     ) : '-'}
                   </TableCell>

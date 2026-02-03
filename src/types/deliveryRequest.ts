@@ -9,6 +9,7 @@ export interface DeliveryRequest {
   receivedOn: string;
   client: string;
   cloud: string;
+  cloudType: string;
   labName: string;
   requester: string;
   agentName: string;
