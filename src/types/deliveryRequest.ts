@@ -24,6 +24,7 @@ export interface DeliveryRequest {
   sellingCostPerUser: number;
   totalAmount: number;
   lineOfBusiness: string;
+  assignedTo?: string | null;
   createdAt: string;
 }
 

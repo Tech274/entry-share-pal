@@ -107,6 +107,36 @@ export type Database = {
         }
         Relationships: []
       }
+      engineer_settings: {
+        Row: {
+          created_at: string
+          expertise: Json | null
+          id: string
+          is_available: boolean
+          max_active_requests: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expertise?: Json | null
+          id?: string
+          is_available?: boolean
+          max_active_requests?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expertise?: Json | null
+          id?: string
+          is_available?: boolean
+          max_active_requests?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       lab_catalog_entries: {
         Row: {
           category: string
@@ -266,6 +296,39 @@ export type Database = {
         }
         Relationships: []
       }
+      request_activity_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          performed_by: string | null
+          request_id: string
+          request_type: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          performed_by?: string | null
+          request_id: string
+          request_type: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          performed_by?: string | null
+          request_id?: string
+          request_type?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -292,6 +355,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_engineer_workload: { Args: { engineer_id: string }; Returns: number }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

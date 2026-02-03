@@ -30,6 +30,7 @@ const mapRowToLabRequest = (row: any): LabRequest => ({
   status: row.status || 'Solution Pending',
   remarks: row.remarks || '',
   lineOfBusiness: row.line_of_business || '',
+  assignedTo: row.assigned_to || null,
   createdAt: row.created_at,
 });
 
