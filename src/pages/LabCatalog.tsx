@@ -7,7 +7,7 @@ import PublicHeader from '@/components/PublicHeader';
 import { cn } from '@/lib/utils';
 import { useLabCatalog, groupByCategory } from '@/hooks/useLabCatalog';
 
-const EXTERNAL_CATALOG_URL = '/catalog';
+const EXTERNAL_CATALOG_URL = 'https://mml-labs.com';
 
 const categories = [
   { id: 'cloud', label: 'Cloud Labs', icon: Cloud },
