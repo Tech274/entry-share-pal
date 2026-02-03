@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, FileText, PlusCircle, User } from 'lucide-react';
+import { Search, FileText, PlusCircle, User, BookOpen } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,7 +69,7 @@ const Landing = () => {
       {/* Action Cards */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {/* View All Requests Card */}
             <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
               <Link to="/my-requests">
@@ -99,6 +99,23 @@ const Landing = () => {
                 <CardContent>
                   <CardDescription className="text-base">
                     Describe your requirement by filling out the request form.
+                  </CardDescription>
+                </CardContent>
+              </Link>
+            </Card>
+
+            {/* MML Docs Card */}
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+              <Link to="/docs">
+                <CardHeader className="pb-2">
+                  <div className="w-16 h-16 rounded-lg bg-secondary/50 flex items-center justify-center mb-4 group-hover:bg-secondary transition-colors">
+                    <BookOpen className="h-8 w-8 text-secondary-foreground" />
+                  </div>
+                  <CardTitle className="text-xl">MML Docs</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base">
+                    Access documentation, guides, and resources for MakeMyLabs platform.
                   </CardDescription>
                 </CardContent>
               </Link>
