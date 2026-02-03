@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useLabCatalog, groupByCategory } from '@/hooks/useLabCatalog';
 import { Link } from 'react-router-dom';
 import logoImage from '@/assets/mml-logo.png';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 const categories = [
   { id: 'cloud', label: 'Cloud Labs', icon: Cloud },
@@ -92,6 +93,201 @@ const features = [
   { icon: CheckCircle2, title: 'Enterprise Security', description: 'Isolated environments with data protection' },
   { icon: CheckCircle2, title: '24/7 Support', description: 'Round-the-clock technical assistance' },
 ];
+
+// Scroll-animated Features Section
+const FeaturesSection = ({ features }: { features: typeof import('lucide-react') extends { CheckCircle2: infer T } ? { icon: T; title: string; description: string }[] : never }) => {
+  const { ref, isVisible } = useScrollAnimation({ threshold: 0.2 });
+  
+  return (
+    <section ref={ref} className="py-12 bg-muted/30 border-b">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {features.map((feature, idx) => (
+            <div 
+              key={idx} 
+              className={cn(
+                "flex items-start gap-3 hover-scale transition-all duration-500",
+                isVisible 
+                  ? "opacity-100 translate-y-0" 
+                  : "opacity-0 translate-y-8"
+              )}
+              style={{ transitionDelay: `${idx * 100}ms` }}
+            >
+              <feature.icon className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-sm">{feature.title}</h3>
+                <p className="text-xs text-muted-foreground">{feature.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Scroll-animated CTA Section
+const CTASection = () => {
+  const { ref, isVisible } = useScrollAnimation({ threshold: 0.3 });
+  
+  return (
+    <section ref={ref} className="py-20 bg-primary text-primary-foreground overflow-hidden">
+      <div className="container mx-auto px-4 text-center">
+        <h2 
+          className={cn(
+            "text-3xl md:text-4xl font-bold mb-4 transition-all duration-700",
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          )}
+        >
+          Need a Custom Lab Environment?
+        </h2>
+        <p 
+          className={cn(
+            "text-primary-foreground/80 text-lg max-w-2xl mx-auto mb-8 transition-all duration-700",
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          )}
+          style={{ transitionDelay: '150ms' }}
+        >
+          Can't find what you're looking for? Our team can create custom lab environments tailored to your specific training requirements.
+        </p>
+        <div 
+          className={cn(
+            "flex flex-col sm:flex-row gap-4 justify-center transition-all duration-700",
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          )}
+          style={{ transitionDelay: '300ms' }}
+        >
+          <Link to="/submit-request">
+            <Button 
+              size="lg" 
+              variant="secondary" 
+              className="min-w-[200px] transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            >
+              Submit a Request
+              <ArrowRight className="h-5 w-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
+            </Button>
+          </Link>
+          <Link to="/docs">
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="min-w-[200px] border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-300 hover:scale-105"
+            >
+              View Documentation
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Scroll-animated Lab Templates Section
+interface LabTemplatesSectionProps {
+  isSearching: boolean;
+  searchQuery: string;
+  activeCategory: string | null;
+  currentDescription: string;
+  currentTemplates: any[];
+  isLoading: boolean;
+  categories: { id: string; label: string; icon: any }[];
+}
+
+const LabTemplatesSection = ({ 
+  isSearching, 
+  searchQuery, 
+  activeCategory, 
+  currentDescription, 
+  currentTemplates, 
+  isLoading,
+  categories 
+}: LabTemplatesSectionProps) => {
+  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
+  
+  return (
+    <section ref={ref} className="py-16">
+      <div className="container mx-auto px-4">
+        <div className="max-w-6xl mx-auto">
+          <div 
+            className={cn(
+              "text-center mb-12 transition-all duration-700",
+              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            )}
+          >
+            <h2 className="text-3xl font-bold mb-3">
+              {isSearching 
+                ? `Search Results for "${searchQuery}"` 
+                : categories.find(c => c.id === activeCategory)?.label}
+            </h2>
+            {!isSearching && (
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                {currentDescription}
+              </p>
+            )}
+            {isSearching && (
+              <p className="text-muted-foreground">
+                Found {currentTemplates.length} matching template{currentTemplates.length !== 1 ? 's' : ''}
+              </p>
+            )}
+          </div>
+
+          {isLoading ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <div className="inline-block animate-pulse">Loading templates...</div>
+            </div>
+          ) : currentTemplates.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              No templates found. Try a different search term.
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {currentTemplates.map((template: any, index) => (
+                <Card 
+                  key={`${activeCategory}-${index}`} 
+                  className={cn(
+                    "group border-2 hover:border-primary/20",
+                    "transition-all duration-500 ease-out",
+                    "hover:shadow-xl hover:-translate-y-2",
+                    isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+                  )}
+                  style={{ transitionDelay: `${index * 75}ms` }}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors duration-300">
+                        {template.name}
+                      </CardTitle>
+                    </div>
+                    {isSearching && template.categoryLabel && (
+                      <span className="text-xs text-primary bg-primary/10 px-2.5 py-1 rounded-full w-fit font-medium transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
+                        {template.categoryLabel}
+                      </span>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-sm leading-relaxed mb-4">
+                      {template.description}
+                    </CardDescription>
+                    <Link to="/submit-request">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
+                      >
+                        Request This Lab
+                        <ArrowRight className="h-4 w-4 ml-1 transition-transform duration-300 group-hover:translate-x-1" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const Catalog = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>('cloud');
@@ -183,25 +379,8 @@ const Catalog = () => {
       </section>
 
       {/* Features */}
-      <section className="py-12 bg-muted/30 border-b">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {features.map((feature, idx) => (
-              <div 
-                key={idx} 
-                className="flex items-start gap-3 animate-fade-in opacity-0 [animation-fill-mode:forwards] hover-scale"
-                style={{ animationDelay: `${500 + idx * 100}ms` }}
-              >
-                <feature.icon className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-sm">{feature.title}</h3>
-                  <p className="text-xs text-muted-foreground">{feature.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FeaturesSection features={features} />
+      
 
       {/* Category Navigation */}
       {!isSearching && (
@@ -241,115 +420,18 @@ const Catalog = () => {
       )}
 
       {/* Lab Templates */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-3 animate-fade-in">
-                {isSearching 
-                  ? `Search Results for "${searchQuery}"` 
-                  : categories.find(c => c.id === activeCategory)?.label}
-              </h2>
-              {!isSearching && (
-                <p className="text-muted-foreground text-lg max-w-2xl mx-auto animate-fade-in [animation-delay:100ms]">
-                  {currentDescription}
-                </p>
-              )}
-              {isSearching && (
-                <p className="text-muted-foreground animate-fade-in">
-                  Found {currentTemplates.length} matching template{currentTemplates.length !== 1 ? 's' : ''}
-                </p>
-              )}
-            </div>
-
-            {isLoading ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <div className="inline-block animate-pulse">Loading templates...</div>
-              </div>
-            ) : currentTemplates.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground animate-fade-in">
-                No templates found. Try a different search term.
-              </div>
-            ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {currentTemplates.map((template: any, index) => (
-                  <Card 
-                    key={`${activeCategory}-${index}`} 
-                    className={cn(
-                      "group border-2 hover:border-primary/20",
-                      "transition-all duration-300 ease-out",
-                      "hover:shadow-xl hover:-translate-y-2",
-                      "animate-fade-in opacity-0 [animation-fill-mode:forwards]"
-                    )}
-                    style={{ animationDelay: `${index * 75}ms` }}
-                  >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors duration-300">
-                          {template.name}
-                        </CardTitle>
-                      </div>
-                      {isSearching && template.categoryLabel && (
-                        <span className="text-xs text-primary bg-primary/10 px-2.5 py-1 rounded-full w-fit font-medium transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
-                          {template.categoryLabel}
-                        </span>
-                      )}
-                    </CardHeader>
-                    <CardContent>
-                      <CardDescription className="text-sm leading-relaxed mb-4">
-                        {template.description}
-                      </CardDescription>
-                      <Link to="/submit-request">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
-                        >
-                          Request This Lab
-                          <ArrowRight className="h-4 w-4 ml-1 transition-transform duration-300 group-hover:translate-x-1" />
-                        </Button>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      <LabTemplatesSection 
+        isSearching={isSearching}
+        searchQuery={searchQuery}
+        activeCategory={activeCategory}
+        currentDescription={currentDescription}
+        currentTemplates={currentTemplates}
+        isLoading={isLoading}
+        categories={categories}
+      />
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary text-primary-foreground overflow-hidden">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Need a Custom Lab Environment?
-          </h2>
-          <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto mb-8">
-            Can't find what you're looking for? Our team can create custom lab environments tailored to your specific training requirements.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/submit-request">
-              <Button 
-                size="lg" 
-                variant="secondary" 
-                className="min-w-[200px] transition-all duration-300 hover:scale-105 hover:shadow-lg"
-              >
-                Submit a Request
-                <ArrowRight className="h-5 w-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
-              </Button>
-            </Link>
-            <Link to="/docs">
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="min-w-[200px] border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-300 hover:scale-105"
-              >
-                View Documentation
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <CTASection />
 
       {/* Footer */}
       <footer className="border-t py-8 bg-background">
