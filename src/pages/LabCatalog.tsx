@@ -1,48 +1,14 @@
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, ExternalLink, Layers, Server, Cloud, Database } from 'lucide-react';
-import logo from '@/assets/makemylabs-logo.png';
+import { ExternalLink, Layers, Server, Cloud, Database, Shield, GitBranch, Cpu, Building2, Sparkles } from 'lucide-react';
+import PublicHeader from '@/components/PublicHeader';
 
-const EXTERNAL_CATALOG_URL = 'https://catalog.makemylabs.com'; // Update this with actual external catalog URL
+const EXTERNAL_CATALOG_URL = 'https://catalog.makemylabs.com';
 
 const LabCatalog = () => {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border-b sticky top-0 z-50">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <img src={logo} alt="MakeMyLabs" className="h-8 object-contain" />
-              <span className="font-semibold text-lg hidden sm:inline">MakeMyLabs</span>
-            </div>
-
-            <nav className="flex items-center gap-1">
-              <Button variant="ghost" asChild className="font-medium">
-                <Link to="/">Home</Link>
-              </Button>
-              <Button variant="ghost" asChild className="font-medium">
-                <Link to="/my-requests">My Requests</Link>
-              </Button>
-              <Button variant="ghost" asChild className="font-medium">
-                <Link to="/docs">Docs</Link>
-              </Button>
-              <Button variant="ghost" asChild className="font-medium">
-                <Link to="/lab-catalog">Lab Catalog</Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link to="/submit-request">Submit a Request</Link>
-              </Button>
-              <Button variant="ghost" size="icon" asChild className="ml-2">
-                <Link to="/auth">
-                  <User className="h-5 w-5" />
-                </Link>
-              </Button>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <PublicHeader />
 
       {/* Hero Section */}
       <section className="bg-primary text-primary-foreground py-16">
@@ -73,7 +39,7 @@ const LabCatalog = () => {
         <div className="container mx-auto px-4">
           <h2 className="text-2xl font-bold text-center mb-8">Lab Categories</h2>
           
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-2">
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
@@ -115,6 +81,76 @@ const LabCatalog = () => {
                 </CardDescription>
               </CardContent>
             </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-2">
+                <div className="w-12 h-12 rounded-lg bg-destructive/10 flex items-center justify-center mb-4">
+                  <Shield className="h-6 w-6 text-destructive" />
+                </div>
+                <CardTitle className="text-lg">Security Labs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  Cybersecurity, penetration testing, SOC training, and security compliance environments.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-2">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                  <GitBranch className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle className="text-lg">DevOps Labs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  CI/CD pipelines, Terraform, Ansible, Jenkins, and automation training environments.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-2">
+                <div className="w-12 h-12 rounded-lg bg-accent/50 flex items-center justify-center mb-4">
+                  <Sparkles className="h-6 w-6 text-accent-foreground" />
+                </div>
+                <CardTitle className="text-lg">Gen AI Labs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  Generative AI, LLMs, prompt engineering, and AI application development labs.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-2">
+                <div className="w-12 h-12 rounded-lg bg-secondary/50 flex items-center justify-center mb-4">
+                  <Building2 className="h-6 w-6 text-secondary-foreground" />
+                </div>
+                <CardTitle className="text-lg">SAP Labs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  SAP S/4HANA, SAP BW, SAP ABAP, and enterprise resource planning training environments.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-2">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                  <Cpu className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle className="text-lg">Oracle & OEM Labs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  Oracle Database, Oracle Cloud, OEM, and enterprise database management training.
+                </CardDescription>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -124,7 +160,7 @@ const LabCatalog = () => {
         <div className="container mx-auto px-4">
           <h2 className="text-2xl font-bold text-center mb-8">Popular Lab Templates</h2>
           
-          <div className="max-w-3xl mx-auto space-y-4">
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">AWS Solutions Architect Lab</CardTitle>
@@ -154,6 +190,39 @@ const LabCatalog = () => {
               <CardContent>
                 <CardDescription className="text-base">
                   Azure Synapse, Data Factory, Databricks, and Power BI integrated environment for data engineering courses.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Penetration Testing Lab</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  Isolated security lab with vulnerable systems, Kali Linux, and SIEM tools for ethical hacking training.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">SAP S/4HANA Sandbox</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  Full SAP S/4HANA environment with sample data for functional and technical training modules.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Gen AI Development Lab</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  LLM integration environment with API access, vector databases, and RAG pipeline templates.
                 </CardDescription>
               </CardContent>
             </Card>
