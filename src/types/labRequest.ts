@@ -25,7 +25,7 @@ export interface LabRequest {
   createdAt: string;
 }
 
-export const CLOUD_OPTIONS = ['AWS', 'Azure', 'GCP', 'Oracle', 'On-Premise', 'Other'];
+export const CLOUD_OPTIONS = ['Public', 'Private Cloud'];
 export const STATUS_OPTIONS = ['Solution Pending', 'Solution Sent'];
 export const LOB_OPTIONS = ['Standalone', 'VILT', 'Integrated'];
 export const MONTH_OPTIONS = [
