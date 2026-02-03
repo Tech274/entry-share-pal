@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ExternalLink, Layers, Server, Cloud, Database, Shield, GitBranch, Cpu, Building2, Sparkles } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 import { cn } from '@/lib/utils';
+import { useLabCatalog, groupByCategory } from '@/hooks/useLabCatalog';
 
 const EXTERNAL_CATALOG_URL = 'https://catalog.makemylabs.com';
 
@@ -87,7 +88,22 @@ const categoryDetails: Record<string, { description: string; templates: { name: 
 
 const LabCatalog = () => {
   const [activeCategory, setActiveCategory] = useState('cloud');
-  const currentCategory = categoryDetails[activeCategory];
+  const { data: catalogEntries = [], isLoading } = useLabCatalog();
+  
+  // Group database entries by category
+  const dbTemplatesByCategory = groupByCategory(catalogEntries);
+  
+  // Merge database templates with fallback static templates
+  const getMergedTemplates = (categoryId: string) => {
+    const dbTemplates = dbTemplatesByCategory[categoryId] || [];
+    const staticTemplates = categoryDetails[categoryId]?.templates || [];
+    
+    // If we have database entries for this category, use them; otherwise fall back to static
+    return dbTemplates.length > 0 ? dbTemplates : staticTemplates;
+  };
+  
+  const currentDescription = categoryDetails[activeCategory]?.description || '';
+  const currentTemplates = getMergedTemplates(activeCategory);
 
   return (
     <div className="min-h-screen bg-background">
@@ -153,24 +169,32 @@ const LabCatalog = () => {
                 {categories.find(c => c.id === activeCategory)?.label}
               </h2>
               <p className="text-muted-foreground text-lg">
-                {currentCategory.description}
+                {currentDescription}
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              {currentCategory.templates.map((template, index) => (
-                <Card key={index} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="text-lg">{template.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-base">
-                      {template.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="text-center py-8 text-muted-foreground">Loading templates...</div>
+            ) : currentTemplates.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No templates available for this category yet.
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-6">
+                {currentTemplates.map((template, index) => (
+                  <Card key={index} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <CardTitle className="text-lg">{template.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription className="text-base">
+                        {template.description}
+                      </CardDescription>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
 
             <div className="text-center mt-10">
               <Button variant="outline" asChild>

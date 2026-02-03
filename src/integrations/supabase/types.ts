@@ -101,6 +101,42 @@ export type Database = {
         }
         Relationships: []
       }
+      lab_catalog_entries: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          display_order: number | null
+          id: string
+          is_published: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          display_order?: number | null
+          id?: string
+          is_published?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          display_order?: number | null
+          id?: string
+          is_published?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lab_requests: {
         Row: {
           account_manager: string | null
