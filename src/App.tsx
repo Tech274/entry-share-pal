@@ -11,6 +11,7 @@ import MyRequests from "./pages/MyRequests";
 import Index from "./pages/Index";
 import Preview from "./pages/Preview";
 import Auth from "./pages/Auth";
+import Docs from "./pages/Docs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/submit-request" element={<SubmitRequest />} />
             <Route path="/my-requests" element={<MyRequests />} />
+            <Route path="/docs" element={<Docs />} />
             <Route path="/auth" element={<Auth />} />
             
             {/* Protected routes - internal staff only */}
