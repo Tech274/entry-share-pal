@@ -1,7 +1,8 @@
 import { LabRequest } from '@/types/labRequest';
+import { DeliveryRequest } from '@/types/deliveryRequest';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
 
-const HEADERS = [
+const LAB_HEADERS = [
   'FreshDesk Ticket Number',
   'Month',
   'Line of Business',
@@ -26,6 +27,29 @@ const HEADERS = [
   'Remarks',
 ];
 
+const DELIVERY_HEADERS = [
+  'Potential ID',
+  'FreshDesk Ticket Number',
+  'Training Name',
+  'Month',
+  'Line of Business',
+  'Client',
+  'Cloud',
+  'Cloud Type',
+  'TP Lab Type',
+  'Number of Users',
+  'Lab Status',
+  'Lab Type',
+  'Start Date',
+  'End Date',
+  'Requester',
+  'Agent Name',
+  'Account Manager',
+  'Input Cost Per User',
+  'Selling Cost Per User',
+  'Total Amount',
+];
+
 const escapeCSV = (value: string | number): string => {
   const stringValue = String(value);
   if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
@@ -34,68 +58,142 @@ const escapeCSV = (value: string | number): string => {
   return stringValue;
 };
 
-export const exportToCSV = (requests: LabRequest[]): void => {
-  const rows = requests.map(r => [
-    r.freshDeskTicketNumber,
-    r.month,
-    r.lineOfBusiness || '',
-    r.client,
-    r.cloud || '',
-    r.cloudType || '',
-    r.tpLabType || '',
-    r.labName,
-    r.requester,
-    r.agentName,
-    r.accountManager,
-    r.receivedOn,
-    r.labStartDate,
-    r.labEndDate,
-    r.userCount,
-    r.durationInDays,
-    formatINR(r.inputCostPerUser),
-    formatINR(r.sellingCostPerUser),
-    formatINR(r.totalAmountForTraining),
-    formatPercentage(r.margin),
-    r.status,
-    r.remarks,
-  ]);
+export function exportToCSV(requests: LabRequest[], filename?: string): void;
+export function exportToCSV(requests: DeliveryRequest[], filename?: string): void;
+export function exportToCSV(requests: (LabRequest | DeliveryRequest)[], filename = 'lab-requests'): void {
+  if (requests.length === 0) return;
+
+  // Detect type by checking for delivery-specific field
+  const isDelivery = 'trainingName' in requests[0] || 'labStatus' in requests[0];
+  const headers = isDelivery ? DELIVERY_HEADERS : LAB_HEADERS;
+
+  const rows = requests.map(r => {
+    if (isDelivery) {
+      const dr = r as DeliveryRequest;
+      return [
+        dr.potentialId || '',
+        dr.freshDeskTicketNumber || '',
+        dr.trainingName || '',
+        dr.month,
+        dr.lineOfBusiness || '',
+        dr.client,
+        dr.cloud || '',
+        dr.cloudType || '',
+        dr.tpLabType || '',
+        dr.numberOfUsers,
+        dr.labStatus || '',
+        dr.labType || '',
+        dr.startDate || '',
+        dr.endDate || '',
+        dr.requester || '',
+        dr.agentName || '',
+        dr.accountManager || '',
+        formatINR(dr.inputCostPerUser),
+        formatINR(dr.sellingCostPerUser),
+        formatINR(dr.totalAmount),
+      ];
+    } else {
+      const lr = r as LabRequest;
+      return [
+        lr.freshDeskTicketNumber,
+        lr.month,
+        lr.lineOfBusiness || '',
+        lr.client,
+        lr.cloud || '',
+        lr.cloudType || '',
+        lr.tpLabType || '',
+        lr.labName,
+        lr.requester,
+        lr.agentName,
+        lr.accountManager,
+        lr.receivedOn,
+        lr.labStartDate,
+        lr.labEndDate,
+        lr.userCount,
+        lr.durationInDays,
+        formatINR(lr.inputCostPerUser),
+        formatINR(lr.sellingCostPerUser),
+        formatINR(lr.totalAmountForTraining),
+        formatPercentage(lr.margin),
+        lr.status,
+        lr.remarks,
+      ];
+    }
+  });
 
   const csvContent = [
-    HEADERS.map(escapeCSV).join(','),
+    headers.map(escapeCSV).join(','),
     ...rows.map(row => row.map(escapeCSV).join(',')),
   ].join('\n');
 
-  downloadFile(csvContent, 'lab-requests.csv', 'text/csv');
-};
+  downloadFile(csvContent, `${filename}.csv`, 'text/csv');
+}
 
-export const exportToXLS = (requests: LabRequest[]): void => {
-  // Create a simple HTML table that Excel can open
-  const rows = requests.map(r => `
-    <tr>
-      <td>${r.freshDeskTicketNumber}</td>
-      <td>${r.month}</td>
-      <td>${r.lineOfBusiness || ''}</td>
-      <td>${r.client}</td>
-      <td>${r.cloud || ''}</td>
-      <td>${r.cloudType || ''}</td>
-      <td>${r.tpLabType || ''}</td>
-      <td>${r.labName}</td>
-      <td>${r.requester}</td>
-      <td>${r.agentName}</td>
-      <td>${r.accountManager}</td>
-      <td>${r.receivedOn}</td>
-      <td>${r.labStartDate}</td>
-      <td>${r.labEndDate}</td>
-      <td>${r.userCount}</td>
-      <td>${r.durationInDays}</td>
-      <td>${formatINR(r.inputCostPerUser)}</td>
-      <td>${formatINR(r.sellingCostPerUser)}</td>
-      <td>${formatINR(r.totalAmountForTraining)}</td>
-      <td>${formatPercentage(r.margin)}</td>
-      <td>${r.status}</td>
-      <td>${r.remarks}</td>
-    </tr>
-  `).join('');
+export function exportToXLS(requests: LabRequest[], filename?: string): void;
+export function exportToXLS(requests: DeliveryRequest[], filename?: string): void;
+export function exportToXLS(requests: (LabRequest | DeliveryRequest)[], filename = 'lab-requests'): void {
+  if (requests.length === 0) return;
+
+  const isDelivery = 'trainingName' in requests[0] || 'labStatus' in requests[0];
+  const headers = isDelivery ? DELIVERY_HEADERS : LAB_HEADERS;
+
+  const rows = requests.map(r => {
+    if (isDelivery) {
+      const dr = r as DeliveryRequest;
+      return `
+        <tr>
+          <td>${dr.potentialId || ''}</td>
+          <td>${dr.freshDeskTicketNumber || ''}</td>
+          <td>${dr.trainingName || ''}</td>
+          <td>${dr.month}</td>
+          <td>${dr.lineOfBusiness || ''}</td>
+          <td>${dr.client}</td>
+          <td>${dr.cloud || ''}</td>
+          <td>${dr.cloudType || ''}</td>
+          <td>${dr.tpLabType || ''}</td>
+          <td>${dr.numberOfUsers}</td>
+          <td>${dr.labStatus || ''}</td>
+          <td>${dr.labType || ''}</td>
+          <td>${dr.startDate || ''}</td>
+          <td>${dr.endDate || ''}</td>
+          <td>${dr.requester || ''}</td>
+          <td>${dr.agentName || ''}</td>
+          <td>${dr.accountManager || ''}</td>
+          <td>${formatINR(dr.inputCostPerUser)}</td>
+          <td>${formatINR(dr.sellingCostPerUser)}</td>
+          <td>${formatINR(dr.totalAmount)}</td>
+        </tr>
+      `;
+    } else {
+      const lr = r as LabRequest;
+      return `
+        <tr>
+          <td>${lr.freshDeskTicketNumber}</td>
+          <td>${lr.month}</td>
+          <td>${lr.lineOfBusiness || ''}</td>
+          <td>${lr.client}</td>
+          <td>${lr.cloud || ''}</td>
+          <td>${lr.cloudType || ''}</td>
+          <td>${lr.tpLabType || ''}</td>
+          <td>${lr.labName}</td>
+          <td>${lr.requester}</td>
+          <td>${lr.agentName}</td>
+          <td>${lr.accountManager}</td>
+          <td>${lr.receivedOn}</td>
+          <td>${lr.labStartDate}</td>
+          <td>${lr.labEndDate}</td>
+          <td>${lr.userCount}</td>
+          <td>${lr.durationInDays}</td>
+          <td>${formatINR(lr.inputCostPerUser)}</td>
+          <td>${formatINR(lr.sellingCostPerUser)}</td>
+          <td>${formatINR(lr.totalAmountForTraining)}</td>
+          <td>${formatPercentage(lr.margin)}</td>
+          <td>${lr.status}</td>
+          <td>${lr.remarks}</td>
+        </tr>
+      `;
+    }
+  }).join('');
 
   const xlsContent = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
@@ -110,7 +208,7 @@ export const exportToXLS = (requests: LabRequest[]): void => {
     <body>
       <table>
         <thead>
-          <tr>${HEADERS.map(h => `<th>${h}</th>`).join('')}</tr>
+          <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
@@ -118,8 +216,8 @@ export const exportToXLS = (requests: LabRequest[]): void => {
     </html>
   `;
 
-  downloadFile(xlsContent, 'lab-requests.xls', 'application/vnd.ms-excel');
-};
+  downloadFile(xlsContent, `${filename}.xls`, 'application/vnd.ms-excel');
+}
 
 const downloadFile = (content: string, filename: string, mimeType: string): void => {
   const blob = new Blob([content], { type: mimeType + ';charset=utf-8' });

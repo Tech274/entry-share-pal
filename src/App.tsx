@@ -10,6 +10,7 @@ import SubmitRequest from "./pages/SubmitRequest";
 import MyRequests from "./pages/MyRequests";
 import Index from "./pages/Index";
 import Preview from "./pages/Preview";
+import DeliveryPreview from "./pages/DeliveryPreview";
 import Auth from "./pages/Auth";
 import Docs from "./pages/Docs";
 import LabCatalog from "./pages/LabCatalog";
@@ -49,6 +50,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Preview />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/delivery-preview" 
+              element={
+                <ProtectedRoute>
+                  <DeliveryPreview />
                 </ProtectedRoute>
               } 
             />

@@ -1,4 +1,4 @@
-import { useLabRequests } from '@/hooks/useLabRequests';
+import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
 import { useSpreadsheetControls } from '@/hooks/useSpreadsheetControls';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { useSpreadsheetKeyboardShortcuts } from '@/hooks/useSpreadsheetKeyboardShortcuts';
@@ -14,7 +14,7 @@ import { SpreadsheetToolbar } from '@/components/SpreadsheetToolbar';
 import { SortableHeader } from '@/components/SortableHeader';
 import { BulkActionsBar } from '@/components/BulkActionsBar';
 import { BulkUploadDialog } from '@/components/BulkUploadDialog';
-import { LabRequest, CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, LOB_OPTIONS, YEAR_OPTIONS } from '@/types/labRequest';
+import { DeliveryRequest, LINE_OF_BUSINESS_OPTIONS, MONTH_OPTIONS, LAB_STATUS_OPTIONS, LAB_TYPE_OPTIONS, CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS } from '@/types/deliveryRequest';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,16 +23,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import logo from '@/assets/makemylabs-logo.png';
 
-// CSV template headers for Solutions
-const SOLUTIONS_CSV_HEADERS = [
-  'Potential ID', 'Training Name', 'Client', 'Month', 'Year', 'Lab Type', 'Cloud Type', 
-  'TP Lab Type', 'LOB', 'User Count', 'Requester', 'Agent', 'Account Manager',
-  'Received On', 'Lab Start Date', 'Lab End Date', 'Duration Days',
-  'Input Cost', 'Selling Cost', 'Total Amount', 'Margin %', 'Status', 'Remarks'
+// CSV template headers for Delivery
+const DELIVERY_CSV_HEADERS = [
+  'Potential ID', 'Ticket Number', 'Training Name', 'Client', 'Month', 'Year',
+  'Cloud', 'Cloud Type', 'TP Lab Type', 'LOB', 'Users', 'Lab Status', 'Lab Type',
+  'Start Date', 'End Date', 'Requester', 'Agent', 'Account Manager',
+  'Input Cost', 'Selling Cost', 'Total Amount', 'Lab Setup Requirement'
 ];
 
-// Parse CSV row to LabRequest
-const parseLabRequestRow = (row: Record<string, string | number>): Omit<LabRequest, 'id' | 'createdAt'> | null => {
+// Parse CSV row to DeliveryRequest
+const parseDeliveryRequestRow = (row: Record<string, string | number>): Omit<DeliveryRequest, 'id' | 'createdAt'> | null => {
   const client = String(row['Client'] || '').trim();
   const month = String(row['Month'] || '').trim();
   
@@ -40,34 +40,34 @@ const parseLabRequestRow = (row: Record<string, string | number>): Omit<LabReque
 
   return {
     potentialId: String(row['Potential ID'] || ''),
-    freshDeskTicketNumber: '',
-    labName: String(row['Training Name'] || ''),
+    freshDeskTicketNumber: String(row['Ticket Number'] || ''),
+    trainingName: String(row['Training Name'] || ''),
     client,
     month,
     year: Number(row['Year']) || new Date().getFullYear(),
-    cloud: String(row['Lab Type'] || ''),
+    cloud: String(row['Cloud'] || ''),
     cloudType: String(row['Cloud Type'] || ''),
     tpLabType: String(row['TP Lab Type'] || ''),
     lineOfBusiness: String(row['LOB'] || ''),
-    userCount: Number(row['User Count']) || 0,
+    numberOfUsers: Number(row['Users']) || 0,
+    labStatus: String(row['Lab Status'] || 'Pending'),
+    labType: String(row['Lab Type'] || ''),
+    startDate: String(row['Start Date'] || ''),
+    endDate: String(row['End Date'] || ''),
     requester: String(row['Requester'] || ''),
     agentName: String(row['Agent'] || ''),
     accountManager: String(row['Account Manager'] || ''),
-    receivedOn: String(row['Received On'] || ''),
-    labStartDate: String(row['Lab Start Date'] || ''),
-    labEndDate: String(row['Lab End Date'] || ''),
-    durationInDays: Number(row['Duration Days']) || 0,
     inputCostPerUser: Number(row['Input Cost']) || 0,
     sellingCostPerUser: Number(row['Selling Cost']) || 0,
-    totalAmountForTraining: Number(row['Total Amount']) || 0,
-    margin: Number(row['Margin %']) || 0,
-    status: String(row['Status'] || 'Solution Pending'),
-    remarks: String(row['Remarks'] || ''),
+    totalAmount: Number(row['Total Amount']) || 0,
+    labSetupRequirement: String(row['Lab Setup Requirement'] || ''),
+    receivedOn: '',
+    labName: '',
   };
 };
 
-const Preview = () => {
-  const { requests, updateRequest, deleteRequest, clearAll, bulkDelete, bulkUpdateStatus, bulkInsert } = useLabRequests();
+const DeliveryPreview = () => {
+  const { requests, updateRequest, deleteRequest, clearAll, bulkDelete, bulkUpdateStatus, bulkInsert } = useDeliveryRequests();
   const { toast } = useToast();
   
   const {
@@ -84,7 +84,7 @@ const Preview = () => {
     updateFilter,
     clearFilters,
     resetColumns,
-  } = useSpreadsheetControls(requests, 'solutions');
+  } = useSpreadsheetControls(requests, 'delivery');
 
   const {
     selectedCount,
@@ -113,7 +113,7 @@ const Preview = () => {
     }
   };
 
-  // Keyboard shortcuts: Ctrl+A to select all, Escape to deselect, Delete to bulk delete
+  // Keyboard shortcuts
   useSpreadsheetKeyboardShortcuts({
     onSelectAll: selectAll,
     onDeselectAll: deselectAll,
@@ -131,7 +131,7 @@ const Preview = () => {
       });
       return;
     }
-    exportToCSV(filteredAndSortedRequests);
+    exportToCSV(filteredAndSortedRequests as DeliveryRequest[], 'delivery-requests');
     toast({
       title: 'Export Complete',
       description: `Exported ${filteredAndSortedRequests.length} entries as CSV.`,
@@ -147,7 +147,7 @@ const Preview = () => {
       });
       return;
     }
-    exportToXLS(filteredAndSortedRequests);
+    exportToXLS(filteredAndSortedRequests as DeliveryRequest[], 'delivery-requests');
     toast({
       title: 'Export Complete',
       description: `Exported ${filteredAndSortedRequests.length} entries as XLS.`,
@@ -158,7 +158,7 @@ const Preview = () => {
     deleteRequest(id);
     toast({
       title: 'Entry Deleted',
-      description: 'The request has been removed.',
+      description: 'The delivery request has been removed.',
       variant: 'destructive',
     });
   };
@@ -168,20 +168,19 @@ const Preview = () => {
       clearAll();
       toast({
         title: 'All Entries Cleared',
-        description: 'All lab requests have been removed.',
+        description: 'All delivery requests have been removed.',
         variant: 'destructive',
       });
     }
   };
 
-  const handleCellUpdate = (id: string, field: keyof LabRequest, value: string | number) => {
+  const handleCellUpdate = (id: string, field: keyof DeliveryRequest, value: string | number) => {
     updateRequest(id, { [field]: value });
     toast({
       title: 'Updated',
       description: 'Cell value has been saved.',
     });
   };
-
 
   const handleBulkStatusUpdate = async (status: string) => {
     const ids = Array.from(selectedIds);
@@ -195,7 +194,7 @@ const Preview = () => {
     }
   };
 
-  const handleBulkUpload = async (data: Omit<LabRequest, 'id' | 'createdAt'>[]) => {
+  const handleBulkUpload = async (data: Omit<DeliveryRequest, 'id' | 'createdAt'>[]) => {
     await bulkInsert(data);
   };
 
@@ -217,7 +216,7 @@ const Preview = () => {
               <img src={logo} alt="MakeMyLabs" className="h-8 object-contain" />
               <div className="hidden sm:block">
                 <p className="text-sm text-muted-foreground">
-                  {filteredAndSortedRequests.length} of {requests.length} {requests.length === 1 ? 'entry' : 'entries'}
+                  Delivery • {filteredAndSortedRequests.length} of {requests.length} {requests.length === 1 ? 'entry' : 'entries'}
                   {activeFilterCount > 0 && ' (filtered)'}
                   • Double-click to edit
                 </p>
@@ -226,11 +225,11 @@ const Preview = () => {
 
             <div className="flex items-center gap-2">
               <BulkUploadDialog
-                title="Import Solutions from CSV"
-                description="Upload a CSV file to bulk import solution records. Download the template for the correct format."
-                templateHeaders={SOLUTIONS_CSV_HEADERS}
+                title="Import Delivery Requests from CSV"
+                description="Upload a CSV file to bulk import delivery records. Download the template for the correct format."
+                templateHeaders={DELIVERY_CSV_HEADERS}
                 onUpload={handleBulkUpload}
-                parseRow={parseLabRequestRow}
+                parseRow={parseDeliveryRequestRow}
                 trigger={
                   <Button variant="outline" className="gap-2">
                     <Upload className="w-4 h-4" />
@@ -271,9 +270,9 @@ const Preview = () => {
         {requests.length === 0 ? (
           <div className="bg-card rounded-lg border p-12 text-center">
             <Table className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">No Data Available</h2>
+            <h2 className="text-xl font-semibold mb-2">No Delivery Data Available</h2>
             <p className="text-muted-foreground mb-4">
-              Start by adding lab requests or import from CSV.
+              Start by adding delivery requests or import from CSV.
             </p>
             <div className="flex items-center justify-center gap-3">
               <Link to="/">
@@ -283,11 +282,11 @@ const Preview = () => {
                 </Button>
               </Link>
               <BulkUploadDialog
-                title="Import Solutions from CSV"
-                description="Upload a CSV file to bulk import solution records. Download the template for the correct format."
-                templateHeaders={SOLUTIONS_CSV_HEADERS}
+                title="Import Delivery Requests from CSV"
+                description="Upload a CSV file to bulk import delivery records. Download the template for the correct format."
+                templateHeaders={DELIVERY_CSV_HEADERS}
                 onUpload={handleBulkUpload}
-                parseRow={parseLabRequestRow}
+                parseRow={parseDeliveryRequestRow}
               />
             </div>
           </div>
@@ -296,7 +295,7 @@ const Preview = () => {
             {/* Bulk Actions Bar */}
             <BulkActionsBar
               selectedCount={selectedCount}
-              statusOptions={STATUS_OPTIONS}
+              statusOptions={LAB_STATUS_OPTIONS}
               onUpdateStatus={handleBulkStatusUpdate}
               onDelete={handleBulkDelete}
               onDeselectAll={deselectAll}
@@ -312,6 +311,7 @@ const Preview = () => {
               onUpdateFilter={updateFilter}
               onClearFilters={clearFilters}
               onResetColumns={resetColumns}
+              type="delivery"
             />
 
             <ScrollArea className="w-full max-h-[calc(100vh-280px)]">
@@ -341,10 +341,19 @@ const Preview = () => {
                           onSort={handleSort}
                         />
                       )}
-                      {isColumnVisible('labName') && (
+                      {isColumnVisible('freshDeskTicketNumber') && (
+                        <SortableHeader
+                          label="Ticket #"
+                          field="freshDeskTicketNumber"
+                          currentSortField={sortField}
+                          currentSortDirection={sortDirection}
+                          onSort={handleSort}
+                        />
+                      )}
+                      {isColumnVisible('trainingName') && (
                         <SortableHeader
                           label="Training Name"
-                          field="labName"
+                          field="trainingName"
                           currentSortField={sortField}
                           currentSortDirection={sortDirection}
                           onSort={handleSort}
@@ -352,7 +361,7 @@ const Preview = () => {
                       )}
                       {isColumnVisible('client') && (
                         <SortableHeader
-                          label="Client Name"
+                          label="Client"
                           field="client"
                           currentSortField={sortField}
                           currentSortDirection={sortDirection}
@@ -368,18 +377,15 @@ const Preview = () => {
                           onSort={handleSort}
                         />
                       )}
-                      {isColumnVisible('userCount') && (
+                      {isColumnVisible('numberOfUsers') && (
                         <SortableHeader
-                          label="User Count"
-                          field="userCount"
+                          label="Users"
+                          field="numberOfUsers"
                           currentSortField={sortField}
                           currentSortDirection={sortDirection}
                           onSort={handleSort}
                           align="center"
                         />
-                      )}
-                      {isColumnVisible('remarks') && (
-                        <th className="spreadsheet-cell font-semibold text-left">Remarks</th>
                       )}
                       {isColumnVisible('month') && (
                         <SortableHeader
@@ -392,7 +398,7 @@ const Preview = () => {
                       )}
                       {isColumnVisible('cloud') && (
                         <SortableHeader
-                          label="Lab Type"
+                          label="Cloud"
                           field="cloud"
                           currentSortField={sortField}
                           currentSortDirection={sortDirection}
@@ -412,6 +418,42 @@ const Preview = () => {
                         <SortableHeader
                           label="TP Lab Type"
                           field="tpLabType"
+                          currentSortField={sortField}
+                          currentSortDirection={sortDirection}
+                          onSort={handleSort}
+                        />
+                      )}
+                      {isColumnVisible('labStatus') && (
+                        <SortableHeader
+                          label="Lab Status"
+                          field="labStatus"
+                          currentSortField={sortField}
+                          currentSortDirection={sortDirection}
+                          onSort={handleSort}
+                        />
+                      )}
+                      {isColumnVisible('labType') && (
+                        <SortableHeader
+                          label="Lab Type"
+                          field="labType"
+                          currentSortField={sortField}
+                          currentSortDirection={sortDirection}
+                          onSort={handleSort}
+                        />
+                      )}
+                      {isColumnVisible('startDate') && (
+                        <SortableHeader
+                          label="Start Date"
+                          field="startDate"
+                          currentSortField={sortField}
+                          currentSortDirection={sortDirection}
+                          onSort={handleSort}
+                        />
+                      )}
+                      {isColumnVisible('endDate') && (
+                        <SortableHeader
+                          label="End Date"
+                          field="endDate"
                           currentSortField={sortField}
                           currentSortDirection={sortDirection}
                           onSort={handleSort}
@@ -444,43 +486,6 @@ const Preview = () => {
                           onSort={handleSort}
                         />
                       )}
-                      {isColumnVisible('receivedOn') && (
-                        <SortableHeader
-                          label="Received On"
-                          field="receivedOn"
-                          currentSortField={sortField}
-                          currentSortDirection={sortDirection}
-                          onSort={handleSort}
-                        />
-                      )}
-                      {isColumnVisible('labStartDate') && (
-                        <SortableHeader
-                          label="Lab Start Date"
-                          field="labStartDate"
-                          currentSortField={sortField}
-                          currentSortDirection={sortDirection}
-                          onSort={handleSort}
-                        />
-                      )}
-                      {isColumnVisible('labEndDate') && (
-                        <SortableHeader
-                          label="Lab End Date"
-                          field="labEndDate"
-                          currentSortField={sortField}
-                          currentSortDirection={sortDirection}
-                          onSort={handleSort}
-                        />
-                      )}
-                      {isColumnVisible('durationInDays') && (
-                        <SortableHeader
-                          label="Duration"
-                          field="durationInDays"
-                          currentSortField={sortField}
-                          currentSortDirection={sortDirection}
-                          onSort={handleSort}
-                          align="center"
-                        />
-                      )}
                       {isColumnVisible('inputCostPerUser') && (
                         <SortableHeader
                           label="Input Cost"
@@ -501,33 +506,14 @@ const Preview = () => {
                           align="right"
                         />
                       )}
-                      {isColumnVisible('totalAmountForTraining') && (
+                      {isColumnVisible('totalAmount') && (
                         <SortableHeader
                           label="Total Amount"
-                          field="totalAmountForTraining"
+                          field="totalAmount"
                           currentSortField={sortField}
                           currentSortDirection={sortDirection}
                           onSort={handleSort}
                           align="right"
-                        />
-                      )}
-                      {isColumnVisible('margin') && (
-                        <SortableHeader
-                          label="Margin %"
-                          field="margin"
-                          currentSortField={sortField}
-                          currentSortDirection={sortDirection}
-                          onSort={handleSort}
-                          align="right"
-                        />
-                      )}
-                      {isColumnVisible('status') && (
-                        <SortableHeader
-                          label="Status"
-                          field="status"
-                          currentSortField={sortField}
-                          currentSortDirection={sortDirection}
-                          onSort={handleSort}
                         />
                       )}
                       {isColumnVisible('actions') && (
@@ -536,7 +522,7 @@ const Preview = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredAndSortedRequests.map((request, index) => (
+                    {(filteredAndSortedRequests as DeliveryRequest[]).map((request, index) => (
                       <tr
                         key={request.id}
                         className={`border-b border-border hover:bg-muted/50 transition-colors ${
@@ -563,11 +549,19 @@ const Preview = () => {
                             />
                           </td>
                         )}
-                        {isColumnVisible('labName') && (
+                        {isColumnVisible('freshDeskTicketNumber') && (
                           <td className="spreadsheet-cell">
                             <EditableCell
-                              value={request.labName}
-                              onSave={(v) => handleCellUpdate(request.id, 'labName', v)}
+                              value={request.freshDeskTicketNumber}
+                              onSave={(v) => handleCellUpdate(request.id, 'freshDeskTicketNumber', v)}
+                            />
+                          </td>
+                        )}
+                        {isColumnVisible('trainingName') && (
+                          <td className="spreadsheet-cell">
+                            <EditableCell
+                              value={request.trainingName}
+                              onSave={(v) => handleCellUpdate(request.id, 'trainingName', v)}
                               className="font-medium"
                             />
                           </td>
@@ -586,26 +580,18 @@ const Preview = () => {
                               value={request.lineOfBusiness}
                               onSave={(v) => handleCellUpdate(request.id, 'lineOfBusiness', v)}
                               type="select"
-                              options={LOB_OPTIONS}
+                              options={LINE_OF_BUSINESS_OPTIONS}
                             />
                           </td>
                         )}
-                        {isColumnVisible('userCount') && (
+                        {isColumnVisible('numberOfUsers') && (
                           <td className="spreadsheet-cell bg-accent/30">
                             <EditableCell
-                              value={request.userCount}
-                              onSave={(v) => handleCellUpdate(request.id, 'userCount', v)}
+                              value={request.numberOfUsers}
+                              onSave={(v) => handleCellUpdate(request.id, 'numberOfUsers', v)}
                               type="number"
                               align="center"
                               className="font-medium"
-                            />
-                          </td>
-                        )}
-                        {isColumnVisible('remarks') && (
-                          <td className="spreadsheet-cell max-w-xs">
-                            <EditableCell
-                              value={request.remarks}
-                              onSave={(v) => handleCellUpdate(request.id, 'remarks', v)}
                             />
                           </td>
                         )}
@@ -657,6 +643,44 @@ const Preview = () => {
                             )}
                           </td>
                         )}
+                        {isColumnVisible('labStatus') && (
+                          <td className="spreadsheet-cell">
+                            <EditableCell
+                              value={request.labStatus}
+                              onSave={(v) => handleCellUpdate(request.id, 'labStatus', v)}
+                              type="select"
+                              options={LAB_STATUS_OPTIONS}
+                            />
+                          </td>
+                        )}
+                        {isColumnVisible('labType') && (
+                          <td className="spreadsheet-cell">
+                            <EditableCell
+                              value={request.labType}
+                              onSave={(v) => handleCellUpdate(request.id, 'labType', v)}
+                              type="select"
+                              options={LAB_TYPE_OPTIONS}
+                            />
+                          </td>
+                        )}
+                        {isColumnVisible('startDate') && (
+                          <td className="spreadsheet-cell">
+                            <EditableCell
+                              value={request.startDate}
+                              onSave={(v) => handleCellUpdate(request.id, 'startDate', v)}
+                              type="date"
+                            />
+                          </td>
+                        )}
+                        {isColumnVisible('endDate') && (
+                          <td className="spreadsheet-cell">
+                            <EditableCell
+                              value={request.endDate}
+                              onSave={(v) => handleCellUpdate(request.id, 'endDate', v)}
+                              type="date"
+                            />
+                          </td>
+                        )}
                         {isColumnVisible('requester') && (
                           <td className="spreadsheet-cell">
                             <EditableCell
@@ -678,43 +702,6 @@ const Preview = () => {
                             <EditableCell
                               value={request.accountManager}
                               onSave={(v) => handleCellUpdate(request.id, 'accountManager', v)}
-                            />
-                          </td>
-                        )}
-                        {isColumnVisible('receivedOn') && (
-                          <td className="spreadsheet-cell">
-                            <EditableCell
-                              value={request.receivedOn}
-                              onSave={(v) => handleCellUpdate(request.id, 'receivedOn', v)}
-                              type="date"
-                            />
-                          </td>
-                        )}
-                        {isColumnVisible('labStartDate') && (
-                          <td className="spreadsheet-cell">
-                            <EditableCell
-                              value={request.labStartDate}
-                              onSave={(v) => handleCellUpdate(request.id, 'labStartDate', v)}
-                              type="date"
-                            />
-                          </td>
-                        )}
-                        {isColumnVisible('labEndDate') && (
-                          <td className="spreadsheet-cell">
-                            <EditableCell
-                              value={request.labEndDate}
-                              onSave={(v) => handleCellUpdate(request.id, 'labEndDate', v)}
-                              type="date"
-                            />
-                          </td>
-                        )}
-                        {isColumnVisible('durationInDays') && (
-                          <td className="spreadsheet-cell">
-                            <EditableCell
-                              value={request.durationInDays}
-                              onSave={(v) => handleCellUpdate(request.id, 'durationInDays', v)}
-                              type="number"
-                              align="center"
                             />
                           </td>
                         )}
@@ -740,36 +727,15 @@ const Preview = () => {
                             />
                           </td>
                         )}
-                        {isColumnVisible('totalAmountForTraining') && (
+                        {isColumnVisible('totalAmount') && (
                           <td className="spreadsheet-cell">
                             <EditableCell
-                              value={request.totalAmountForTraining}
-                              onSave={(v) => handleCellUpdate(request.id, 'totalAmountForTraining', v)}
+                              value={request.totalAmount}
+                              onSave={(v) => handleCellUpdate(request.id, 'totalAmount', v)}
                               type="number"
                               align="right"
                               prefix="₹"
                               className="font-medium"
-                            />
-                          </td>
-                        )}
-                        {isColumnVisible('margin') && (
-                          <td className="spreadsheet-cell">
-                            <EditableCell
-                              value={request.margin}
-                              onSave={(v) => handleCellUpdate(request.id, 'margin', v)}
-                              type="number"
-                              align="right"
-                              suffix="%"
-                            />
-                          </td>
-                        )}
-                        {isColumnVisible('status') && (
-                          <td className="spreadsheet-cell">
-                            <EditableCell
-                              value={request.status}
-                              onSave={(v) => handleCellUpdate(request.id, 'status', v)}
-                              type="select"
-                              options={STATUS_OPTIONS}
                             />
                           </td>
                         )}
@@ -812,4 +778,4 @@ const Preview = () => {
   );
 };
 
-export default Preview;
+export default DeliveryPreview;
