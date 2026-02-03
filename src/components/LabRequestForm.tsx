@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LOB_OPTIONS, LabRequest } from '@/types/labRequest';
+import { CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LOB_OPTIONS, LabRequest } from '@/types/labRequest';
 import { CurrencyInput } from '@/components/CurrencyInput';
 import { IntegerInput } from '@/components/IntegerInput';
 import { PercentageInput } from '@/components/PercentageInput';
@@ -41,6 +41,7 @@ const initialFormState = {
   client: '',
   cloud: '',
   cloudType: '',
+  tpLabType: '',
   labName: '',
   requester: '',
   agentName: '',
@@ -71,6 +72,10 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
       // Clear cloudType when cloud changes to non-Public
       if (field === 'cloud' && value !== 'Public') {
         updated.cloudType = '';
+      }
+      // Clear tpLabType when cloud changes to non-TP Labs
+      if (field === 'cloud' && value !== 'TP Labs') {
+        updated.tpLabType = '';
       }
       
       // Auto-calculate duration when dates change
@@ -329,6 +334,21 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
                 <SelectContent>
                   {CLOUD_TYPE_OPTIONS.map(ct => (
                     <SelectItem key={ct} value={ct}>{ct}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {formData.cloud === 'TP Labs' && (
+            <div className="space-y-2">
+              <Label htmlFor="tpLabType">Lab Type</Label>
+              <Select value={formData.tpLabType} onValueChange={v => handleChange('tpLabType', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select lab type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TP_LAB_TYPE_OPTIONS.map(lt => (
+                    <SelectItem key={lt} value={lt}>{lt}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
