@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { LabRequest } from '@/types/labRequest';
 
 export type SortDirection = 'asc' | 'desc' | null;
@@ -11,6 +11,11 @@ export interface ColumnConfig {
   sortable: boolean;
   filterable: boolean;
 }
+
+const STORAGE_KEYS = {
+  COLUMNS: 'spreadsheet-columns-visibility',
+  FILTERS: 'spreadsheet-filters',
+} as const;
 
 export interface Filters {
   status: string;
@@ -55,11 +60,55 @@ const DEFAULT_FILTERS: Filters = {
   client: '',
 };
 
+// Helper functions for localStorage
+function loadColumnsFromStorage(): ColumnConfig[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.COLUMNS);
+    if (stored) {
+      const storedVisibility = JSON.parse(stored) as Record<string, boolean>;
+      return DEFAULT_COLUMNS.map(col => ({
+        ...col,
+        visible: storedVisibility[col.id] ?? col.visible,
+      }));
+    }
+  } catch (e) {
+    console.warn('Failed to load column preferences from localStorage:', e);
+  }
+  return DEFAULT_COLUMNS;
+}
+
+function loadFiltersFromStorage(): Filters {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.FILTERS);
+    if (stored) {
+      const storedFilters = JSON.parse(stored) as Partial<Filters>;
+      return { ...DEFAULT_FILTERS, ...storedFilters };
+    }
+  } catch (e) {
+    console.warn('Failed to load filter preferences from localStorage:', e);
+  }
+  return DEFAULT_FILTERS;
+}
+
 export function useSpreadsheetControls(requests: LabRequest[]) {
-  const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
+  const [columns, setColumns] = useState<ColumnConfig[]>(loadColumnsFromStorage);
   const [sortField, setSortField] = useState<SortField>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<Filters>(loadFiltersFromStorage);
+
+  // Persist column visibility to localStorage
+  useEffect(() => {
+    const visibility: Record<string, boolean> = {};
+    columns.forEach(col => {
+      visibility[col.id] = col.visible;
+    });
+    localStorage.setItem(STORAGE_KEYS.COLUMNS, JSON.stringify(visibility));
+  }, [columns]);
+
+  // Persist filters to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.FILTERS, JSON.stringify(filters));
+  }, [filters]);
 
   const toggleColumnVisibility = useCallback((columnId: string) => {
     setColumns(prev =>
@@ -89,10 +138,12 @@ export function useSpreadsheetControls(requests: LabRequest[]) {
 
   const clearFilters = useCallback(() => {
     setFilters(DEFAULT_FILTERS);
+    localStorage.removeItem(STORAGE_KEYS.FILTERS);
   }, []);
 
   const resetColumns = useCallback(() => {
     setColumns(DEFAULT_COLUMNS);
+    localStorage.removeItem(STORAGE_KEYS.COLUMNS);
   }, []);
 
   const visibleColumns = useMemo(() => 
