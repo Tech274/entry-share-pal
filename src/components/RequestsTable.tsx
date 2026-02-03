@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
-import { getStatusColor, getCloudColor, getLOBColor } from '@/lib/statusColors';
+import { getStatusColor, getCloudColor, getCloudTypeColor, getLOBColor } from '@/lib/statusColors';
 import { cn } from '@/lib/utils';
 
 interface RequestsTableProps {
@@ -40,6 +40,7 @@ export const RequestsTable = ({ requests, onDelete }: RequestsTableProps) => {
                 <TableHead className="font-semibold">Client</TableHead>
                 <TableHead className="font-semibold">Lab Name</TableHead>
                 <TableHead className="font-semibold">Cloud</TableHead>
+                <TableHead className="font-semibold">Cloud Type</TableHead>
                 <TableHead className="font-semibold">LOB</TableHead>
                 <TableHead className="font-semibold">User Count</TableHead>
                 <TableHead className="font-semibold">Duration</TableHead>
@@ -61,6 +62,13 @@ export const RequestsTable = ({ requests, onDelete }: RequestsTableProps) => {
                     {request.cloud ? (
                       <Badge variant="outline" className={cn('text-xs', getCloudColor(request.cloud))}>
                         {request.cloud}
+                      </Badge>
+                    ) : '-'}
+                  </TableCell>
+                  <TableCell>
+                    {request.cloudType ? (
+                      <Badge variant="outline" className={cn('text-xs', getCloudTypeColor(request.cloudType))}>
+                        {request.cloudType}
                       </Badge>
                     ) : '-'}
                   </TableCell>

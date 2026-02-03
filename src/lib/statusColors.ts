@@ -54,19 +54,27 @@ export const getLabTypeColor = (labType: string): string => {
   }
 };
 
-// Cloud provider colors
+// Cloud provider colors (Public/Private Cloud)
 export const getCloudColor = (cloud: string): string => {
   switch (cloud.toLowerCase()) {
+    case 'public':
+      return 'bg-blue-50 text-blue-700 border-blue-200';
+    case 'private cloud':
+      return 'bg-purple-50 text-purple-700 border-purple-200';
+    default:
+      return 'bg-gray-50 text-gray-700 border-gray-200';
+  }
+};
+
+// Cloud type colors (AWS, Azure, GCP)
+export const getCloudTypeColor = (cloudType: string): string => {
+  switch (cloudType.toLowerCase()) {
     case 'aws':
       return 'bg-orange-50 text-orange-700 border-orange-200';
     case 'azure':
       return 'bg-blue-50 text-blue-700 border-blue-200';
     case 'gcp':
       return 'bg-red-50 text-red-700 border-red-200';
-    case 'oracle':
-      return 'bg-red-100 text-red-800 border-red-300';
-    case 'on-premise':
-      return 'bg-gray-50 text-gray-700 border-gray-200';
     default:
       return 'bg-gray-50 text-gray-700 border-gray-200';
   }
@@ -79,7 +87,7 @@ export const getLOBColor = (lob: string): string => {
       return 'bg-blue-50 text-blue-700 border-blue-200';
     case 'vilt':
       return 'bg-purple-50 text-purple-700 border-purple-200';
-    case 'blended':
+    case 'integrated':
       return 'bg-teal-50 text-teal-700 border-teal-200';
     default:
       return 'bg-gray-50 text-gray-700 border-gray-200';
