@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CLOUD_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LOB_OPTIONS, LabRequest } from '@/types/labRequest';
+import { CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LOB_OPTIONS, LabRequest } from '@/types/labRequest';
 import { CurrencyInput } from '@/components/CurrencyInput';
 import { IntegerInput } from '@/components/IntegerInput';
 import { PercentageInput } from '@/components/PercentageInput';
@@ -40,6 +40,7 @@ const initialFormState = {
   year: new Date().getFullYear(),
   client: '',
   cloud: '',
+  cloudType: '',
   labName: '',
   requester: '',
   agentName: '',
@@ -66,6 +67,11 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
   const handleChange = (field: string, value: string | number) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
+      
+      // Clear cloudType when cloud changes to non-Public
+      if (field === 'cloud' && value !== 'Public') {
+        updated.cloudType = '';
+      }
       
       // Auto-calculate duration when dates change
       if (field === 'labStartDate' || field === 'labEndDate') {
@@ -313,6 +319,21 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
               </SelectContent>
             </Select>
           </div>
+          {formData.cloud === 'Public' && (
+            <div className="space-y-2">
+              <Label htmlFor="cloudType">Cloud Type</Label>
+              <Select value={formData.cloudType} onValueChange={v => handleChange('cloudType', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select cloud type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CLOUD_TYPE_OPTIONS.map(ct => (
+                    <SelectItem key={ct} value={ct}>{ct}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="labName">Lab Name</Label>
             <Input

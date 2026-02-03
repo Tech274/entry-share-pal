@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DeliveryRequest, LAB_STATUS_OPTIONS, LAB_TYPE_OPTIONS, CLOUD_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LINE_OF_BUSINESS_OPTIONS } from '@/types/deliveryRequest';
+import { DeliveryRequest, LAB_STATUS_OPTIONS, LAB_TYPE_OPTIONS, CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LINE_OF_BUSINESS_OPTIONS } from '@/types/deliveryRequest';
 import { CurrencyInput } from '@/components/CurrencyInput';
 import { IntegerInput } from '@/components/IntegerInput';
 import { formatINR } from '@/lib/formatUtils';
@@ -30,6 +30,7 @@ const initialFormState = {
   receivedOn: '',
   client: '',
   cloud: '',
+  cloudType: '',
   labName: '',
   requester: '',
   agentName: '',
@@ -52,6 +53,11 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
   const handleChange = (field: string, value: string | number) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
+      
+      // Clear cloudType when cloud changes to non-Public
+      if (field === 'cloud' && value !== 'Public') {
+        updated.cloudType = '';
+      }
       // Auto-calculate total when users or costs change
       if (field === 'numberOfUsers' || field === 'inputCostPerUser' || field === 'sellingCostPerUser') {
         const users = field === 'numberOfUsers' ? Number(value) : updated.numberOfUsers;
@@ -209,6 +215,21 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
               </SelectContent>
             </Select>
           </div>
+          {formData.cloud === 'Public' && (
+            <div className="space-y-2">
+              <Label htmlFor="cloudType">Cloud Type</Label>
+              <Select value={formData.cloudType} onValueChange={v => handleChange('cloudType', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select cloud type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CLOUD_TYPE_OPTIONS.map(ct => (
+                    <SelectItem key={ct} value={ct}>{ct}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="labName">Lab Name</Label>
             <Input
