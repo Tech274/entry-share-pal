@@ -27,7 +27,7 @@ export interface LabRequest {
 
 export const CLOUD_OPTIONS = ['AWS', 'Azure', 'GCP', 'Oracle', 'On-Premise', 'Other'];
 export const STATUS_OPTIONS = ['Solution Pending', 'Solution Sent'];
-export const LOB_OPTIONS = ['Standalone', 'VILT', 'Blended'];
+export const LOB_OPTIONS = ['Standalone', 'VILT', 'Integrated'];
 export const MONTH_OPTIONS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
