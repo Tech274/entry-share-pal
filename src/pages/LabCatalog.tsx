@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ExternalLink, Layers, Server, Cloud, Database, Shield, GitBranch, Cpu, Building2, Sparkles } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ExternalLink, Layers, Server, Cloud, Database, Shield, GitBranch, Cpu, Building2, Sparkles, Search } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 import { cn } from '@/lib/utils';
 import { useLabCatalog, groupByCategory } from '@/hooks/useLabCatalog';
@@ -87,7 +88,8 @@ const categoryDetails: Record<string, { description: string; templates: { name: 
 };
 
 const LabCatalog = () => {
-  const [activeCategory, setActiveCategory] = useState('cloud');
+  const [activeCategory, setActiveCategory] = useState<string | null>('cloud');
+  const [searchQuery, setSearchQuery] = useState('');
   const { data: catalogEntries = [], isLoading } = useLabCatalog();
   
   // Group database entries by category
@@ -97,13 +99,31 @@ const LabCatalog = () => {
   const getMergedTemplates = (categoryId: string) => {
     const dbTemplates = dbTemplatesByCategory[categoryId] || [];
     const staticTemplates = categoryDetails[categoryId]?.templates || [];
-    
-    // If we have database entries for this category, use them; otherwise fall back to static
     return dbTemplates.length > 0 ? dbTemplates : staticTemplates;
   };
-  
-  const currentDescription = categoryDetails[activeCategory]?.description || '';
-  const currentTemplates = getMergedTemplates(activeCategory);
+
+  // Get all templates for search
+  const allTemplates = useMemo(() => {
+    return categories.flatMap(cat => {
+      const templates = getMergedTemplates(cat.id);
+      return templates.map(t => ({ ...t, category: cat.id, categoryLabel: cat.label }));
+    });
+  }, [catalogEntries]);
+
+  // Filter templates based on search query
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return null;
+    const query = searchQuery.toLowerCase();
+    return allTemplates.filter(t => 
+      t.name.toLowerCase().includes(query) || 
+      t.description.toLowerCase().includes(query) ||
+      t.categoryLabel.toLowerCase().includes(query)
+    );
+  }, [searchQuery, allTemplates]);
+
+  const isSearching = searchQuery.trim().length > 0;
+  const currentDescription = !isSearching && activeCategory ? categoryDetails[activeCategory]?.description || '' : '';
+  const currentTemplates = isSearching ? (searchResults || []) : (activeCategory ? getMergedTemplates(activeCategory) : []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -119,26 +139,43 @@ const LabCatalog = () => {
           <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto mb-8">
             Browse our comprehensive catalog of pre-built lab environments, templates, and configurations for your training needs.
           </p>
-          <Button 
-            variant="secondary" 
-            size="lg" 
-            asChild
-            className="bg-accent text-accent-foreground hover:bg-accent/90"
-          >
-            <a href={EXTERNAL_CATALOG_URL} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="h-5 w-5 mr-2" />
-              View Full Catalog
-            </a>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="relative w-full max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search labs by name, description, or category..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (e.target.value.trim()) setActiveCategory(null);
+                  else setActiveCategory('cloud');
+                }}
+                className="pl-10 bg-background text-foreground"
+              />
+            </div>
+            <Button 
+              variant="secondary" 
+              size="lg" 
+              asChild
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
+            >
+              <a href={EXTERNAL_CATALOG_URL} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-5 w-5 mr-2" />
+                View Full Catalog
+              </a>
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Category Tabs */}
-      <section className="py-8 bg-primary">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-wrap justify-center gap-2">
-            {categories.map((category) => {
-              const Icon = category.icon;
+      {!isSearching && (
+        <section className="py-8 bg-primary">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-wrap justify-center gap-2">
+              {categories.map((category) => {
+                const Icon = category.icon;
               const isActive = activeCategory === category.id;
               return (
                 <button
@@ -154,11 +191,12 @@ const LabCatalog = () => {
                   <Icon className="h-4 w-4" />
                   <span className="hidden sm:inline">{category.label}</span>
                 </button>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Category Content */}
       <section className="py-16">
@@ -166,11 +204,20 @@ const LabCatalog = () => {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-10">
               <h2 className="text-2xl font-bold mb-3">
-                {categories.find(c => c.id === activeCategory)?.label}
+                {isSearching 
+                  ? `Search Results for "${searchQuery}"` 
+                  : categories.find(c => c.id === activeCategory)?.label}
               </h2>
-              <p className="text-muted-foreground text-lg">
-                {currentDescription}
-              </p>
+              {!isSearching && (
+                <p className="text-muted-foreground text-lg">
+                  {currentDescription}
+                </p>
+              )}
+              {isSearching && (
+                <p className="text-muted-foreground">
+                  Found {currentTemplates.length} matching template{currentTemplates.length !== 1 ? 's' : ''}
+                </p>
+              )}
             </div>
 
             {isLoading ? (
@@ -181,10 +228,15 @@ const LabCatalog = () => {
               </div>
             ) : (
               <div className="grid md:grid-cols-3 gap-6">
-                {currentTemplates.map((template, index) => (
+                {currentTemplates.map((template: any, index) => (
                   <Card key={index} className="hover:shadow-lg transition-shadow">
                     <CardHeader>
                       <CardTitle className="text-lg">{template.name}</CardTitle>
+                      {isSearching && template.categoryLabel && (
+                        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full w-fit">
+                          {template.categoryLabel}
+                        </span>
+                      )}
                     </CardHeader>
                     <CardContent>
                       <CardDescription className="text-base">
@@ -196,14 +248,16 @@ const LabCatalog = () => {
               </div>
             )}
 
-            <div className="text-center mt-10">
-              <Button variant="outline" asChild>
-                <a href={EXTERNAL_CATALOG_URL} target="_blank" rel="noopener noreferrer">
-                  View All {categories.find(c => c.id === activeCategory)?.label} Templates
-                  <ExternalLink className="h-4 w-4 ml-2" />
-                </a>
-              </Button>
-            </div>
+            {!isSearching && (
+              <div className="text-center mt-10">
+                <Button variant="outline" asChild>
+                  <a href={EXTERNAL_CATALOG_URL} target="_blank" rel="noopener noreferrer">
+                    View All {categories.find(c => c.id === activeCategory)?.label} Templates
+                    <ExternalLink className="h-4 w-4 ml-2" />
+                  </a>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </section>
