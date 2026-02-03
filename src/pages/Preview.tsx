@@ -14,6 +14,7 @@ import { SpreadsheetToolbar } from '@/components/SpreadsheetToolbar';
 import { SortableHeader } from '@/components/SortableHeader';
 import { BulkActionsBar } from '@/components/BulkActionsBar';
 import { BulkUploadDialog } from '@/components/BulkUploadDialog';
+import { AssigneeDropdown } from '@/components/assignment/AssigneeDropdown';
 import { LabRequest, CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, LOB_OPTIONS, YEAR_OPTIONS } from '@/types/labRequest';
 import {
   DropdownMenu,
@@ -296,7 +297,9 @@ const Preview = () => {
             {/* Bulk Actions Bar */}
             <BulkActionsBar
               selectedCount={selectedCount}
+              selectedIds={Array.from(selectedIds)}
               statusOptions={STATUS_OPTIONS}
+              requestType="solution"
               onUpdateStatus={handleBulkStatusUpdate}
               onDelete={handleBulkDelete}
               onDeselectAll={deselectAll}
@@ -530,6 +533,7 @@ const Preview = () => {
                           onSort={handleSort}
                         />
                       )}
+                      <th className="spreadsheet-cell font-semibold text-left">Assignee</th>
                       {isColumnVisible('actions') && (
                         <th className="spreadsheet-cell font-semibold text-center">Actions</th>
                       )}
@@ -773,6 +777,14 @@ const Preview = () => {
                             />
                           </td>
                         )}
+                        <td className="spreadsheet-cell">
+                          <AssigneeDropdown
+                            requestId={request.id}
+                            requestType="solution"
+                            currentAssignee={request.assignedTo || null}
+                            compact
+                          />
+                        </td>
                         {isColumnVisible('actions') && (
                           <td className="spreadsheet-cell text-center">
                             <Button

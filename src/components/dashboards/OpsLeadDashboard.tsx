@@ -4,6 +4,8 @@ import { Users, AlertTriangle, Clock, CheckCircle, TrendingUp } from 'lucide-rea
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { formatINR } from '@/lib/formatUtils';
+import { TeamWorkloadPanel } from '@/components/assignment/TeamWorkloadPanel';
+import { ActivityTimeline } from '@/components/activity/ActivityTimeline';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 interface OpsLeadDashboardProps {
@@ -159,6 +161,12 @@ export const OpsLeadDashboard = ({ labRequests, deliveryRequests }: OpsLeadDashb
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Team Workload and Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TeamWorkloadPanel />
+        <ActivityTimeline maxItems={10} />
       </div>
 
       {/* Pending Approvals Table */}

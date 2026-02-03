@@ -1,4 +1,4 @@
-import { Trash2, RefreshCw, X } from 'lucide-react';
+import { Trash2, RefreshCw, X, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -7,23 +7,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { BulkAssignDialog } from '@/components/assignment/BulkAssignDialog';
 import { cn } from '@/lib/utils';
 
 interface BulkActionsBarProps {
   selectedCount: number;
+  selectedIds: string[];
   statusOptions: string[];
+  requestType: 'solution' | 'delivery';
   onUpdateStatus: (status: string) => void;
   onDelete: () => void;
   onDeselectAll: () => void;
+  onAssignmentComplete?: () => void;
   className?: string;
 }
 
 export function BulkActionsBar({
   selectedCount,
+  selectedIds,
   statusOptions,
+  requestType,
   onUpdateStatus,
   onDelete,
   onDeselectAll,
+  onAssignmentComplete,
   className,
 }: BulkActionsBarProps) {
   if (selectedCount === 0) return null;
@@ -72,6 +79,23 @@ export function BulkActionsBar({
           </SelectContent>
         </Select>
       </div>
+
+      <div className="h-4 w-px bg-border" />
+
+      <BulkAssignDialog
+        selectedIds={selectedIds}
+        requestType={requestType}
+        onComplete={() => {
+          onAssignmentComplete?.();
+          onDeselectAll();
+        }}
+        trigger={
+          <Button variant="outline" size="sm" className="gap-1">
+            <Users className="w-3.5 h-3.5" />
+            Assign
+          </Button>
+        }
+      />
 
       <Button
         variant="destructive"

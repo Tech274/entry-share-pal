@@ -14,6 +14,7 @@ import { SpreadsheetToolbar } from '@/components/SpreadsheetToolbar';
 import { SortableHeader } from '@/components/SortableHeader';
 import { BulkActionsBar } from '@/components/BulkActionsBar';
 import { BulkUploadDialog } from '@/components/BulkUploadDialog';
+import { AssigneeDropdown } from '@/components/assignment/AssigneeDropdown';
 import { DeliveryRequest, LINE_OF_BUSINESS_OPTIONS, MONTH_OPTIONS, LAB_STATUS_OPTIONS, LAB_TYPE_OPTIONS, CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS } from '@/types/deliveryRequest';
 import {
   DropdownMenu,
@@ -295,7 +296,9 @@ const DeliveryPreview = () => {
             {/* Bulk Actions Bar */}
             <BulkActionsBar
               selectedCount={selectedCount}
+              selectedIds={Array.from(selectedIds)}
               statusOptions={LAB_STATUS_OPTIONS}
+              requestType="delivery"
               onUpdateStatus={handleBulkStatusUpdate}
               onDelete={handleBulkDelete}
               onDeselectAll={deselectAll}
@@ -516,6 +519,7 @@ const DeliveryPreview = () => {
                           align="right"
                         />
                       )}
+                      <th className="spreadsheet-cell font-semibold text-left">Assignee</th>
                       {isColumnVisible('actions') && (
                         <th className="spreadsheet-cell font-semibold text-center">Actions</th>
                       )}
@@ -739,6 +743,14 @@ const DeliveryPreview = () => {
                             />
                           </td>
                         )}
+                        <td className="spreadsheet-cell">
+                          <AssigneeDropdown
+                            requestId={request.id}
+                            requestType="delivery"
+                            currentAssignee={request.assignedTo || null}
+                            compact
+                          />
+                        </td>
                         {isColumnVisible('actions') && (
                           <td className="spreadsheet-cell text-center">
                             <Button

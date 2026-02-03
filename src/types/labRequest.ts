@@ -24,6 +24,7 @@ export interface LabRequest {
   status: string;
   remarks: string;
   lineOfBusiness: string;
+  assignedTo?: string | null;
   createdAt: string;
 }
 

@@ -30,6 +30,7 @@ const mapRowToDeliveryRequest = (row: any): DeliveryRequest => ({
   sellingCostPerUser: Number(row.selling_cost_per_user) || 0,
   totalAmount: Number(row.total_amount) || 0,
   lineOfBusiness: row.line_of_business || '',
+  assignedTo: row.assigned_to || null,
   createdAt: row.created_at,
 });
 
