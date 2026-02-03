@@ -2,12 +2,11 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ExternalLink, Layers, Server, Cloud, Database, Shield, GitBranch, Cpu, Building2, Sparkles, Search } from 'lucide-react';
-import PublicHeader from '@/components/PublicHeader';
+import { Layers, Server, Cloud, Database, Shield, GitBranch, Cpu, Building2, Sparkles, Search, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLabCatalog, groupByCategory } from '@/hooks/useLabCatalog';
-
-const EXTERNAL_CATALOG_URL = '/catalog';
+import { Link } from 'react-router-dom';
+import logoImage from '@/assets/makemylabs-logo.png';
 
 const categories = [
   { id: 'cloud', label: 'Cloud Labs', icon: Cloud },
@@ -87,22 +86,26 @@ const categoryDetails: Record<string, { description: string; templates: { name: 
   },
 };
 
-const LabCatalog = () => {
+const features = [
+  { icon: CheckCircle2, title: 'Pre-configured Environments', description: 'Ready-to-use lab setups with all tools pre-installed' },
+  { icon: CheckCircle2, title: 'Scalable Infrastructure', description: 'From single user to thousands of concurrent learners' },
+  { icon: CheckCircle2, title: 'Enterprise Security', description: 'Isolated environments with data protection' },
+  { icon: CheckCircle2, title: '24/7 Support', description: 'Round-the-clock technical assistance' },
+];
+
+const Catalog = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>('cloud');
   const [searchQuery, setSearchQuery] = useState('');
   const { data: catalogEntries = [], isLoading } = useLabCatalog();
   
-  // Group database entries by category
   const dbTemplatesByCategory = groupByCategory(catalogEntries);
   
-  // Merge database templates with fallback static templates
   const getMergedTemplates = (categoryId: string) => {
     const dbTemplates = dbTemplatesByCategory[categoryId] || [];
     const staticTemplates = categoryDetails[categoryId]?.templates || [];
     return dbTemplates.length > 0 ? dbTemplates : staticTemplates;
   };
 
-  // Get all templates for search
   const allTemplates = useMemo(() => {
     return categories.flatMap(cat => {
       const templates = getMergedTemplates(cat.id);
@@ -110,7 +113,6 @@ const LabCatalog = () => {
     });
   }, [catalogEntries]);
 
-  // Filter templates based on search query
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return null;
     const query = searchQuery.toLowerCase();
@@ -127,70 +129,98 @@ const LabCatalog = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <PublicHeader />
+      {/* Header */}
+      <header className="bg-background border-b sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3">
+            <img src={logoImage} alt="MakeMyLabs" className="h-8 w-auto" />
+            <div className="hidden sm:block">
+              <span className="text-lg font-bold text-foreground">MML Labs</span>
+              <span className="text-xs text-muted-foreground block">Lab Catalog</span>
+            </div>
+          </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/lab-catalog">
+              <Button variant="ghost" size="sm">Browse All Labs</Button>
+            </Link>
+            <Link to="/submit-request">
+              <Button size="sm">Request a Lab</Button>
+            </Link>
+          </div>
+        </div>
+      </header>
 
       {/* Hero Section */}
-      <section className="bg-primary text-primary-foreground py-16">
-        <div className="container mx-auto px-4 text-center">
-          <Layers className="h-16 w-16 mx-auto mb-6 opacity-90" />
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Lab Catalog
-          </h1>
-          <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto mb-8">
-            Browse our comprehensive catalog of pre-built lab environments, templates, and configurations for your training needs.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <section className="bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground py-20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 bg-primary-foreground/10 px-4 py-2 rounded-full mb-6">
+              <Layers className="h-5 w-5" />
+              <span className="text-sm font-medium">Enterprise Lab Solutions</span>
+            </div>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+              MML Labs Catalog
+            </h1>
+            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-10">
+              Discover our comprehensive collection of pre-built, enterprise-ready lab environments for training, development, and certification preparation.
+            </p>
+            <div className="relative max-w-xl mx-auto">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search labs by name, description, or category..."
+                placeholder="Search labs by name, technology, or category..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   if (e.target.value.trim()) setActiveCategory(null);
                   else setActiveCategory('cloud');
                 }}
-                className="pl-10 bg-background text-foreground"
+                className="pl-12 h-14 text-lg bg-background text-foreground rounded-full shadow-lg"
               />
             </div>
-            <Button 
-              variant="secondary" 
-              size="lg" 
-              asChild
-              className="bg-accent text-accent-foreground hover:bg-accent/90"
-            >
-              <a href={EXTERNAL_CATALOG_URL} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-5 w-5 mr-2" />
-                View Full Catalog
-              </a>
-            </Button>
           </div>
         </div>
       </section>
 
-      {/* Category Tabs */}
+      {/* Features */}
+      <section className="py-12 bg-muted/30 border-b">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {features.map((feature, idx) => (
+              <div key={idx} className="flex items-start gap-3">
+                <feature.icon className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="font-semibold text-sm">{feature.title}</h3>
+                  <p className="text-xs text-muted-foreground">{feature.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Category Navigation */}
       {!isSearching && (
-        <section className="py-8 bg-primary">
+        <section className="py-6 bg-background border-b sticky top-[73px] z-40">
           <div className="container mx-auto px-4">
             <div className="flex flex-wrap justify-center gap-2">
               {categories.map((category) => {
                 const Icon = category.icon;
-              const isActive = activeCategory === category.id;
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => setActiveCategory(category.id)}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all text-sm",
-                    isActive
-                      ? "bg-background text-foreground shadow-md"
-                      : "bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{category.label}</span>
-                </button>
+                const isActive = activeCategory === category.id;
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => setActiveCategory(category.id)}
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-2.5 rounded-full font-medium transition-all text-sm",
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{category.label}</span>
+                  </button>
                 );
               })}
             </div>
@@ -198,18 +228,18 @@ const LabCatalog = () => {
         </section>
       )}
 
-      {/* Category Content */}
+      {/* Lab Templates */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-10">
-              <h2 className="text-2xl font-bold mb-3">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-3">
                 {isSearching 
                   ? `Search Results for "${searchQuery}"` 
                   : categories.find(c => c.id === activeCategory)?.label}
               </h2>
               {!isSearching && (
-                <p className="text-muted-foreground text-lg">
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
                   {currentDescription}
                 </p>
               )}
@@ -221,55 +251,89 @@ const LabCatalog = () => {
             </div>
 
             {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading templates...</div>
+              <div className="text-center py-12 text-muted-foreground">Loading templates...</div>
             ) : currentTemplates.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No templates available for this category yet.
+              <div className="text-center py-12 text-muted-foreground">
+                No templates found. Try a different search term.
               </div>
             ) : (
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {currentTemplates.map((template: any, index) => (
-                  <Card key={index} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <CardTitle className="text-lg">{template.name}</CardTitle>
+                  <Card key={index} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/20">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <CardTitle className="text-lg leading-tight">{template.name}</CardTitle>
+                      </div>
                       {isSearching && template.categoryLabel && (
-                        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full w-fit">
+                        <span className="text-xs text-primary bg-primary/10 px-2.5 py-1 rounded-full w-fit font-medium">
                           {template.categoryLabel}
                         </span>
                       )}
                     </CardHeader>
                     <CardContent>
-                      <CardDescription className="text-base">
+                      <CardDescription className="text-sm leading-relaxed mb-4">
                         {template.description}
                       </CardDescription>
+                      <Link to="/submit-request">
+                        <Button variant="ghost" size="sm" className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                          Request This Lab
+                          <ArrowRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </Link>
                     </CardContent>
                   </Card>
                 ))}
-              </div>
-            )}
-
-            {!isSearching && (
-              <div className="text-center mt-10">
-                <Button variant="outline" asChild>
-                  <a href={EXTERNAL_CATALOG_URL} target="_blank" rel="noopener noreferrer">
-                    View All {categories.find(c => c.id === activeCategory)?.label} Templates
-                    <ExternalLink className="h-4 w-4 ml-2" />
-                  </a>
-                </Button>
               </div>
             )}
           </div>
         </div>
       </section>
 
+      {/* CTA Section */}
+      <section className="py-20 bg-primary text-primary-foreground">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Need a Custom Lab Environment?
+          </h2>
+          <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto mb-8">
+            Can't find what you're looking for? Our team can create custom lab environments tailored to your specific training requirements.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/submit-request">
+              <Button size="lg" variant="secondary" className="min-w-[200px]">
+                Submit a Request
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </Button>
+            </Link>
+            <Link to="/docs">
+              <Button size="lg" variant="outline" className="min-w-[200px] border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+                View Documentation
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="border-t py-6 mt-auto">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} MakeMyLabs. All rights reserved.</p>
+      <footer className="border-t py-8 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <img src={logoImage} alt="MakeMyLabs" className="h-6 w-auto" />
+              <span className="text-sm text-muted-foreground">
+                © {new Date().getFullYear()} MakeMyLabs. All rights reserved.
+              </span>
+            </div>
+            <div className="flex items-center gap-6 text-sm text-muted-foreground">
+              <Link to="/lab-catalog" className="hover:text-foreground transition-colors">Full Catalog</Link>
+              <Link to="/docs" className="hover:text-foreground transition-colors">Documentation</Link>
+              <Link to="/submit-request" className="hover:text-foreground transition-colors">Request Lab</Link>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
   );
 };
 
-export default LabCatalog;
+export default Catalog;
