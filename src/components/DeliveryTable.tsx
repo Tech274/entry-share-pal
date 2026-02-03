@@ -41,7 +41,7 @@ export const DeliveryTable = ({ requests, onDelete }: DeliveryTableProps) => {
                 <TableHead className="font-semibold">Ticket #</TableHead>
                 <TableHead className="font-semibold">Training Name</TableHead>
                 <TableHead className="font-semibold">Client</TableHead>
-                <TableHead className="font-semibold">Cloud</TableHead>
+                <TableHead className="font-semibold">Lab Type</TableHead>
                 <TableHead className="font-semibold">Cloud Type</TableHead>
                 <TableHead className="font-semibold">TP Lab Type</TableHead>
                 <TableHead className="font-semibold">Users</TableHead>

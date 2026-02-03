@@ -55,8 +55,8 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
       
-      // Clear cloudType when cloud changes to non-Public
-      if (field === 'cloud' && value !== 'Public') {
+      // Clear cloudType when cloud changes to non-Public Cloud
+      if (field === 'cloud' && value !== 'Public Cloud') {
         updated.cloudType = '';
       }
       // Clear tpLabType when cloud changes to non-TP Labs
@@ -208,10 +208,10 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="cloud">Cloud</Label>
+            <Label htmlFor="cloud">Lab Type</Label>
             <Select value={formData.cloud} onValueChange={v => handleChange('cloud', v)}>
               <SelectTrigger>
-                <SelectValue placeholder="Select cloud" />
+                <SelectValue placeholder="Select lab type" />
               </SelectTrigger>
               <SelectContent>
                 {CLOUD_OPTIONS.map(c => (
@@ -220,7 +220,7 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
               </SelectContent>
             </Select>
           </div>
-          {formData.cloud === 'Public' && (
+          {formData.cloud === 'Public Cloud' && (
             <div className="space-y-2">
               <Label htmlFor="cloudType">Cloud Type</Label>
               <Select value={formData.cloudType} onValueChange={v => handleChange('cloudType', v)}>
@@ -237,10 +237,10 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
           )}
           {formData.cloud === 'TP Labs' && (
             <div className="space-y-2">
-              <Label htmlFor="tpLabType">Lab Type</Label>
+              <Label htmlFor="tpLabType">TP Lab Type</Label>
               <Select value={formData.tpLabType} onValueChange={v => handleChange('tpLabType', v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select lab type" />
+                  <SelectValue placeholder="Select TP lab type" />
                 </SelectTrigger>
                 <SelectContent>
                   {TP_LAB_TYPE_OPTIONS.map(lt => (
