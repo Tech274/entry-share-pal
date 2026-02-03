@@ -6,7 +6,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Download, ArrowLeft, Trash2, Table } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EditableCell } from '@/components/EditableCell';
-import { LabRequest, CLOUD_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, LOB_OPTIONS } from '@/types/labRequest';
+import { LabRequest, CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, LOB_OPTIONS } from '@/types/labRequest';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -158,7 +158,9 @@ const Preview = () => {
                       <th className="spreadsheet-cell font-semibold text-center">User Count</th>
                       <th className="spreadsheet-cell font-semibold text-left">Remarks</th>
                       <th className="spreadsheet-cell font-semibold text-left">Month</th>
-                      <th className="spreadsheet-cell font-semibold text-left">Cloud</th>
+                      <th className="spreadsheet-cell font-semibold text-left">Lab Type</th>
+                      <th className="spreadsheet-cell font-semibold text-left">Cloud Type</th>
+                      <th className="spreadsheet-cell font-semibold text-left">TP Lab Type</th>
                       <th className="spreadsheet-cell font-semibold text-left">Requester</th>
                       <th className="spreadsheet-cell font-semibold text-left">Agent</th>
                       <th className="spreadsheet-cell font-semibold text-left">Account Manager</th>
@@ -240,6 +242,22 @@ const Preview = () => {
                             onSave={(v) => handleCellUpdate(request.id, 'cloud', v)}
                             type="select"
                             options={CLOUD_OPTIONS}
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.cloudType || ''}
+                            onSave={(v) => handleCellUpdate(request.id, 'cloudType', v)}
+                            type="select"
+                            options={CLOUD_TYPE_OPTIONS}
+                          />
+                        </td>
+                        <td className="spreadsheet-cell">
+                          <EditableCell
+                            value={request.tpLabType || ''}
+                            onSave={(v) => handleCellUpdate(request.id, 'tpLabType', v)}
+                            type="select"
+                            options={TP_LAB_TYPE_OPTIONS}
                           />
                         </td>
                         <td className="spreadsheet-cell">
