@@ -40,6 +40,7 @@ export type Database = {
           selling_cost_per_user: number | null
           start_date: string | null
           total_amount: number | null
+          tp_lab_type: string | null
           training_name: string | null
           updated_at: string
           year: number
@@ -69,6 +70,7 @@ export type Database = {
           selling_cost_per_user?: number | null
           start_date?: string | null
           total_amount?: number | null
+          tp_lab_type?: string | null
           training_name?: string | null
           updated_at?: string
           year: number
@@ -98,6 +100,7 @@ export type Database = {
           selling_cost_per_user?: number | null
           start_date?: string | null
           total_amount?: number | null
+          tp_lab_type?: string | null
           training_name?: string | null
           updated_at?: string
           year?: number
@@ -166,6 +169,7 @@ export type Database = {
           selling_cost_per_user: number | null
           status: string | null
           total_amount_for_training: number | null
+          tp_lab_type: string | null
           updated_at: string
           user_count: number | null
           year: number
@@ -195,6 +199,7 @@ export type Database = {
           selling_cost_per_user?: number | null
           status?: string | null
           total_amount_for_training?: number | null
+          tp_lab_type?: string | null
           updated_at?: string
           user_count?: number | null
           year: number
@@ -224,6 +229,7 @@ export type Database = {
           selling_cost_per_user?: number | null
           status?: string | null
           total_amount_for_training?: number | null
+          tp_lab_type?: string | null
           updated_at?: string
           user_count?: number | null
           year?: number
