@@ -54,10 +54,10 @@ export const getLabTypeColor = (labType: string): string => {
   }
 };
 
-// Cloud provider colors (Public/Private Cloud/TP Labs)
+// Lab Type colors (Public Cloud/Private Cloud/TP Labs)
 export const getCloudColor = (cloud: string): string => {
   switch (cloud.toLowerCase()) {
-    case 'public':
+    case 'public cloud':
       return 'bg-blue-50 text-blue-700 border-blue-200';
     case 'private cloud':
       return 'bg-purple-50 text-purple-700 border-purple-200';

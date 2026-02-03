@@ -36,6 +36,6 @@ export const MONTH_OPTIONS = [
 export const YEAR_OPTIONS = [2025, 2026];
 export const LAB_STATUS_OPTIONS = ['Pending', 'In Progress', 'Ready', 'Completed'];
 export const LAB_TYPE_OPTIONS = ['Cloud', 'On-Premise', 'Hybrid', 'Virtual'];
-export const CLOUD_OPTIONS = ['Public', 'Private Cloud', 'TP Labs'];
+export const CLOUD_OPTIONS = ['Public Cloud', 'Private Cloud', 'TP Labs'];
 export const CLOUD_TYPE_OPTIONS = ['AWS', 'Azure', 'GCP'];
 export const TP_LAB_TYPE_OPTIONS = ['SAP', 'Oracle', 'OEM'];

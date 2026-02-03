@@ -39,9 +39,9 @@ export const RequestsTable = ({ requests, onDelete }: RequestsTableProps) => {
                 <TableHead className="font-semibold">Ticket #</TableHead>
                 <TableHead className="font-semibold">Client</TableHead>
                 <TableHead className="font-semibold">Lab Name</TableHead>
-                <TableHead className="font-semibold">Cloud</TableHead>
-                <TableHead className="font-semibold">Cloud Type</TableHead>
                 <TableHead className="font-semibold">Lab Type</TableHead>
+                <TableHead className="font-semibold">Cloud Type</TableHead>
+                <TableHead className="font-semibold">TP Lab Type</TableHead>
                 <TableHead className="font-semibold">LOB</TableHead>
                 <TableHead className="font-semibold">User Count</TableHead>
                 <TableHead className="font-semibold">Duration</TableHead>
