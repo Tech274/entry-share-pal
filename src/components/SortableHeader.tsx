@@ -1,36 +1,27 @@
 import { ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SortDirection } from '@/hooks/useSpreadsheetControls';
-import { LabRequest } from '@/types/labRequest';
 
 interface SortableHeaderProps {
   label: string;
-  field?: keyof LabRequest;
-  sortable?: boolean;
-  currentSortField: keyof LabRequest | null;
+  field: string;
+  currentSortField: string | null;
   currentSortDirection: SortDirection;
-  onSort?: (field: keyof LabRequest) => void;
+  onSort: (field: string) => void;
   align?: 'left' | 'center' | 'right';
 }
 
 export function SortableHeader({
   label,
   field,
-  sortable = true,
   currentSortField,
   currentSortDirection,
   onSort,
   align = 'left',
 }: SortableHeaderProps) {
-  const isActive = field && currentSortField === field;
-  
-  const handleClick = () => {
-    if (sortable && field && onSort) {
-      onSort(field);
-    }
-  };
+  const isActive = currentSortField === field;
 
-  const alignClass = {
+  const alignmentClass = {
     left: 'text-left',
     center: 'text-center',
     right: 'text-right',
@@ -39,30 +30,21 @@ export function SortableHeader({
   return (
     <th
       className={cn(
-        'spreadsheet-cell font-semibold',
-        alignClass,
-        sortable && field && 'cursor-pointer hover:bg-primary/80 select-none transition-colors'
+        'spreadsheet-cell font-semibold cursor-pointer hover:bg-primary/80 transition-colors select-none',
+        alignmentClass
       )}
-      onClick={handleClick}
+      onClick={() => onSort(field)}
     >
-      <div className={cn(
-        'flex items-center gap-1',
-        align === 'center' && 'justify-center',
-        align === 'right' && 'justify-end'
-      )}>
+      <div className={cn('flex items-center gap-1', align === 'right' && 'justify-end', align === 'center' && 'justify-center')}>
         <span>{label}</span>
-        {sortable && field && (
-          <span className="inline-flex">
-            {!isActive && (
-              <ArrowUpDown className="w-3 h-3 opacity-40" />
-            )}
-            {isActive && currentSortDirection === 'asc' && (
-              <ArrowUp className="w-3 h-3" />
-            )}
-            {isActive && currentSortDirection === 'desc' && (
-              <ArrowDown className="w-3 h-3" />
-            )}
-          </span>
+        {isActive ? (
+          currentSortDirection === 'asc' ? (
+            <ArrowUp className="w-3 h-3" />
+          ) : (
+            <ArrowDown className="w-3 h-3" />
+          )
+        ) : (
+          <ArrowUpDown className="w-3 h-3 opacity-40" />
         )}
       </div>
     </th>

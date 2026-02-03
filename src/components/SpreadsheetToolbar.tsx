@@ -18,6 +18,7 @@ import {
 import { Columns, Filter, X, RotateCcw } from 'lucide-react';
 import { ColumnConfig, Filters } from '@/hooks/useSpreadsheetControls';
 import { STATUS_OPTIONS, MONTH_OPTIONS, LOB_OPTIONS, CLOUD_OPTIONS } from '@/types/labRequest';
+import { LAB_STATUS_OPTIONS } from '@/types/deliveryRequest';
 
 interface SpreadsheetToolbarProps {
   columns: ColumnConfig[];
@@ -28,6 +29,7 @@ interface SpreadsheetToolbarProps {
   onUpdateFilter: (key: keyof Filters, value: string) => void;
   onClearFilters: () => void;
   onResetColumns: () => void;
+  type?: 'solutions' | 'delivery';
 }
 
 export function SpreadsheetToolbar({
@@ -39,7 +41,10 @@ export function SpreadsheetToolbar({
   onUpdateFilter,
   onClearFilters,
   onResetColumns,
+  type = 'solutions',
 }: SpreadsheetToolbarProps) {
+  const statusOptions = type === 'delivery' ? LAB_STATUS_OPTIONS : STATUS_OPTIONS;
+
   return (
     <div className="flex flex-wrap items-center gap-3 p-4 bg-card border-b">
       {/* Column Visibility */}
@@ -102,7 +107,7 @@ export function SpreadsheetToolbar({
           </SelectTrigger>
           <SelectContent className="bg-popover">
             <SelectItem value="all">All Status</SelectItem>
-            {STATUS_OPTIONS.map((status) => (
+            {statusOptions.map((status) => (
               <SelectItem key={status} value={status}>
                 {status}
               </SelectItem>

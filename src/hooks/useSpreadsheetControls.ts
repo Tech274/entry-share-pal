@@ -1,21 +1,17 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { LabRequest } from '@/types/labRequest';
+import { DeliveryRequest } from '@/types/deliveryRequest';
 
 export type SortDirection = 'asc' | 'desc' | null;
-export type SortField = keyof LabRequest | null;
+export type SortField = string | null;
 
 export interface ColumnConfig {
-  id: keyof LabRequest | 'index' | 'actions';
+  id: string;
   label: string;
   visible: boolean;
   sortable: boolean;
   filterable: boolean;
 }
-
-const STORAGE_KEYS = {
-  COLUMNS: 'spreadsheet-columns-visibility',
-  FILTERS: 'spreadsheet-filters',
-} as const;
 
 export interface Filters {
   status: string;
@@ -25,7 +21,14 @@ export interface Filters {
   client: string;
 }
 
-const DEFAULT_COLUMNS: ColumnConfig[] = [
+type SpreadsheetType = 'solutions' | 'delivery';
+
+const getStorageKeys = (type: SpreadsheetType) => ({
+  COLUMNS: `spreadsheet-${type}-columns-visibility`,
+  FILTERS: `spreadsheet-${type}-filters`,
+});
+
+const SOLUTIONS_COLUMNS: ColumnConfig[] = [
   { id: 'index', label: '#', visible: true, sortable: false, filterable: false },
   { id: 'potentialId', label: 'Potential ID', visible: true, sortable: true, filterable: false },
   { id: 'labName', label: 'Training Name', visible: true, sortable: true, filterable: false },
@@ -52,6 +55,31 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
   { id: 'actions', label: 'Actions', visible: true, sortable: false, filterable: false },
 ];
 
+const DELIVERY_COLUMNS: ColumnConfig[] = [
+  { id: 'index', label: '#', visible: true, sortable: false, filterable: false },
+  { id: 'potentialId', label: 'Potential ID', visible: true, sortable: true, filterable: false },
+  { id: 'freshDeskTicketNumber', label: 'Ticket #', visible: true, sortable: true, filterable: false },
+  { id: 'trainingName', label: 'Training Name', visible: true, sortable: true, filterable: false },
+  { id: 'client', label: 'Client', visible: true, sortable: true, filterable: true },
+  { id: 'lineOfBusiness', label: 'LOB', visible: true, sortable: true, filterable: true },
+  { id: 'numberOfUsers', label: 'Users', visible: true, sortable: true, filterable: false },
+  { id: 'month', label: 'Month', visible: true, sortable: true, filterable: true },
+  { id: 'cloud', label: 'Cloud', visible: true, sortable: true, filterable: true },
+  { id: 'cloudType', label: 'Cloud Type', visible: true, sortable: true, filterable: false },
+  { id: 'tpLabType', label: 'TP Lab Type', visible: true, sortable: true, filterable: false },
+  { id: 'labStatus', label: 'Lab Status', visible: true, sortable: true, filterable: true },
+  { id: 'labType', label: 'Lab Type', visible: true, sortable: true, filterable: false },
+  { id: 'startDate', label: 'Start Date', visible: true, sortable: true, filterable: false },
+  { id: 'endDate', label: 'End Date', visible: true, sortable: true, filterable: false },
+  { id: 'requester', label: 'Requester', visible: true, sortable: true, filterable: false },
+  { id: 'agentName', label: 'Agent', visible: true, sortable: true, filterable: false },
+  { id: 'accountManager', label: 'Account Manager', visible: true, sortable: true, filterable: false },
+  { id: 'inputCostPerUser', label: 'Input Cost', visible: true, sortable: true, filterable: false },
+  { id: 'sellingCostPerUser', label: 'Selling Cost', visible: true, sortable: true, filterable: false },
+  { id: 'totalAmount', label: 'Total Amount', visible: true, sortable: true, filterable: false },
+  { id: 'actions', label: 'Actions', visible: true, sortable: false, filterable: false },
+];
+
 const DEFAULT_FILTERS: Filters = {
   status: '',
   month: '',
@@ -60,13 +88,18 @@ const DEFAULT_FILTERS: Filters = {
   client: '',
 };
 
-// Helper functions for localStorage
-function loadColumnsFromStorage(): ColumnConfig[] {
+function getDefaultColumns(type: SpreadsheetType): ColumnConfig[] {
+  return type === 'delivery' ? DELIVERY_COLUMNS : SOLUTIONS_COLUMNS;
+}
+
+function loadColumnsFromStorage(type: SpreadsheetType): ColumnConfig[] {
+  const storageKeys = getStorageKeys(type);
+  const defaultCols = getDefaultColumns(type);
   try {
-    const stored = localStorage.getItem(STORAGE_KEYS.COLUMNS);
+    const stored = localStorage.getItem(storageKeys.COLUMNS);
     if (stored) {
       const storedVisibility = JSON.parse(stored) as Record<string, boolean>;
-      return DEFAULT_COLUMNS.map(col => ({
+      return defaultCols.map(col => ({
         ...col,
         visible: storedVisibility[col.id] ?? col.visible,
       }));
@@ -74,12 +107,13 @@ function loadColumnsFromStorage(): ColumnConfig[] {
   } catch (e) {
     console.warn('Failed to load column preferences from localStorage:', e);
   }
-  return DEFAULT_COLUMNS;
+  return defaultCols;
 }
 
-function loadFiltersFromStorage(): Filters {
+function loadFiltersFromStorage(type: SpreadsheetType): Filters {
+  const storageKeys = getStorageKeys(type);
   try {
-    const stored = localStorage.getItem(STORAGE_KEYS.FILTERS);
+    const stored = localStorage.getItem(storageKeys.FILTERS);
     if (stored) {
       const storedFilters = JSON.parse(stored) as Partial<Filters>;
       return { ...DEFAULT_FILTERS, ...storedFilters };
@@ -90,11 +124,19 @@ function loadFiltersFromStorage(): Filters {
   return DEFAULT_FILTERS;
 }
 
-export function useSpreadsheetControls(requests: LabRequest[]) {
-  const [columns, setColumns] = useState<ColumnConfig[]>(loadColumnsFromStorage);
+type SpreadsheetRequest = LabRequest | DeliveryRequest;
+
+export function useSpreadsheetControls<T extends SpreadsheetRequest>(
+  requests: T[],
+  type: SpreadsheetType = 'solutions'
+) {
+  const storageKeys = getStorageKeys(type);
+  const defaultColumns = getDefaultColumns(type);
+
+  const [columns, setColumns] = useState<ColumnConfig[]>(() => loadColumnsFromStorage(type));
   const [sortField, setSortField] = useState<SortField>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
-  const [filters, setFilters] = useState<Filters>(loadFiltersFromStorage);
+  const [filters, setFilters] = useState<Filters>(() => loadFiltersFromStorage(type));
 
   // Persist column visibility to localStorage
   useEffect(() => {
@@ -102,13 +144,13 @@ export function useSpreadsheetControls(requests: LabRequest[]) {
     columns.forEach(col => {
       visibility[col.id] = col.visible;
     });
-    localStorage.setItem(STORAGE_KEYS.COLUMNS, JSON.stringify(visibility));
-  }, [columns]);
+    localStorage.setItem(storageKeys.COLUMNS, JSON.stringify(visibility));
+  }, [columns, storageKeys.COLUMNS]);
 
   // Persist filters to localStorage
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.FILTERS, JSON.stringify(filters));
-  }, [filters]);
+    localStorage.setItem(storageKeys.FILTERS, JSON.stringify(filters));
+  }, [filters, storageKeys.FILTERS]);
 
   const toggleColumnVisibility = useCallback((columnId: string) => {
     setColumns(prev =>
@@ -118,7 +160,7 @@ export function useSpreadsheetControls(requests: LabRequest[]) {
     );
   }, []);
 
-  const handleSort = useCallback((field: keyof LabRequest) => {
+  const handleSort = useCallback((field: string) => {
     if (sortField === field) {
       if (sortDirection === 'asc') {
         setSortDirection('desc');
@@ -138,13 +180,13 @@ export function useSpreadsheetControls(requests: LabRequest[]) {
 
   const clearFilters = useCallback(() => {
     setFilters(DEFAULT_FILTERS);
-    localStorage.removeItem(STORAGE_KEYS.FILTERS);
-  }, []);
+    localStorage.removeItem(storageKeys.FILTERS);
+  }, [storageKeys.FILTERS]);
 
   const resetColumns = useCallback(() => {
-    setColumns(DEFAULT_COLUMNS);
-    localStorage.removeItem(STORAGE_KEYS.COLUMNS);
-  }, []);
+    setColumns(defaultColumns);
+    localStorage.removeItem(storageKeys.COLUMNS);
+  }, [defaultColumns, storageKeys.COLUMNS]);
 
   const visibleColumns = useMemo(() => 
     columns.filter(col => col.visible),
@@ -154,30 +196,34 @@ export function useSpreadsheetControls(requests: LabRequest[]) {
   const filteredAndSortedRequests = useMemo(() => {
     let result = [...requests];
 
-    // Apply filters
+    // Apply filters - use type-safe access
     if (filters.status) {
-      result = result.filter(r => r.status === filters.status);
+      result = result.filter(r => {
+        // For Solutions: use 'status', for Delivery: use 'labStatus'
+        const statusField = type === 'delivery' ? 'labStatus' : 'status';
+        return (r as any)[statusField] === filters.status;
+      });
     }
     if (filters.month) {
-      result = result.filter(r => r.month === filters.month);
+      result = result.filter(r => (r as any).month === filters.month);
     }
     if (filters.cloud) {
-      result = result.filter(r => r.cloud === filters.cloud);
+      result = result.filter(r => (r as any).cloud === filters.cloud);
     }
     if (filters.lineOfBusiness) {
-      result = result.filter(r => r.lineOfBusiness === filters.lineOfBusiness);
+      result = result.filter(r => (r as any).lineOfBusiness === filters.lineOfBusiness);
     }
     if (filters.client) {
       result = result.filter(r => 
-        r.client.toLowerCase().includes(filters.client.toLowerCase())
+        ((r as any).client || '').toLowerCase().includes(filters.client.toLowerCase())
       );
     }
 
     // Apply sorting
     if (sortField && sortDirection) {
       result.sort((a, b) => {
-        const aVal = a[sortField];
-        const bVal = b[sortField];
+        const aVal = (a as any)[sortField];
+        const bVal = (b as any)[sortField];
 
         if (aVal === null || aVal === undefined) return 1;
         if (bVal === null || bVal === undefined) return -1;
@@ -194,7 +240,7 @@ export function useSpreadsheetControls(requests: LabRequest[]) {
     }
 
     return result;
-  }, [requests, filters, sortField, sortDirection]);
+  }, [requests, filters, sortField, sortDirection, type]);
 
   const activeFilterCount = useMemo(() => 
     Object.values(filters).filter(v => v !== '').length,
