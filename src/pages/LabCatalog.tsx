@@ -57,6 +57,8 @@ const LabCatalog = () => {
   const [selectedLabs, setSelectedLabs] = useState<Set<string>>(new Set());
   const [selectedLabelFilters, setSelectedLabelFilters] = useState<string[]>([]);
   const [currentLabHighlight, setCurrentLabHighlight] = useState<LabHighlight>(labHighlights[0]);
+  const [currentLabIndex, setCurrentLabIndex] = useState(0);
+  const [isHeroTransitioning, setIsHeroTransitioning] = useState(false);
   
   // Parallax effect for hero section
   const parallaxOffset = useParallax({ speed: 0.3, maxOffset: 80 });
@@ -276,30 +278,62 @@ const LabCatalog = () => {
           className="container mx-auto px-4 text-center relative z-10"
           style={{ transform: `translateY(${parallaxOffset * 0.15}px)` }}
         >
-          {(() => {
-            const HeroIcon = currentLabHighlight.icon;
-            return (
-              <div 
+          {/* Animated Hero Content */}
+          <div 
+            className={cn(
+              "transition-all duration-300 ease-out",
+              isHeroTransitioning 
+                ? "opacity-0 translate-y-3 scale-95" 
+                : "opacity-100 translate-y-0 scale-100"
+            )}
+          >
+            {(() => {
+              const HeroIcon = currentLabHighlight.icon;
+              return (
+                <div 
+                  className={cn(
+                    "p-4 rounded-2xl bg-gradient-to-br shadow-xl mb-6 transition-all duration-500 inline-block",
+                    currentLabHighlight.gradient
+                  )}
+                  style={{ transform: `translateY(${parallaxOffset * -0.2}px)` }}
+                >
+                  <HeroIcon className="h-16 w-16 text-white" />
+                </div>
+              );
+            })()}
+            <h1 className="text-4xl md:text-5xl font-bold mb-2">
+              {currentLabHighlight.title}
+            </h1>
+            <p className="text-sm text-primary-foreground/70 mb-4">
+              {currentLabHighlight.tagline}
+            </p>
+          </div>
+          
+          {/* Navigation Dots */}
+          <div className="flex justify-center gap-2 mb-6">
+            {labHighlights.map((lab, idx) => (
+              <button
+                key={idx}
                 className={cn(
-                  "p-4 rounded-2xl bg-gradient-to-br shadow-xl mb-6 transition-all duration-500 inline-block",
-                  currentLabHighlight.gradient
+                  "h-2 rounded-full transition-all duration-300",
+                  idx === currentLabIndex 
+                    ? "w-6 bg-primary-foreground" 
+                    : "w-2 bg-primary-foreground/30 hover:bg-primary-foreground/50"
                 )}
-                style={{ transform: `translateY(${parallaxOffset * -0.2}px)` }}
-              >
-                <HeroIcon className="h-16 w-16 text-white" />
-              </div>
-            );
-          })()}
-          <h1 className="text-4xl md:text-5xl font-bold mb-2 transition-all duration-500">
-            {currentLabHighlight.title}
-          </h1>
-          <p className="text-sm text-primary-foreground/70 mb-6 transition-all duration-500">
-            {currentLabHighlight.tagline}
-          </p>
+                aria-label={`View ${lab.title}`}
+              />
+            ))}
+          </div>
           
           {/* Hidden RollingBanner to drive state changes */}
           <div className="hidden">
-            <RollingBanner onLabChange={setCurrentLabHighlight} />
+            <RollingBanner 
+              onLabChange={(lab, index, transitioning) => {
+                setCurrentLabHighlight(lab);
+                setCurrentLabIndex(index);
+                setIsHeroTransitioning(transitioning);
+              }} 
+            />
           </div>
           
           {/* Animated Stats Section */}
