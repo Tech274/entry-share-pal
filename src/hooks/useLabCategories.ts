@@ -8,6 +8,7 @@ export interface LabCategory {
   label: string;
   display_order: number;
   is_active: boolean;
+  icon_name: string;
   created_at: string;
   updated_at: string;
 }
@@ -17,6 +18,7 @@ export interface CategoryFormData {
   label: string;
   display_order: number;
   is_active: boolean;
+  icon_name: string;
 }
 
 export const useLabCategories = () => {
@@ -102,12 +104,39 @@ export const useLabCategories = () => {
     },
   });
 
+  const reorderCategories = useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      // Update each category with its new display_order
+      const updates = orderedIds.map((id, index) => 
+        supabase
+          .from('lab_catalog_categories')
+          .update({ display_order: index })
+          .eq('id', id)
+      );
+      
+      const results = await Promise.all(updates);
+      const error = results.find(r => r.error)?.error;
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lab-catalog-categories'] });
+      toast.success('Category order updated');
+    },
+    onError: (error) => {
+      toast.error('Failed to reorder: ' + error.message);
+    },
+  });
+
   // Helper to get active categories only
   const activeCategories = categories.filter(c => c.is_active);
 
   // Helper to get category label by ID
   const getCategoryLabel = (categoryId: string) => 
     categories.find(c => c.category_id === categoryId)?.label || categoryId;
+
+  // Helper to get category by ID
+  const getCategory = (categoryId: string) => 
+    categories.find(c => c.category_id === categoryId);
 
   return {
     categories,
@@ -117,6 +146,8 @@ export const useLabCategories = () => {
     updateCategory,
     deleteCategory,
     toggleCategoryActive,
+    reorderCategories,
     getCategoryLabel,
+    getCategory,
   };
 };

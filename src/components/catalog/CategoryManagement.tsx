@@ -5,16 +5,21 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Pencil, Trash2, Tag, GripVertical } from 'lucide-react';
-import { useLabCategories, CategoryFormData } from '@/hooks/useLabCategories';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Tag } from 'lucide-react';
+import { useLabCategories, CategoryFormData, LabCategory } from '@/hooks/useLabCategories';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { SortableCategoryRow } from './SortableCategoryRow';
+import { IconPicker } from './IconPicker';
 
 const initialFormData: CategoryFormData = {
   category_id: '',
   label: '',
   display_order: 0,
   is_active: true,
+  icon_name: 'Layers',
 };
 
 export const CategoryManagement = () => {
@@ -28,8 +33,16 @@ export const CategoryManagement = () => {
     createCategory, 
     updateCategory, 
     deleteCategory,
-    toggleCategoryActive 
+    toggleCategoryActive,
+    reorderCategories,
   } = useLabCategories();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const resetForm = () => {
     setFormData(initialFormData);
@@ -37,13 +50,14 @@ export const CategoryManagement = () => {
     setIsDialogOpen(false);
   };
 
-  const handleEdit = (category: any) => {
+  const handleEdit = (category: LabCategory) => {
     setEditingCategory({ id: category.id, data: category });
     setFormData({
       category_id: category.category_id,
       label: category.label,
       display_order: category.display_order,
       is_active: category.is_active,
+      icon_name: category.icon_name || 'Layers',
     });
     setIsDialogOpen(true);
   };
@@ -70,6 +84,20 @@ export const CategoryManagement = () => {
     deleteCategory.mutate(id);
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      const oldIndex = categories.findIndex((c) => c.id === active.id);
+      const newIndex = categories.findIndex((c) => c.id === over.id);
+      
+      const newOrder = arrayMove(categories, oldIndex, newIndex);
+      const orderedIds = newOrder.map(c => c.id);
+      
+      reorderCategories.mutate(orderedIds);
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="bg-accent py-3 px-4 rounded-t-lg">
@@ -83,7 +111,10 @@ export const CategoryManagement = () => {
             setIsDialogOpen(open);
           }}>
             <DialogTrigger asChild>
-              <Button size="sm" variant="secondary" onClick={() => { setEditingCategory(null); setFormData({...initialFormData, display_order: categories.length + 1}); }}>
+              <Button size="sm" variant="secondary" onClick={() => { 
+                setEditingCategory(null); 
+                setFormData({...initialFormData, display_order: categories.length + 1}); 
+              }}>
                 <Plus className="w-4 h-4 mr-1" />
                 Add Category
               </Button>
@@ -120,6 +151,16 @@ export const CategoryManagement = () => {
                   </p>
                 </div>
                 <div className="space-y-2">
+                  <Label>Icon</Label>
+                  <IconPicker 
+                    value={formData.icon_name} 
+                    onChange={(icon) => setFormData({ ...formData, icon_name: icon })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Icon displayed next to the category.
+                  </p>
+                </div>
+                <div className="space-y-2">
                   <Label>Display Order</Label>
                   <Input 
                     type="number" 
@@ -127,7 +168,7 @@ export const CategoryManagement = () => {
                     onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Lower numbers appear first in the list.
+                    Lower numbers appear first. You can also drag rows to reorder.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -160,72 +201,46 @@ export const CategoryManagement = () => {
           </div>
         ) : (
           <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12"></TableHead>
-                  <TableHead>Category ID</TableHead>
-                  <TableHead>Label</TableHead>
-                  <TableHead className="w-20">Order</TableHead>
-                  <TableHead className="w-20">Active</TableHead>
-                  <TableHead className="text-right w-24">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {categories.map((category) => (
-                  <TableRow key={category.id}>
-                    <TableCell>
-                      <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">{category.category_id}</TableCell>
-                    <TableCell className="font-medium">{category.label}</TableCell>
-                    <TableCell>{category.display_order}</TableCell>
-                    <TableCell>
-                      <Switch 
-                        checked={category.is_active}
-                        onCheckedChange={(checked) => toggleCategoryActive.mutate({ id: category.id, is_active: checked })}
-                      />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button size="icon" variant="ghost" onClick={() => handleEdit(category)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Category?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This will permanently delete the "{category.label}" category. 
-                                Lab templates using this category will keep their category value but won't appear in filters.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => handleDelete(category.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              modifiers={[restrictToVerticalAxis]}
+              onDragEnd={handleDragEnd}
+            >
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12"></TableHead>
+                    <TableHead className="w-12">Icon</TableHead>
+                    <TableHead>Category ID</TableHead>
+                    <TableHead>Label</TableHead>
+                    <TableHead className="w-20">Order</TableHead>
+                    <TableHead className="w-20">Active</TableHead>
+                    <TableHead className="text-right w-24">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  <SortableContext
+                    items={categories.map(c => c.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {categories.map((category) => (
+                      <SortableCategoryRow
+                        key={category.id}
+                        category={category}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onToggleActive={(id, is_active) => toggleCategoryActive.mutate({ id, is_active })}
+                      />
+                    ))}
+                  </SortableContext>
+                </TableBody>
+              </Table>
+            </DndContext>
           </div>
         )}
         <p className="text-xs text-muted-foreground mt-4">
-          {categories.length} categories • {categories.filter(c => c.is_active).length} active
+          {categories.length} categories • {categories.filter(c => c.is_active).length} active • Drag rows to reorder
         </p>
       </CardContent>
     </Card>
