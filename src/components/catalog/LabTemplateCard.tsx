@@ -69,7 +69,7 @@ const LabTemplateCard = ({
         "hover:shadow-lg transition-all duration-500 hover:-translate-y-1 group relative cursor-pointer",
         "opacity-0 translate-y-8 scale-95",
         isVisible && "opacity-100 translate-y-0 scale-100",
-        isSelected && "ring-2 ring-rose-500 bg-rose-50 dark:bg-rose-950/20"
+        isSelected && "ring-2 ring-rose-500 bg-rose-50"
       )}
       onClick={onToggleSelect}
     >
