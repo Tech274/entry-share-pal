@@ -461,7 +461,20 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
         </div>
       </div>
 
-      {/* Actions */}
+      {/* Additional Information */}
+      <div className="form-section">
+        <h3 className="form-section-title">Additional Information</h3>
+        <div className="space-y-2">
+          <Label htmlFor="invoiceDetails">Invoice Details</Label>
+          <Textarea
+            id="invoiceDetails"
+            value={formData.invoiceDetails}
+            onChange={e => handleChange('invoiceDetails', e.target.value)}
+            placeholder="Enter invoice number, billing details, etc..."
+            rows={2}
+          />
+        </div>
+      </div>
       <div className="flex gap-3 justify-end">
         <Button type="button" variant="outline" onClick={handleReset}>
           <RotateCcw className="w-4 h-4 mr-2" />
