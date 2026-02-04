@@ -226,12 +226,12 @@ const LabCatalog = () => {
                   >
                     <a href={EXTERNAL_CATALOG_URL} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-5 w-5 mr-2" />
-                      View Landing Page
+                      View MML Complete Catalog
                     </a>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent sideOffset={8}>
-                  <p>Opens MML Labs external catalog in a new tab</p>
+                  <p>Opens MML Labs complete catalog in a new tab</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
