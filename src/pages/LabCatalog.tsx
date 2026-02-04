@@ -334,6 +334,26 @@ const LabCatalog = () => {
             <p className="text-sm text-primary-foreground/70 mb-4">
               {currentLabHighlight.tagline}
             </p>
+            
+            {/* Feature/Toolset Pills */}
+            <div className="flex flex-wrap justify-center gap-2 mb-2">
+              {currentLabHighlight.features.map((feature, idx) => (
+                <span
+                  key={feature}
+                  className={cn(
+                    "px-3 py-1.5 rounded-full text-xs font-medium",
+                    "bg-primary-foreground/10 text-primary-foreground/90",
+                    "border border-primary-foreground/20",
+                    "backdrop-blur-sm"
+                  )}
+                  style={{ 
+                    animationDelay: `${idx * 75}ms`,
+                  }}
+                >
+                  {feature}
+                </span>
+              ))}
+            </div>
           </div>
           
           {/* Navigation Dots with Tooltips */}
