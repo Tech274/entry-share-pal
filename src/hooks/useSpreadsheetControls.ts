@@ -20,6 +20,10 @@ export interface Filters {
   lineOfBusiness: string;
   client: string;
   invoiceDetails: string;
+  startDateFrom: string;
+  startDateTo: string;
+  endDateFrom: string;
+  endDateTo: string;
 }
 
 type SpreadsheetType = 'solutions' | 'delivery';
@@ -90,6 +94,10 @@ const DEFAULT_FILTERS: Filters = {
   lineOfBusiness: '',
   client: '',
   invoiceDetails: '',
+  startDateFrom: '',
+  startDateTo: '',
+  endDateFrom: '',
+  endDateTo: '',
 };
 
 function getDefaultColumns(type: SpreadsheetType): ColumnConfig[] {
@@ -226,6 +234,34 @@ export function useSpreadsheetControls<T extends SpreadsheetRequest>(
       result = result.filter(r => 
         ((r as any).invoiceDetails || '').toLowerCase().includes(filters.invoiceDetails.toLowerCase())
       );
+    }
+
+    // Date range filters for start date
+    if (filters.startDateFrom) {
+      result = result.filter(r => {
+        const startDate = type === 'delivery' ? (r as any).startDate : (r as any).labStartDate;
+        return startDate && startDate >= filters.startDateFrom;
+      });
+    }
+    if (filters.startDateTo) {
+      result = result.filter(r => {
+        const startDate = type === 'delivery' ? (r as any).startDate : (r as any).labStartDate;
+        return startDate && startDate <= filters.startDateTo;
+      });
+    }
+
+    // Date range filters for end date
+    if (filters.endDateFrom) {
+      result = result.filter(r => {
+        const endDate = type === 'delivery' ? (r as any).endDate : (r as any).labEndDate;
+        return endDate && endDate >= filters.endDateFrom;
+      });
+    }
+    if (filters.endDateTo) {
+      result = result.filter(r => {
+        const endDate = type === 'delivery' ? (r as any).endDate : (r as any).labEndDate;
+        return endDate && endDate <= filters.endDateTo;
+      });
     }
 
     // Apply sorting
