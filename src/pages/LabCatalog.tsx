@@ -2,7 +2,8 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Layers, Search, Tags, ChevronRight, PlusCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Layers, Search, Tags, ChevronRight, PlusCircle, Info } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LabTemplateCard from '@/components/catalog/LabTemplateCard';
@@ -304,6 +305,17 @@ const LabCatalog = () => {
           </nav>
         </div>
       </div>
+
+      {/* Stakeholder Info Banner */}
+      <div className="container mx-auto px-4 py-3">
+        <Alert className="bg-accent/10 border-accent/30">
+          <Info className="h-4 w-4 text-accent" />
+          <AlertDescription className="text-sm text-foreground/80">
+            <span className="font-medium">Internal Stakeholder Portal</span> — You have special access to browse our complete lab catalog with 2500+ templates. 
+            Select labs to bundle requests or use the <span className="font-semibold text-accent">"Request New Lab"</span> button to submit custom requirements.
+          </AlertDescription>
+        </Alert>
+      </div>
       {/* Hero Section with Parallax */}
       <section 
         className="bg-primary text-primary-foreground py-16 relative overflow-hidden"
@@ -426,7 +438,7 @@ const LabCatalog = () => {
             <Button 
               asChild
               size="lg"
-              className="bg-accent text-accent-foreground hover:bg-accent/90 shrink-0"
+              className="btn-glow bg-accent text-accent-foreground hover:bg-accent/90 shrink-0"
             >
               <Link to="/submit-request">
                 <PlusCircle className="h-5 w-5 mr-2" />

@@ -137,4 +137,49 @@
   .btn-export {
     @apply bg-accent text-accent-foreground hover:bg-accent/90 font-medium;
   }
+
+  /* Glowing button animation */
+  .btn-glow {
+    position: relative;
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
+  .btn-glow::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(
+      45deg,
+      hsl(var(--accent)) 0%,
+      hsl(var(--primary)) 50%,
+      hsl(var(--accent)) 100%
+    );
+    opacity: 0;
+    z-index: -1;
+    animation: glow-ring 2s ease-in-out infinite;
+    filter: blur(8px);
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% {
+      box-shadow: 0 0 5px hsl(var(--accent) / 0.4),
+                  0 0 15px hsl(var(--accent) / 0.2),
+                  0 0 30px hsl(var(--accent) / 0.1);
+    }
+    50% {
+      box-shadow: 0 0 10px hsl(var(--accent) / 0.6),
+                  0 0 25px hsl(var(--accent) / 0.4),
+                  0 0 50px hsl(var(--accent) / 0.2);
+    }
+  }
+
+  @keyframes glow-ring {
+    0%, 100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
 }
