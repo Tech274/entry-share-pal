@@ -13,7 +13,7 @@ import { FloatingParticles } from '@/components/catalog/FloatingParticles';
 import { AnimatedCategoryPill } from '@/components/catalog/AnimatedCategoryPill';
 import { ScrollToTopButton } from '@/components/catalog/ScrollToTopButton';
 import { CategoryPillSkeletonRow } from '@/components/catalog/CategoryPillSkeleton';
-import { RollingBanner } from '@/components/catalog/RollingBanner';
+import { RollingBanner, LabHighlight, labHighlights } from '@/components/catalog/RollingBanner';
 import { cn } from '@/lib/utils';
 import { useLabCatalog, useLabCatalogCategories, useLabCatalogEntryLabels, groupByCategory } from '@/hooks/useLabCatalog';
 import { useNavigate } from 'react-router-dom';
@@ -56,6 +56,7 @@ const LabCatalog = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLabs, setSelectedLabs] = useState<Set<string>>(new Set());
   const [selectedLabelFilters, setSelectedLabelFilters] = useState<string[]>([]);
+  const [currentLabHighlight, setCurrentLabHighlight] = useState<LabHighlight>(labHighlights[0]);
   
   // Parallax effect for hero section
   const parallaxOffset = useParallax({ speed: 0.3, maxOffset: 80 });
@@ -275,19 +276,29 @@ const LabCatalog = () => {
           className="container mx-auto px-4 text-center relative z-10"
           style={{ transform: `translateY(${parallaxOffset * 0.15}px)` }}
         >
-          <Layers 
-            className="h-16 w-16 mx-auto mb-6 opacity-90" 
-            style={{ transform: `translateY(${parallaxOffset * -0.2}px)` }}
-          />
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Lab Catalog
+          {(() => {
+            const HeroIcon = currentLabHighlight.icon;
+            return (
+              <div 
+                className={cn(
+                  "p-4 rounded-2xl bg-gradient-to-br shadow-xl mb-6 transition-all duration-500 inline-block",
+                  currentLabHighlight.gradient
+                )}
+                style={{ transform: `translateY(${parallaxOffset * -0.2}px)` }}
+              >
+                <HeroIcon className="h-16 w-16 text-white" />
+              </div>
+            );
+          })()}
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 transition-all duration-500">
+            {currentLabHighlight.title}
           </h1>
           <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto mb-4">
             Browse our comprehensive catalog of pre-built lab environments. Select multiple labs to request as a training bundle.
           </p>
           
           {/* Rolling Banner showcasing lab types */}
-          <RollingBanner />
+          <RollingBanner onLabChange={setCurrentLabHighlight} />
           
           {/* Animated Stats Section */}
           <AnimatedStats />

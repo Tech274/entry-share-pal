@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
-import { Server, Cloud, Database, Brain, Layers, Workflow, Shield, Code2, BarChart3 } from 'lucide-react';
+import { Server, Cloud, Database, Brain, Layers, Workflow, Shield, Code2, BarChart3, LucideIcon } from 'lucide-react';
 
-interface LabHighlight {
+export interface LabHighlight {
   title: string;
   tagline: string;
   features: string[];
-  icon: React.ElementType;
+  icon: LucideIcon;
   gradient: string;
 }
 
-const labHighlights: LabHighlight[] = [
+export const labHighlights: LabHighlight[] = [
   {
     title: 'SAP Labs',
     tagline: 'Enterprise ERP Excellence',
@@ -76,10 +76,23 @@ const labHighlights: LabHighlight[] = [
   },
 ];
 
-export const RollingBanner = () => {
+interface RollingBannerProps {
+  onLabChange?: (lab: LabHighlight) => void;
+}
+
+export const RollingBanner = ({ onLabChange }: RollingBannerProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  const current = labHighlights[currentIndex];
+  const Icon = current.icon;
+
+  // Notify parent of lab change
+  useEffect(() => {
+    onLabChange?.(current);
+  }, [current, onLabChange]);
+
+  // Auto-cycle through labs
   useEffect(() => {
     const interval = setInterval(() => {
       setIsTransitioning(true);
@@ -91,9 +104,6 @@ export const RollingBanner = () => {
 
     return () => clearInterval(interval);
   }, []);
-
-  const current = labHighlights[currentIndex];
-  const Icon = current.icon;
 
   return (
     <div className="relative w-full overflow-hidden py-4">
