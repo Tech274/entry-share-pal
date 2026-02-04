@@ -233,9 +233,28 @@ const LabCatalog = () => {
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Lab Catalog
           </h1>
-          <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto mb-8">
+          <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto mb-6">
             Browse our comprehensive catalog of pre-built lab environments. Select multiple labs to request as a training bundle.
           </p>
+          
+          {/* Stats Section */}
+          <div className="flex flex-wrap justify-center gap-8 mb-8">
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold">2500+</div>
+              <div className="text-sm text-primary-foreground/70">Templates</div>
+            </div>
+            <div className="h-12 w-px bg-primary-foreground/20 hidden sm:block" />
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold">36</div>
+              <div className="text-sm text-primary-foreground/70">Categories</div>
+            </div>
+            <div className="h-12 w-px bg-primary-foreground/20 hidden sm:block" />
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold">250+</div>
+              <div className="text-sm text-primary-foreground/70">Technologies</div>
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <div className="relative w-full max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
