@@ -212,6 +212,75 @@ export type Database = {
         }
         Relationships: []
       }
+      lab_catalog_entry_labels: {
+        Row: {
+          created_at: string | null
+          entry_id: string
+          id: string
+          label_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          entry_id: string
+          id?: string
+          label_id: string
+        }
+        Update: {
+          created_at?: string | null
+          entry_id?: string
+          id?: string
+          label_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_catalog_entry_labels_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "lab_catalog_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_catalog_entry_labels_label_id_fkey"
+            columns: ["label_id"]
+            isOneToOne: false
+            referencedRelation: "lab_catalog_labels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_catalog_labels: {
+        Row: {
+          color: string
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          label_id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          label_id: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          label_id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       lab_requests: {
         Row: {
           account_manager: string | null

@@ -12,10 +12,11 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Pencil, Trash2, Layers, Upload, Download, Tag } from 'lucide-react';
+import { Plus, Pencil, Trash2, Layers, Upload, Download, Tag, Tags } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLabCategories } from '@/hooks/useLabCategories';
 import { CategoryManagement } from '@/components/catalog/CategoryManagement';
+import { LabelManagement } from '@/components/catalog/LabelManagement';
 
 interface CatalogEntry {
   id: string;
@@ -281,6 +282,10 @@ export const LabCatalogManagement = () => {
           <Tag className="w-4 h-4" />
           Categories
         </TabsTrigger>
+        <TabsTrigger value="labels" className="flex items-center gap-2">
+          <Tags className="w-4 h-4" />
+          Labels
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="templates">
@@ -492,6 +497,10 @@ export const LabCatalogManagement = () => {
 
       <TabsContent value="categories">
         <CategoryManagement />
+      </TabsContent>
+
+      <TabsContent value="labels">
+        <LabelManagement />
       </TabsContent>
     </Tabs>
   );
