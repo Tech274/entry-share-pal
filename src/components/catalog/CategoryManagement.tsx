@@ -14,6 +14,7 @@ import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { SortableCategoryRow } from './SortableCategoryRow';
 import { IconPicker } from './IconPicker';
 import { GradientPicker } from './GradientPicker';
+import { CategoryPillPreview } from './CategoryPillPreview';
 
 const initialFormData: CategoryFormData = {
   category_id: '',
@@ -129,6 +130,14 @@ export const CategoryManagement = () => {
                 <DialogTitle>{editingCategory ? 'Edit Category' : 'Add New Category'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Live Preview */}
+                <CategoryPillPreview
+                  label={formData.label}
+                  iconName={formData.icon_name}
+                  gradientColor={formData.gradient_color}
+                  isFeatured={formData.is_featured}
+                />
+
                 <div className="space-y-2">
                   <Label>Category ID</Label>
                   <Input 
