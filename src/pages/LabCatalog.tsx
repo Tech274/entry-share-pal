@@ -19,39 +19,35 @@ const EXTERNAL_CATALOG_URL = '/catalog';
 
 // Extended categories with icons
 const categories = [
-  // Featured Technology Stacks
+  // Featured Technology Stacks - Row 1
   { id: 'combo', label: 'Combo Lab Templates', icon: Boxes, featured: true, color: 'bg-gradient-to-r from-violet-500 to-purple-500' },
   { id: 'devops', label: 'DevOps Stacks', icon: GitBranch, featured: true, color: 'bg-gradient-to-r from-orange-500 to-amber-500' },
   { id: 'certification', label: 'Certification Labs', icon: FlaskConical, featured: true, color: 'bg-gradient-to-r from-green-500 to-emerald-500' },
   { id: 'gen-ai', label: 'Gen AI & Agentic AI', icon: Brain, featured: true, color: 'bg-gradient-to-r from-pink-500 to-rose-500' },
   { id: 'multicloud', label: 'Multicloud & Hybrid', icon: Cloud, featured: true, color: 'bg-gradient-to-r from-sky-500 to-indigo-500' },
+  
+  // Featured Technology Stacks - Row 2 (Enterprise & Infrastructure)
+  { id: 'infrastructure', label: 'Infrastructure', icon: Server, featured: true, color: 'bg-gradient-to-r from-cyan-600 to-teal-500' },
+  { id: 'security', label: 'Security & Compliance', icon: Shield, featured: true, color: 'bg-gradient-to-r from-red-500 to-orange-500' },
+  { id: 'aws', label: 'AWS', icon: Cloud, featured: true, color: 'bg-gradient-to-r from-amber-500 to-yellow-400' },
+  { id: 'azure', label: 'Azure', icon: Cloud, featured: true, color: 'bg-gradient-to-r from-blue-500 to-cyan-400' },
+  { id: 'gcp', label: 'GCP', icon: Cloud, featured: true, color: 'bg-gradient-to-r from-red-400 to-yellow-400' },
+  
+  // Featured Technology Stacks - Row 3 (Enterprise OEM)
   { id: 'sap', label: 'SAP Labs', icon: Building2, featured: true, color: 'bg-gradient-to-r from-blue-600 to-blue-400' },
   { id: 'oracle', label: 'Oracle', icon: Database, featured: true, color: 'bg-gradient-to-r from-red-600 to-red-400' },
   { id: 'enterprise', label: 'OEM & Enterprise', icon: Building, featured: true, color: 'bg-gradient-to-r from-slate-600 to-slate-400' },
+  { id: 'bigdata', label: 'Big Data & Analytics', icon: Database, featured: true, color: 'bg-gradient-to-r from-purple-500 to-indigo-500' },
+  { id: 'datascience', label: 'Data Science & ML', icon: BarChart3, featured: true, color: 'bg-gradient-to-r from-emerald-500 to-teal-400' },
   
-  // Cloud Providers
-  { id: 'aws', label: 'AWS', icon: Cloud },
-  { id: 'azure', label: 'Azure', icon: Cloud },
-  { id: 'gcp', label: 'GCP', icon: Cloud },
-  
-  // Infrastructure & Security
-  { id: 'infrastructure', label: 'Infrastructure', icon: Server },
-  { id: 'security', label: 'Security', icon: Shield },
-  
-  // Development
+  // Individual Technologies
   { id: 'programming', label: 'Programming', icon: Code2 },
   { id: 'frontend', label: 'Frontend', icon: Globe },
   { id: 'backend', label: 'Backend', icon: Server },
   { id: 'mobile', label: 'Mobile', icon: Smartphone },
-  
-  // Data
-  { id: 'big-data', label: 'Big Data', icon: Database },
-  { id: 'bigdata', label: 'Big Data (Legacy)', icon: Database },
+  { id: 'big-data', label: 'Big Data (Alt)', icon: Database },
   { id: 'database', label: 'Databases', icon: HardDrive },
-  { id: 'datascience', label: 'Data Science', icon: BarChart3 },
   { id: 'data', label: 'ETL & Integration', icon: Link2 },
-  
-  // Other
   { id: 'testing', label: 'Testing & QA', icon: TestTube2 },
   { id: 'virtualization', label: 'Virtualization', icon: Box },
   { id: 'networking', label: 'Networking', icon: Network },
