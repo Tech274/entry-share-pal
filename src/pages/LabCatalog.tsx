@@ -15,7 +15,7 @@ import { useLabCatalog, groupByCategory } from '@/hooks/useLabCatalog';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-const EXTERNAL_CATALOG_URL = '/catalog';
+const EXTERNAL_CATALOG_URL = 'https://mml-labs.com/catalog';
 
 // Extended categories with icons and grouping
 const categories = [
