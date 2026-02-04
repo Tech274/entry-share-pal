@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Layers, Search, Tags, ChevronRight, PlusCircle, Info } from 'lucide-react';
+import { Layers, Search, Tags, ChevronRight, PlusCircle, Info, X } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LabTemplateCard from '@/components/catalog/LabTemplateCard';
@@ -51,6 +51,8 @@ const AnimatedStats = () => {
   );
 };
 
+const BANNER_DISMISSED_KEY = 'lab-catalog-banner-dismissed';
+
 const LabCatalog = () => {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -62,6 +64,26 @@ const LabCatalog = () => {
   const [isHeroTransitioning, setIsHeroTransitioning] = useState(false);
   const [isHeroPaused, setIsHeroPaused] = useState(false);
   const [goToLabIndex, setGoToLabIndex] = useState<((idx: number) => void) | null>(null);
+  const [isBannerVisible, setIsBannerVisible] = useState(() => {
+    return localStorage.getItem(BANNER_DISMISSED_KEY) !== 'true';
+  });
+  const [isBannerMounted, setIsBannerMounted] = useState(false);
+
+  // Trigger entrance animation after mount
+  useEffect(() => {
+    if (isBannerVisible) {
+      const timer = setTimeout(() => setIsBannerMounted(true), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isBannerVisible]);
+
+  const dismissBanner = useCallback(() => {
+    setIsBannerMounted(false);
+    setTimeout(() => {
+      setIsBannerVisible(false);
+      localStorage.setItem(BANNER_DISMISSED_KEY, 'true');
+    }, 300);
+  }, []);
   
   // Keyboard navigation for hero carousel
   useEffect(() => {
@@ -307,15 +329,31 @@ const LabCatalog = () => {
       </div>
 
       {/* Stakeholder Info Banner */}
-      <div className="container mx-auto px-4 py-3">
-        <Alert className="bg-accent/10 border-accent/30">
-          <Info className="h-4 w-4 text-accent" />
-          <AlertDescription className="text-sm text-foreground/80">
-            <span className="font-medium">Internal Stakeholder Portal</span> — You have special access to browse our complete lab catalog with 2500+ templates. 
-            Select labs to bundle requests or use the <span className="font-semibold text-accent">"Request New Lab"</span> button to submit custom requirements.
-          </AlertDescription>
-        </Alert>
-      </div>
+      {isBannerVisible && (
+        <div className="container mx-auto px-4 py-3">
+          <Alert 
+            className={cn(
+              "bg-accent/10 border-accent/30 relative transition-all duration-300 ease-out",
+              isBannerMounted 
+                ? "opacity-100 translate-y-0" 
+                : "opacity-0 -translate-y-2"
+            )}
+          >
+            <Info className="h-4 w-4 text-accent" />
+            <AlertDescription className="text-sm text-foreground/80 pr-8">
+              <span className="font-medium">Internal Stakeholder Portal</span> — You have special access to browse our complete lab catalog with 2500+ templates. 
+              Select labs to bundle requests or use the <span className="font-semibold text-accent">"Request New Lab"</span> button to submit custom requirements.
+            </AlertDescription>
+            <button
+              onClick={dismissBanner}
+              className="absolute right-3 top-3 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/20 transition-colors"
+              aria-label="Dismiss banner"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </Alert>
+        </div>
+      )}
       {/* Hero Section with Parallax */}
       <section 
         className="bg-primary text-primary-foreground py-16 relative overflow-hidden"
