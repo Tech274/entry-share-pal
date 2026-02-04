@@ -16,6 +16,8 @@ export interface LabCatalogCategory {
   display_order: number;
   is_active: boolean;
   icon_name: string;
+  gradient_color: string;
+  is_featured: boolean;
 }
 
 export const useLabCatalog = () => {
@@ -41,7 +43,7 @@ export const useLabCatalogCategories = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('lab_catalog_categories')
-        .select('id, category_id, label, display_order, is_active, icon_name')
+        .select('id, category_id, label, display_order, is_active, icon_name, gradient_color, is_featured')
         .eq('is_active', true)
         .order('display_order');
       

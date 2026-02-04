@@ -13,6 +13,7 @@ import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrate
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { SortableCategoryRow } from './SortableCategoryRow';
 import { IconPicker } from './IconPicker';
+import { GradientPicker } from './GradientPicker';
 
 const initialFormData: CategoryFormData = {
   category_id: '',
@@ -20,6 +21,8 @@ const initialFormData: CategoryFormData = {
   display_order: 0,
   is_active: true,
   icon_name: 'Layers',
+  gradient_color: 'bg-gradient-to-r from-primary to-primary/80',
+  is_featured: false,
 };
 
 export const CategoryManagement = () => {
@@ -58,6 +61,8 @@ export const CategoryManagement = () => {
       display_order: category.display_order,
       is_active: category.is_active,
       icon_name: category.icon_name || 'Layers',
+      gradient_color: category.gradient_color || 'bg-gradient-to-r from-primary to-primary/80',
+      is_featured: category.is_featured || false,
     });
     setIsDialogOpen(true);
   };
@@ -161,6 +166,16 @@ export const CategoryManagement = () => {
                   </p>
                 </div>
                 <div className="space-y-2">
+                  <Label>Gradient Color</Label>
+                  <GradientPicker 
+                    value={formData.gradient_color} 
+                    onChange={(gradient) => setFormData({ ...formData, gradient_color: gradient })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Color scheme for the category pill when selected.
+                  </p>
+                </div>
+                <div className="space-y-2">
                   <Label>Display Order</Label>
                   <Input 
                     type="number" 
@@ -170,6 +185,16 @@ export const CategoryManagement = () => {
                   <p className="text-xs text-muted-foreground">
                     Lower numbers appear first. You can also drag rows to reorder.
                   </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch 
+                    checked={formData.is_featured} 
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_featured: checked })}
+                  />
+                  <Label>Featured</Label>
+                  <span className="text-xs text-muted-foreground ml-2">
+                    Featured categories appear prominently in catalog filters
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch 
@@ -212,9 +237,10 @@ export const CategoryManagement = () => {
                   <TableRow>
                     <TableHead className="w-12"></TableHead>
                     <TableHead className="w-12">Icon</TableHead>
+                    <TableHead className="w-16">Color</TableHead>
                     <TableHead>Category ID</TableHead>
                     <TableHead>Label</TableHead>
-                    <TableHead className="w-20">Order</TableHead>
+                    <TableHead className="w-20">Featured</TableHead>
                     <TableHead className="w-20">Active</TableHead>
                     <TableHead className="text-right w-24">Actions</TableHead>
                   </TableRow>
