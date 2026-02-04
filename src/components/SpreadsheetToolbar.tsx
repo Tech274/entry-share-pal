@@ -20,6 +20,7 @@ import { ColumnConfig, Filters } from '@/hooks/useSpreadsheetControls';
 import { STATUS_OPTIONS, MONTH_OPTIONS, LOB_OPTIONS, CLOUD_OPTIONS } from '@/types/labRequest';
 import { LAB_STATUS_OPTIONS } from '@/types/deliveryRequest';
 import { DateRangeFilter } from './DateRangeFilter';
+import { QuickDatePresets } from './QuickDatePresets';
 
 interface SpreadsheetToolbarProps {
   columns: ColumnConfig[];
@@ -191,6 +192,12 @@ export function SpreadsheetToolbar({
 
       {/* Date Range Filters */}
       <div className="flex flex-wrap items-center gap-4">
+        <QuickDatePresets
+          onSelect={(from, to) => {
+            onUpdateFilter('startDateFrom', from);
+            onUpdateFilter('startDateTo', to);
+          }}
+        />
         <DateRangeFilter
           label="Start Date"
           fromValue={filters.startDateFrom}

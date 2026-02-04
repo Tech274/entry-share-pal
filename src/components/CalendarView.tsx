@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, ClipboardList, Truck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ClipboardList, Truck, TrendingUp, DollarSign, Users } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO, isWithinInterval } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO, isWithinInterval, isAfter, isBefore, endOfDay } from 'date-fns';
+import { formatINR } from '@/lib/formatUtils';
 
 interface CalendarViewProps {
   labRequests: LabRequest[];
@@ -265,10 +266,169 @@ export const CalendarView = ({ labRequests, deliveryRequests }: CalendarViewProp
         </Card>
       )}
 
+      {/* Upcoming Delivery Labs for the Month */}
+      <Card className="overflow-hidden">
+        <CardHeader variant="primary">
+          <div className="flex items-center gap-2">
+            <Truck className="h-5 w-5 text-primary-foreground" />
+            <div>
+              <CardTitle className="text-primary-foreground">Upcoming Delivery Labs</CardTitle>
+              <CardDescription className="text-primary-foreground/70">
+                Delivery labs starting in {format(currentMonth, 'MMMM yyyy')}
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-4">
+          {(() => {
+            const today = new Date();
+            const monthStart = startOfMonth(currentMonth);
+            const monthEnd = endOfMonth(currentMonth);
+            
+            const upcomingDeliveries = events
+              .filter((e) => {
+                if (e.type !== 'delivery') return false;
+                // Show labs that start in the current month and haven't started yet (or start today onwards)
+                return isWithinInterval(e.startDate, { start: monthStart, end: monthEnd }) &&
+                       (isAfter(e.startDate, today) || isSameDay(e.startDate, today));
+              })
+              .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+
+            if (upcomingDeliveries.length === 0) {
+              return (
+                <p className="text-muted-foreground text-center py-8">
+                  No upcoming delivery labs in {format(currentMonth, 'MMMM')}
+                </p>
+              );
+            }
+
+            return (
+              <div className="space-y-3">
+                {upcomingDeliveries.map((event) => (
+                  <div
+                    key={event.id}
+                    onClick={() => setSelectedEvent(event)}
+                    className="flex items-center justify-between p-3 rounded-lg bg-green-500/5 border border-green-500/20 hover:bg-green-500/10 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-green-500/10">
+                        <Truck className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{event.title}</p>
+                        <p className="text-sm text-muted-foreground">{event.client}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant="outline" className="border-green-500 text-green-600">
+                        {format(event.startDate, 'MMM d')}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {Math.ceil((event.startDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))} days away
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </CardContent>
+      </Card>
+
+      {/* Business Pipeline - Solution Sent */}
+      <Card className="overflow-hidden">
+        <CardHeader variant="primary">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary-foreground" />
+            <div>
+              <CardTitle className="text-primary-foreground">Business Pipeline</CardTitle>
+              <CardDescription className="text-primary-foreground/70">
+                Solutions with "Solution Sent" status - potential business in pipeline
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-4">
+          {(() => {
+            const solutionSentRequests = labRequests.filter(
+              (req) => req.status === 'Solution Sent'
+            );
+
+            if (solutionSentRequests.length === 0) {
+              return (
+                <p className="text-muted-foreground text-center py-8">
+                  No solutions in pipeline
+                </p>
+              );
+            }
+
+            const totalPipelineValue = solutionSentRequests.reduce(
+              (sum, req) => sum + (req.totalAmountForTraining || 0),
+              0
+            );
+            const totalUsers = solutionSentRequests.reduce(
+              (sum, req) => sum + (req.userCount || 0),
+              0
+            );
+
+            return (
+              <div className="space-y-4">
+                {/* Pipeline Summary */}
+                <div className="grid grid-cols-3 gap-4 p-4 bg-amber-500/5 rounded-lg border border-amber-500/20">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-amber-600">{solutionSentRequests.length}</p>
+                    <p className="text-xs text-muted-foreground">In Pipeline</p>
+                  </div>
+                  <div className="text-center border-x border-amber-500/20">
+                    <p className="text-2xl font-bold text-amber-600">{formatINR(totalPipelineValue)}</p>
+                    <p className="text-xs text-muted-foreground">Total Value</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-amber-600">{totalUsers}</p>
+                    <p className="text-xs text-muted-foreground">Total Users</p>
+                  </div>
+                </div>
+
+                {/* Pipeline Items */}
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {solutionSentRequests
+                    .sort((a, b) => (b.totalAmountForTraining || 0) - (a.totalAmountForTraining || 0))
+                    .map((req) => (
+                      <div
+                        key={req.id}
+                        className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-amber-500/10">
+                            <ClipboardList className="h-4 w-4 text-amber-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{req.labName || 'Untitled'}</p>
+                            <p className="text-sm text-muted-foreground">{req.client}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium text-amber-600">
+                            {formatINR(req.totalAmountForTraining)}
+                          </p>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Users className="h-3 w-3" />
+                            {req.userCount} users
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            );
+          })()}
+        </CardContent>
+      </Card>
+
       {/* Upcoming events list */}
       <Card className="overflow-hidden">
         <CardHeader variant="primary">
-          <CardTitle className="text-primary-foreground">Upcoming Labs</CardTitle>
+          <CardTitle className="text-primary-foreground">All Upcoming Labs</CardTitle>
           <CardDescription className="text-primary-foreground/70">Labs scheduled in the next 30 days</CardDescription>
         </CardHeader>
         <CardContent className="pt-4">
