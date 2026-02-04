@@ -236,17 +236,46 @@ const LabCatalog = () => {
 
       {/* Featured Categories by Group */}
       {!isSearching && (
-        <section className="py-8 bg-muted/30">
+        <section className="py-10 bg-gradient-to-b from-muted/40 to-background">
           <div className="container mx-auto px-4">
-            <h2 className="text-lg font-semibold mb-6 text-center">Featured Technology Stacks</h2>
-            <div className="space-y-4">
-              {featuredGroups.map((group) => {
+            <h2 className="text-xl font-bold mb-8 text-center">Featured Technology Stacks</h2>
+            <div className="space-y-1">
+              {featuredGroups.map((group, index) => {
                 const groupCategories = featuredCategories.filter(c => c.group === group.id);
                 if (groupCategories.length === 0) return null;
+                
+                // Alternate row backgrounds
+                const rowBg = index % 2 === 0 ? 'bg-background' : 'bg-muted/20';
+                
+                // Icons for each group
+                const groupIcons: Record<string, typeof Boxes> = {
+                  stacks: Layers,
+                  cloud: Cloud,
+                  enterprise: Building,
+                  infra: Server,
+                  data: Database,
+                };
+                const GroupIcon = groupIcons[group.id] || Boxes;
+                
                 return (
-                  <div key={group.id} className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-medium text-muted-foreground w-28 shrink-0">{group.label}</span>
-                    <div className="flex flex-wrap gap-2">
+                  <div 
+                    key={group.id} 
+                    className={cn(
+                      "flex flex-wrap items-center gap-4 py-4 px-4 rounded-lg transition-colors",
+                      rowBg,
+                      "border-l-4",
+                      index === 0 && "border-l-violet-500",
+                      index === 1 && "border-l-blue-500",
+                      index === 2 && "border-l-red-500",
+                      index === 3 && "border-l-cyan-500",
+                      index === 4 && "border-l-purple-500"
+                    )}
+                  >
+                    <div className="flex items-center gap-2 w-36 shrink-0">
+                      <GroupIcon className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-semibold text-foreground">{group.label}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 flex-1">
                       {groupCategories.map((category) => {
                         const Icon = category.icon;
                         const isActive = activeCategory === category.id;
@@ -259,7 +288,7 @@ const LabCatalog = () => {
                               "flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all text-sm",
                               isActive
                                 ? `${category.color} text-white shadow-lg scale-105`
-                                : "bg-background text-foreground hover:bg-muted border hover:scale-102"
+                                : "bg-background text-foreground hover:bg-muted border hover:shadow-md hover:scale-[1.02]"
                             )}
                           >
                             <Icon className="h-4 w-4" />
