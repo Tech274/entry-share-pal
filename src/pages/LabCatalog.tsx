@@ -12,6 +12,8 @@ import { LabelFilter } from '@/components/catalog/LabelFilter';
 import { FloatingParticles } from '@/components/catalog/FloatingParticles';
 import { AnimatedCategoryPill } from '@/components/catalog/AnimatedCategoryPill';
 import { ScrollToTopButton } from '@/components/catalog/ScrollToTopButton';
+import { CategoryPillSkeletonRow } from '@/components/catalog/CategoryPillSkeleton';
+import { RollingBanner } from '@/components/catalog/RollingBanner';
 import { cn } from '@/lib/utils';
 import { useLabCatalog, useLabCatalogCategories, useLabCatalogEntryLabels, groupByCategory } from '@/hooks/useLabCatalog';
 import { useNavigate } from 'react-router-dom';
@@ -280,9 +282,12 @@ const LabCatalog = () => {
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Lab Catalog
           </h1>
-          <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto mb-6">
+          <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto mb-4">
             Browse our comprehensive catalog of pre-built lab environments. Select multiple labs to request as a training bundle.
           </p>
+          
+          {/* Rolling Banner showcasing lab types */}
+          <RollingBanner />
           
           {/* Animated Stats Section */}
           <AnimatedStats />
@@ -351,7 +356,12 @@ const LabCatalog = () => {
         <section className="py-6 bg-gradient-to-b from-muted/40 to-background border-b">
           <div className="container mx-auto px-4">
             {categoriesLoading ? (
-              <div className="text-center py-4 text-muted-foreground">Loading categories...</div>
+              <div className="space-y-3">
+                <CategoryPillSkeletonRow count={6} variant="featured" />
+                <div className="pt-3 border-t border-muted/50">
+                  <CategoryPillSkeletonRow count={8} variant="secondary" />
+                </div>
+              </div>
             ) : (
               <div className="flex flex-wrap gap-2 justify-center">
                 {dbCategories
