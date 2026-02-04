@@ -14,8 +14,13 @@ import DeliveryPreview from "./pages/DeliveryPreview";
 import Auth from "./pages/Auth";
 import Docs from "./pages/Docs";
 import LabCatalog from "./pages/LabCatalog";
-// Catalog page now uses LabCatalog component directly
 import NotFound from "./pages/NotFound";
+
+// External redirect component for /catalog route
+const ExternalRedirect = ({ url }: { url: string }) => {
+  window.location.href = url;
+  return null;
+};
 
 const queryClient = new QueryClient();
 
@@ -33,7 +38,7 @@ const App = () => (
             <Route path="/my-requests" element={<MyRequests />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="/lab-catalog" element={<LabCatalog />} />
-            <Route path="/catalog" element={<LabCatalog />} />
+            <Route path="/catalog" element={<ExternalRedirect url="https://mml-labs.com/catalog" />} />
             <Route path="/auth" element={<Auth />} />
             
             {/* Protected routes - internal staff only */}
