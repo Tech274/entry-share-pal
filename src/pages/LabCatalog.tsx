@@ -62,6 +62,27 @@ const LabCatalog = () => {
   const [isHeroPaused, setIsHeroPaused] = useState(false);
   const [goToLabIndex, setGoToLabIndex] = useState<((idx: number) => void) | null>(null);
   
+  // Keyboard navigation for hero carousel
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only trigger when not focused on an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const nextIndex = (currentLabIndex + 1) % labHighlights.length;
+        goToLabIndex?.(nextIndex);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const prevIndex = (currentLabIndex - 1 + labHighlights.length) % labHighlights.length;
+        goToLabIndex?.(prevIndex);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentLabIndex, goToLabIndex]);
+  
   // Parallax effect for hero section
   const parallaxOffset = useParallax({ speed: 0.3, maxOffset: 80 });
   
@@ -315,22 +336,30 @@ const LabCatalog = () => {
             </p>
           </div>
           
-          {/* Navigation Dots */}
-          <div className="flex justify-center gap-2 mb-6">
-            {labHighlights.map((lab, idx) => (
-              <button
-                key={idx}
-                onClick={() => goToLabIndex?.(idx)}
-                className={cn(
-                  "h-2 rounded-full transition-all duration-300 cursor-pointer",
-                  idx === currentLabIndex 
-                    ? "w-6 bg-primary-foreground" 
-                    : "w-2 bg-primary-foreground/30 hover:bg-primary-foreground/50"
-                )}
-                aria-label={`View ${lab.title}`}
-              />
-            ))}
-          </div>
+          {/* Navigation Dots with Tooltips */}
+          <TooltipProvider delayDuration={100}>
+            <div className="flex justify-center gap-2 mb-6">
+              {labHighlights.map((lab, idx) => (
+                <Tooltip key={idx}>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => goToLabIndex?.(idx)}
+                      className={cn(
+                        "h-2 rounded-full transition-all duration-300 cursor-pointer",
+                        idx === currentLabIndex 
+                          ? "w-6 bg-primary-foreground" 
+                          : "w-2 bg-primary-foreground/30 hover:bg-primary-foreground/50"
+                      )}
+                      aria-label={`View ${lab.title}`}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">
+                    {lab.title}
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+          </TooltipProvider>
           
           {/* Hidden RollingBanner to drive state changes */}
           <div className="hidden">
