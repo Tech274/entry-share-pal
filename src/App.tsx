@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,15 +16,6 @@ import Docs from "./pages/Docs";
 import LabCatalog from "./pages/LabCatalog";
 import NotFound from "./pages/NotFound";
 
-// External redirect component for /catalog route - opens external URL in new tab and redirects to internal catalog
-const ExternalRedirect = ({ url, fallbackPath }: { url: string; fallbackPath: string }) => {
-  useEffect(() => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }, [url]);
-  
-  return <Navigate to={fallbackPath} replace />;
-};
-
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -42,7 +32,7 @@ const App = () => (
             <Route path="/my-requests" element={<MyRequests />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="/lab-catalog" element={<LabCatalog />} />
-            <Route path="/catalog" element={<ExternalRedirect url="https://mml-labs.com/catalog" fallbackPath="/lab-catalog" />} />
+            <Route path="/catalog" element={<Navigate to="/lab-catalog" replace />} />
             <Route path="/auth" element={<Auth />} />
             
             {/* Protected routes - internal staff only */}
