@@ -3,12 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Layers, Search, ChevronRight, PlusCircle, Info, X } from 'lucide-react';
+import { Layers, Search, ChevronRight, PlusCircle, Info, X, Share2 } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LabTemplateCard from '@/components/catalog/LabTemplateCard';
 import { LabTemplateCardSkeletonGrid } from '@/components/catalog/LabTemplateCardSkeleton';
 import LabBundleBar from '@/components/catalog/LabBundleBar';
+import ShareCatalogDialog from '@/components/catalog/ShareCatalogDialog';
 
 import { FloatingParticles } from '@/components/catalog/FloatingParticles';
 import { AnimatedCategoryPill } from '@/components/catalog/AnimatedCategoryPill';
@@ -443,16 +444,30 @@ const LabCatalog = () => {
                 className="pl-10 bg-background text-foreground h-12"
               />
             </div>
-            <Button 
-              asChild
-              size="lg"
-              className="btn-glow bg-accent text-accent-foreground hover:bg-accent/90 shrink-0"
-            >
-              <Link to="/submit-request">
-                <PlusCircle className="h-5 w-5 mr-2" />
-                Request New Lab
-              </Link>
-            </Button>
+            <div className="flex gap-2 shrink-0">
+              <ShareCatalogDialog 
+                trigger={
+                  <Button 
+                    variant="secondary" 
+                    size="lg"
+                    className="bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 border border-primary-foreground/20"
+                  >
+                    <Share2 className="h-5 w-5 mr-2" />
+                    Share Catalog
+                  </Button>
+                }
+              />
+              <Button 
+                asChild
+                size="lg"
+                className="btn-glow bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                <Link to="/submit-request">
+                  <PlusCircle className="h-5 w-5 mr-2" />
+                  Request New Lab
+                </Link>
+              </Button>
+            </div>
           </div>
           {selectedLabs.size > 0 && (
             <p className="mt-4 text-sm text-primary-foreground/70">
