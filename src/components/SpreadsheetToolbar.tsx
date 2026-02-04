@@ -95,7 +95,14 @@ export function SpreadsheetToolbar({
           placeholder="Filter by client..."
           value={filters.client}
           onChange={(e) => onUpdateFilter('client', e.target.value)}
-          className="h-8 w-40"
+          className="h-8 w-36"
+        />
+
+        <Input
+          placeholder="Filter by invoice..."
+          value={filters.invoiceDetails}
+          onChange={(e) => onUpdateFilter('invoiceDetails', e.target.value)}
+          className="h-8 w-36"
         />
 
         <Select
