@@ -17,30 +17,36 @@ import { toast } from 'sonner';
 
 const EXTERNAL_CATALOG_URL = '/catalog';
 
-// Extended categories with icons
+// Extended categories with icons and grouping
 const categories = [
-  // Featured Technology Stacks - Row 1
-  { id: 'combo', label: 'Combo Lab Templates', icon: Boxes, featured: true, color: 'bg-gradient-to-r from-violet-500 to-purple-500' },
-  { id: 'devops', label: 'DevOps Stacks', icon: GitBranch, featured: true, color: 'bg-gradient-to-r from-orange-500 to-amber-500' },
-  { id: 'certification', label: 'Certification Labs', icon: FlaskConical, featured: true, color: 'bg-gradient-to-r from-green-500 to-emerald-500' },
-  { id: 'gen-ai', label: 'Gen AI & Agentic AI', icon: Brain, featured: true, color: 'bg-gradient-to-r from-pink-500 to-rose-500' },
-  { id: 'multicloud', label: 'Multicloud & Hybrid', icon: Cloud, featured: true, color: 'bg-gradient-to-r from-sky-500 to-indigo-500' },
+  // Technology Stacks & Combos
+  { id: 'combo', label: 'Combo Lab Templates', icon: Boxes, featured: true, group: 'stacks', color: 'bg-gradient-to-r from-violet-500 to-purple-500' },
+  { id: 'devops', label: 'DevOps Stacks', icon: GitBranch, featured: true, group: 'stacks', color: 'bg-gradient-to-r from-orange-500 to-amber-500' },
+  { id: 'certification', label: 'Certification Labs', icon: FlaskConical, featured: true, group: 'stacks', color: 'bg-gradient-to-r from-green-500 to-emerald-500' },
+  { id: 'gen-ai', label: 'Gen AI & Agentic AI', icon: Brain, featured: true, group: 'stacks', color: 'bg-gradient-to-r from-pink-500 to-rose-500' },
+  { id: 'multicloud', label: 'Multicloud & Hybrid', icon: Cloud, featured: true, group: 'stacks', color: 'bg-gradient-to-r from-sky-500 to-indigo-500' },
   
-  // Featured Technology Stacks - Row 2 (Enterprise & Infrastructure)
-  { id: 'infrastructure', label: 'Infrastructure', icon: Server, featured: true, color: 'bg-gradient-to-r from-cyan-600 to-teal-500' },
-  { id: 'security', label: 'Security & Compliance', icon: Shield, featured: true, color: 'bg-gradient-to-r from-red-500 to-orange-500' },
-  { id: 'aws', label: 'AWS', icon: Cloud, featured: true, color: 'bg-gradient-to-r from-amber-500 to-yellow-400' },
-  { id: 'azure', label: 'Azure', icon: Cloud, featured: true, color: 'bg-gradient-to-r from-blue-500 to-cyan-400' },
-  { id: 'gcp', label: 'GCP', icon: Cloud, featured: true, color: 'bg-gradient-to-r from-red-400 to-yellow-400' },
+  // Cloud Platforms
+  { id: 'aws', label: 'AWS', icon: Cloud, featured: true, group: 'cloud', color: 'bg-gradient-to-r from-amber-500 to-yellow-400' },
+  { id: 'azure', label: 'Azure', icon: Cloud, featured: true, group: 'cloud', color: 'bg-gradient-to-r from-blue-500 to-cyan-400' },
+  { id: 'gcp', label: 'GCP', icon: Cloud, featured: true, group: 'cloud', color: 'bg-gradient-to-r from-red-400 to-yellow-400' },
   
-  // Featured Technology Stacks - Row 3 (Enterprise OEM)
-  { id: 'sap', label: 'SAP Labs', icon: Building2, featured: true, color: 'bg-gradient-to-r from-blue-600 to-blue-400' },
-  { id: 'oracle', label: 'Oracle', icon: Database, featured: true, color: 'bg-gradient-to-r from-red-600 to-red-400' },
-  { id: 'enterprise', label: 'OEM & Enterprise', icon: Building, featured: true, color: 'bg-gradient-to-r from-slate-600 to-slate-400' },
-  { id: 'bigdata', label: 'Big Data & Analytics', icon: Database, featured: true, color: 'bg-gradient-to-r from-purple-500 to-indigo-500' },
-  { id: 'datascience', label: 'Data Science & ML', icon: BarChart3, featured: true, color: 'bg-gradient-to-r from-emerald-500 to-teal-400' },
+  // Enterprise OEM
+  { id: 'sap', label: 'SAP Labs', icon: Building2, featured: true, group: 'enterprise', color: 'bg-gradient-to-r from-blue-600 to-blue-400' },
+  { id: 'oracle', label: 'Oracle', icon: Database, featured: true, group: 'enterprise', color: 'bg-gradient-to-r from-red-600 to-red-400' },
+  { id: 'enterprise', label: 'OEM & Enterprise', icon: Building, featured: true, group: 'enterprise', color: 'bg-gradient-to-r from-slate-600 to-slate-400' },
   
-  // Individual Technologies
+  // Infrastructure & Security
+  { id: 'infrastructure', label: 'Infrastructure', icon: Server, featured: true, group: 'infra', color: 'bg-gradient-to-r from-cyan-600 to-teal-500' },
+  { id: 'security', label: 'Security & Compliance', icon: Shield, featured: true, group: 'infra', color: 'bg-gradient-to-r from-red-500 to-orange-500' },
+  { id: 'virtualization', label: 'Virtualization', icon: Box, featured: true, group: 'infra', color: 'bg-gradient-to-r from-indigo-500 to-purple-400' },
+  { id: 'testing', label: 'Testing & QA', icon: TestTube2, featured: true, group: 'infra', color: 'bg-gradient-to-r from-lime-500 to-green-400' },
+  
+  // Data & AI
+  { id: 'bigdata', label: 'Big Data & Analytics', icon: Database, featured: true, group: 'data', color: 'bg-gradient-to-r from-purple-500 to-indigo-500' },
+  { id: 'datascience', label: 'Data Science & ML', icon: BarChart3, featured: true, group: 'data', color: 'bg-gradient-to-r from-emerald-500 to-teal-400' },
+  
+  // Individual Technologies (not featured)
   { id: 'programming', label: 'Programming', icon: Code2 },
   { id: 'frontend', label: 'Frontend', icon: Globe },
   { id: 'backend', label: 'Backend', icon: Server },
@@ -48,8 +54,6 @@ const categories = [
   { id: 'big-data', label: 'Big Data (Alt)', icon: Database },
   { id: 'database', label: 'Databases', icon: HardDrive },
   { id: 'data', label: 'ETL & Integration', icon: Link2 },
-  { id: 'testing', label: 'Testing & QA', icon: TestTube2 },
-  { id: 'virtualization', label: 'Virtualization', icon: Box },
   { id: 'networking', label: 'Networking', icon: Network },
   { id: 'os', label: 'Operating Systems', icon: Terminal },
   { id: 'tools', label: 'IDEs & Tools', icon: Wrench },
@@ -58,6 +62,15 @@ const categories = [
   { id: 'cloud', label: 'Cloud (General)', icon: Cloud },
   { id: 'agile', label: 'Agile & PM', icon: Workflow },
   { id: 'blockchain', label: 'Blockchain', icon: Link2 },
+];
+
+// Featured category groups for organized display
+const featuredGroups = [
+  { id: 'stacks', label: 'Technology Stacks' },
+  { id: 'cloud', label: 'Cloud Platforms' },
+  { id: 'enterprise', label: 'Enterprise OEM' },
+  { id: 'infra', label: 'Infrastructure & QA' },
+  { id: 'data', label: 'Data & AI' },
 ];
 
 const LabCatalog = () => {
@@ -221,38 +234,49 @@ const LabCatalog = () => {
         </div>
       </section>
 
-      {/* Featured Combo Categories */}
+      {/* Featured Categories by Group */}
       {!isSearching && (
         <section className="py-8 bg-muted/30">
           <div className="container mx-auto px-4">
-            <h2 className="text-lg font-semibold mb-4 text-center">Featured Technology Stacks</h2>
-            <div className="flex flex-wrap justify-center gap-3">
-              {featuredCategories.map((category) => {
-                const Icon = category.icon;
-                const isActive = activeCategory === category.id;
-                const count = getCategoryCount(category.id);
+            <h2 className="text-lg font-semibold mb-6 text-center">Featured Technology Stacks</h2>
+            <div className="space-y-4">
+              {featuredGroups.map((group) => {
+                const groupCategories = featuredCategories.filter(c => c.group === group.id);
+                if (groupCategories.length === 0) return null;
                 return (
-                  <button
-                    key={category.id}
-                    onClick={() => setActiveCategory(category.id)}
-                    className={cn(
-                      "flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all text-sm",
-                      isActive
-                        ? `${category.color} text-white shadow-lg`
-                        : "bg-background text-foreground hover:bg-muted border"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{category.label}</span>
-                    {count > 0 && (
-                      <Badge variant="secondary" className={cn(
-                        "text-xs h-5 px-1.5",
-                        isActive ? "bg-white/20 text-white" : ""
-                      )}>
-                        {count}
-                      </Badge>
-                    )}
-                  </button>
+                  <div key={group.id} className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-medium text-muted-foreground w-28 shrink-0">{group.label}</span>
+                    <div className="flex flex-wrap gap-2">
+                      {groupCategories.map((category) => {
+                        const Icon = category.icon;
+                        const isActive = activeCategory === category.id;
+                        const count = getCategoryCount(category.id);
+                        return (
+                          <button
+                            key={category.id}
+                            onClick={() => setActiveCategory(category.id)}
+                            className={cn(
+                              "flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all text-sm",
+                              isActive
+                                ? `${category.color} text-white shadow-lg scale-105`
+                                : "bg-background text-foreground hover:bg-muted border hover:scale-102"
+                            )}
+                          >
+                            <Icon className="h-4 w-4" />
+                            <span>{category.label}</span>
+                            {count > 0 && (
+                              <Badge variant="secondary" className={cn(
+                                "text-xs h-5 px-1.5",
+                                isActive ? "bg-white/20 text-white" : ""
+                              )}>
+                                {count}
+                              </Badge>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 );
               })}
             </div>
