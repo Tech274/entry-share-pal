@@ -77,20 +77,36 @@ export const labHighlights: LabHighlight[] = [
 ];
 
 interface RollingBannerProps {
-  onLabChange?: (lab: LabHighlight) => void;
+  onLabChange?: (lab: LabHighlight, index: number, isTransitioning: boolean) => void;
+  onIndexChange?: (index: number) => void;
 }
 
-export const RollingBanner = ({ onLabChange }: RollingBannerProps) => {
+export const RollingBanner = ({ onLabChange, onIndexChange }: RollingBannerProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const current = labHighlights[currentIndex];
   const Icon = current.icon;
 
-  // Notify parent of lab change
+  // Notify parent of lab change and transition state
   useEffect(() => {
-    onLabChange?.(current);
-  }, [current, onLabChange]);
+    onLabChange?.(current, currentIndex, isTransitioning);
+  }, [current, currentIndex, isTransitioning, onLabChange]);
+
+  // Expose method to change index from parent
+  const goToIndex = useCallback((idx: number) => {
+    if (idx === currentIndex) return;
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentIndex(idx);
+      setIsTransitioning(false);
+    }, 300);
+  }, [currentIndex]);
+
+  // Expose goToIndex via onIndexChange callback on mount
+  useEffect(() => {
+    onIndexChange?.(currentIndex);
+  }, [currentIndex, onIndexChange]);
 
   // Auto-cycle through labs
   useEffect(() => {
