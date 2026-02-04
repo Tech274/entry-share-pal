@@ -1,0 +1,164 @@
+import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
+import { Server, Cloud, Database, Brain, Cpu, Layers, Workflow, Shield } from 'lucide-react';
+
+interface LabHighlight {
+  title: string;
+  tagline: string;
+  features: string[];
+  icon: React.ElementType;
+  gradient: string;
+}
+
+const labHighlights: LabHighlight[] = [
+  {
+    title: 'SAP Labs',
+    tagline: 'Enterprise ERP Excellence',
+    features: ['S/4HANA', 'BTP Integration', 'ABAP Development', 'Fiori UX'],
+    icon: Layers,
+    gradient: 'from-amber-500 to-orange-600',
+  },
+  {
+    title: 'Infrastructure Labs',
+    tagline: 'Build & Scale with Confidence',
+    features: ['Kubernetes', 'Docker', 'Terraform', 'CI/CD Pipelines'],
+    icon: Server,
+    gradient: 'from-blue-500 to-cyan-600',
+  },
+  {
+    title: 'Oracle Labs',
+    tagline: 'Database Mastery Unlocked',
+    features: ['Oracle Cloud', 'PL/SQL', 'RAC Clusters', 'Data Guard'],
+    icon: Database,
+    gradient: 'from-red-500 to-rose-600',
+  },
+  {
+    title: 'GenAI Labs',
+    tagline: 'Future-Ready AI Training',
+    features: ['LLM Fine-Tuning', 'Prompt Engineering', 'RAG Systems', 'AI Agents'],
+    icon: Brain,
+    gradient: 'from-purple-500 to-pink-600',
+  },
+  {
+    title: 'Cloud Labs',
+    tagline: 'Multi-Cloud Expertise',
+    features: ['AWS', 'Azure', 'GCP', 'Hybrid Solutions'],
+    icon: Cloud,
+    gradient: 'from-sky-500 to-indigo-600',
+  },
+  {
+    title: 'DevOps Labs',
+    tagline: 'Automate Everything',
+    features: ['GitOps', 'Monitoring', 'Security', 'Observability'],
+    icon: Workflow,
+    gradient: 'from-emerald-500 to-teal-600',
+  },
+];
+
+export const RollingBanner = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % labHighlights.length);
+        setIsTransitioning(false);
+      }, 500);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const current = labHighlights[currentIndex];
+  const Icon = current.icon;
+
+  return (
+    <div className="relative w-full overflow-hidden py-4">
+      {/* Main Banner Content */}
+      <div 
+        className={cn(
+          "flex flex-col items-center gap-3 transition-all duration-500",
+          isTransitioning 
+            ? "opacity-0 translate-y-4" 
+            : "opacity-100 translate-y-0"
+        )}
+      >
+        {/* Icon and Title Row */}
+        <div className="flex items-center gap-3">
+          <div className={cn(
+            "p-2 rounded-xl bg-gradient-to-br shadow-lg",
+            current.gradient
+          )}>
+            <Icon className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-primary-foreground">
+              {current.title}
+            </h3>
+            <p className="text-sm text-primary-foreground/70">
+              {current.tagline}
+            </p>
+          </div>
+        </div>
+
+        {/* Features Pills */}
+        <div className="flex flex-wrap justify-center gap-2">
+          {current.features.map((feature, idx) => (
+            <span
+              key={feature}
+              className={cn(
+                "px-3 py-1 rounded-full text-xs font-medium",
+                "bg-primary-foreground/10 text-primary-foreground/90 border border-primary-foreground/20",
+                "animate-fade-in"
+              )}
+              style={{ 
+                animationDelay: `${idx * 100}ms`,
+                animationFillMode: 'both'
+              }}
+            >
+              {feature}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Progress Dots */}
+      <div className="flex justify-center gap-2 mt-4">
+        {labHighlights.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => {
+              setIsTransitioning(true);
+              setTimeout(() => {
+                setCurrentIndex(idx);
+                setIsTransitioning(false);
+              }, 300);
+            }}
+            className={cn(
+              "h-2 rounded-full transition-all duration-300",
+              idx === currentIndex 
+                ? "w-6 bg-primary-foreground" 
+                : "w-2 bg-primary-foreground/30 hover:bg-primary-foreground/50"
+            )}
+            aria-label={`Go to ${labHighlights[idx].title}`}
+          />
+        ))}
+      </div>
+
+      {/* Subtle animated underline */}
+      <div className="absolute bottom-0 left-0 right-0 h-px">
+        <div 
+          className={cn(
+            "h-full bg-gradient-to-r transition-all duration-500",
+            current.gradient
+          )}
+          style={{
+            width: `${((currentIndex + 1) / labHighlights.length) * 100}%`,
+          }}
+        />
+      </div>
+    </div>
+  );
+};
