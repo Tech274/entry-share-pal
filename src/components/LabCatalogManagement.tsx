@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,15 +12,18 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Pencil, Trash2, Layers, Upload, Download, Tag, Tags } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Pencil, Trash2, Layers, Upload, Download, Tag, Tags, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLabCategories } from '@/hooks/useLabCategories';
 import { CategoryManagement } from '@/components/catalog/CategoryManagement';
 import { LabelManagement } from '@/components/catalog/LabelManagement';
 import { LabelMultiSelect } from '@/components/catalog/LabelMultiSelect';
-import { useEntryLabels, useManageEntryLabels } from '@/hooks/useEntryLabels';
+import { BulkLabelAssignDialog } from '@/components/catalog/BulkLabelAssignDialog';
+import { useEntryLabels, useManageEntryLabels, useAllEntryLabels } from '@/hooks/useEntryLabels';
 import { cn } from '@/lib/utils';
 import { useLabLabels } from '@/hooks/useLabLabels';
+import { useBulkSelection } from '@/hooks/useBulkSelection';
 
 interface CatalogEntry {
   id: string;
@@ -55,6 +58,7 @@ export const LabCatalogManagement = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
+  const [isBulkLabelDialogOpen, setIsBulkLabelDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<CatalogEntry | null>(null);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [filterCategory, setFilterCategory] = useState<string>('all');
@@ -64,6 +68,7 @@ export const LabCatalogManagement = () => {
   
   // Entry labels hooks
   const { data: entryLabels = [] } = useEntryLabels(editingEntry?.id || null);
+  const { data: allEntryLabels = [] } = useAllEntryLabels();
   const { updateEntryLabels } = useManageEntryLabels();
   const { labels: allLabels } = useLabLabels();
 
@@ -321,6 +326,27 @@ export const LabCatalogManagement = () => {
     ? entries 
     : entries.filter(e => e.category === filterCategory);
 
+  // Bulk selection
+  const {
+    selectedIds,
+    selectedCount,
+    isSelected,
+    isAllSelected,
+    isSomeSelected,
+    toggleSelection,
+    toggleSelectAll,
+    deselectAll,
+  } = useBulkSelection(filteredEntries);
+
+  // Get labels for each entry
+  const getEntryLabelBadges = (entryId: string) => {
+    const entryLabelData = allEntryLabels.filter(el => el.entry_id === entryId);
+    return entryLabelData.filter(el => el.lab_catalog_labels?.is_active).map(el => ({
+      name: el.lab_catalog_labels.name,
+      color: el.lab_catalog_labels.color,
+    }));
+  };
+
   return (
     <Tabs defaultValue="templates" className="space-y-4">
       <TabsList>
@@ -498,6 +524,27 @@ export const LabCatalogManagement = () => {
               </Select>
             </div>
 
+            {/* Bulk Actions Bar */}
+            {selectedCount > 0 && (
+              <div className="mb-4 p-3 bg-muted rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">{selectedCount} selected</Badge>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => setIsBulkLabelDialogOpen(true)}
+                  >
+                    <Tags className="w-4 h-4 mr-1" />
+                    Assign Labels
+                  </Button>
+                </div>
+                <Button size="sm" variant="ghost" onClick={deselectAll}>
+                  <X className="w-4 h-4 mr-1" />
+                  Clear Selection
+                </Button>
+              </div>
+            )}
+
             {isLoading || categoriesLoading ? (
               <div className="text-center py-8 text-muted-foreground">Loading...</div>
             ) : filteredEntries.length === 0 ? (
@@ -509,48 +556,93 @@ export const LabCatalogManagement = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-10">
+                        <Checkbox
+                          checked={isAllSelected}
+                          onCheckedChange={toggleSelectAll}
+                          aria-label="Select all"
+                          className={isSomeSelected ? "data-[state=checked]:bg-primary/50" : ""}
+                        />
+                      </TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Name</TableHead>
-                      <TableHead>Description</TableHead>
+                      <TableHead>Labels</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredEntries.map((entry) => (
-                      <TableRow key={entry.id}>
-                        <TableCell>
-                          <Badge variant="outline">{getCategoryLabel(entry.category)}</Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">{entry.name}</TableCell>
-                        <TableCell className="max-w-xs truncate">{entry.description}</TableCell>
-                        <TableCell>
-                          <Switch 
-                            checked={entry.is_published}
-                            onCheckedChange={(checked) => togglePublishMutation.mutate({ id: entry.id, is_published: checked })}
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
-                            <Button size="icon" variant="ghost" onClick={() => handleEdit(entry)}>
-                              <Pencil className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              size="icon" 
-                              variant="ghost" 
-                              className="text-destructive"
-                              onClick={() => deleteMutation.mutate(entry.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {filteredEntries.map((entry) => {
+                      const entryLabelBadges = getEntryLabelBadges(entry.id);
+                      return (
+                        <TableRow key={entry.id} className={isSelected(entry.id) ? "bg-muted/50" : ""}>
+                          <TableCell>
+                            <Checkbox
+                              checked={isSelected(entry.id)}
+                              onCheckedChange={() => toggleSelection(entry.id)}
+                              aria-label={`Select ${entry.name}`}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{getCategoryLabel(entry.category)}</Badge>
+                          </TableCell>
+                          <TableCell className="font-medium">{entry.name}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {entryLabelBadges.slice(0, 3).map((label, idx) => (
+                                <span
+                                  key={idx}
+                                  className={cn(
+                                    "px-1.5 py-0.5 rounded text-[10px] font-medium text-white",
+                                    label.color
+                                  )}
+                                >
+                                  {label.name}
+                                </span>
+                              ))}
+                              {entryLabelBadges.length > 3 && (
+                                <Badge variant="outline" className="text-[10px] px-1">
+                                  +{entryLabelBadges.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Switch 
+                              checked={entry.is_published}
+                              onCheckedChange={(checked) => togglePublishMutation.mutate({ id: entry.id, is_published: checked })}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              <Button size="icon" variant="ghost" onClick={() => handleEdit(entry)}>
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                className="text-destructive"
+                                onClick={() => deleteMutation.mutate(entry.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
             )}
+
+            {/* Bulk Label Assign Dialog */}
+            <BulkLabelAssignDialog
+              open={isBulkLabelDialogOpen}
+              onOpenChange={setIsBulkLabelDialogOpen}
+              selectedEntryIds={Array.from(selectedIds)}
+              onComplete={deselectAll}
+            />
           </CardContent>
         </Card>
       </TabsContent>
