@@ -77,6 +77,17 @@ const LabCatalog = () => {
     }
   }, [isBannerVisible]);
 
+  // Escape key to dismiss banner
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isBannerVisible && isBannerMounted) {
+        dismissBanner();
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isBannerVisible, isBannerMounted]);
+
   const dismissBanner = useCallback(() => {
     setIsBannerMounted(false);
     setTimeout(() => {
