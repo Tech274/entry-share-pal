@@ -103,14 +103,12 @@ export const AnimatedCategoryPill = ({
     >
       <Icon className="h-4 w-4" />
       <span>{category.label}</span>
-      {count > 0 && (
-        <Badge variant="secondary" className={cn(
-          "text-xs h-5 px-1.5 transition-colors",
-          isActive ? "bg-white/20 text-white" : ""
-        )}>
-          {count}
-        </Badge>
-      )}
+      <Badge variant="secondary" className={cn(
+        "text-xs h-5 px-1.5 transition-colors",
+        isActive ? "bg-white/20 text-white" : ""
+      )}>
+        {count}
+      </Badge>
     </button>
   );
 };
