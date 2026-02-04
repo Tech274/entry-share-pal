@@ -1,6 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -9,8 +8,12 @@ import {
   Link2, Boxes, Brain, Workflow, Building, FlaskConical
 } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
+import LabTemplateCard from '@/components/catalog/LabTemplateCard';
+import LabBundleBar from '@/components/catalog/LabBundleBar';
 import { cn } from '@/lib/utils';
 import { useLabCatalog, groupByCategory } from '@/hooks/useLabCatalog';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const EXTERNAL_CATALOG_URL = '/catalog';
 
@@ -64,9 +67,11 @@ const categories = [
 ];
 
 const LabCatalog = () => {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<string | null>('combo');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAllCategories, setShowAllCategories] = useState(false);
+  const [selectedLabs, setSelectedLabs] = useState<Set<string>>(new Set());
   const { data: catalogEntries = [], isLoading } = useLabCatalog();
   
   // Group database entries by category
@@ -81,7 +86,13 @@ const LabCatalog = () => {
   const allTemplates = useMemo(() => {
     return categories.flatMap(cat => {
       const templates = getTemplates(cat.id);
-      return templates.map(t => ({ ...t, category: cat.id, categoryLabel: cat.label, icon: cat.icon }));
+      return templates.map(t => ({ 
+        ...t, 
+        category: cat.id, 
+        categoryLabel: cat.label, 
+        icon: cat.icon,
+        uniqueKey: `${cat.id}-${t.name}`
+      }));
     });
   }, [catalogEntries]);
 
@@ -98,7 +109,24 @@ const LabCatalog = () => {
 
   const isSearching = searchQuery.trim().length > 0;
   const currentCategory = categories.find(c => c.id === activeCategory);
-  const currentTemplates = isSearching ? (searchResults || []) : (activeCategory ? getTemplates(activeCategory) : []);
+  
+  // Current templates with unique keys
+  const currentTemplates = useMemo(() => {
+    if (isSearching) {
+      return searchResults || [];
+    }
+    if (activeCategory) {
+      const templates = getTemplates(activeCategory);
+      return templates.map(t => ({
+        ...t,
+        category: activeCategory,
+        categoryLabel: currentCategory?.label || '',
+        icon: currentCategory?.icon,
+        uniqueKey: `${activeCategory}-${t.name}`
+      }));
+    }
+    return [];
+  }, [isSearching, searchResults, activeCategory, catalogEntries]);
   
   // Featured (combo) vs regular categories
   const featuredCategories = categories.filter(c => c.featured);
@@ -108,6 +136,47 @@ const LabCatalog = () => {
   const getCategoryCount = (categoryId: string) => {
     return (dbTemplatesByCategory[categoryId] || []).length;
   };
+
+  // Selection handlers
+  const toggleLabSelection = useCallback((uniqueKey: string) => {
+    setSelectedLabs(prev => {
+      const next = new Set(prev);
+      if (next.has(uniqueKey)) {
+        next.delete(uniqueKey);
+      } else {
+        next.add(uniqueKey);
+      }
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedLabs(new Set());
+  }, []);
+
+  const selectedLabDetails = useMemo(() => {
+    return allTemplates.filter(t => selectedLabs.has(t.uniqueKey));
+  }, [allTemplates, selectedLabs]);
+
+  const handleRequestBundle = useCallback(() => {
+    if (selectedLabDetails.length === 0) return;
+    
+    // Store selected labs in sessionStorage for the request form
+    const bundleData = {
+      labs: selectedLabDetails.map(l => ({ name: l.name, category: l.categoryLabel })),
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem('labBundleRequest', JSON.stringify(bundleData));
+    
+    toast.success(`Bundle with ${selectedLabDetails.length} labs ready!`, {
+      description: 'Redirecting to request form...'
+    });
+    
+    // Navigate to submit request page
+    setTimeout(() => {
+      navigate('/submit-request');
+    }, 500);
+  }, [selectedLabDetails, navigate]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -121,7 +190,7 @@ const LabCatalog = () => {
             Lab Catalog
           </h1>
           <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto mb-8">
-            Browse our comprehensive catalog of pre-built lab environments, templates, and technology combinations for your training needs.
+            Browse our comprehensive catalog of pre-built lab environments. Select multiple labs to request as a training bundle.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <div className="relative w-full max-w-md">
@@ -150,6 +219,11 @@ const LabCatalog = () => {
               </a>
             </Button>
           </div>
+          {selectedLabs.size > 0 && (
+            <p className="mt-4 text-sm text-primary-foreground/70">
+              💡 Tip: Click on lab cards to add them to your bundle
+            </p>
+          )}
         </div>
       </section>
 
@@ -241,7 +315,7 @@ const LabCatalog = () => {
       )}
 
       {/* Category Content */}
-      <section className="py-12">
+      <section className="py-12 pb-32">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-10">
@@ -263,6 +337,11 @@ const LabCatalog = () => {
                   Found {currentTemplates.length} matching template{currentTemplates.length !== 1 ? 's' : ''}
                 </p>
               )}
+              {!isSearching && selectedLabs.size === 0 && (
+                <p className="text-muted-foreground text-sm">
+                  Click on cards to select labs for your training bundle
+                </p>
+              )}
             </div>
 
             {isLoading ? (
@@ -273,40 +352,18 @@ const LabCatalog = () => {
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {currentTemplates.map((template: any, index) => {
-                  const TemplateIcon = template.icon || currentCategory?.icon || Layers;
-                  return (
-                    <Card key={index} className="hover:shadow-lg transition-all hover:-translate-y-1 group">
-                      <CardHeader className="pb-2">
-                        <div className="flex items-start gap-3">
-                          <div className={cn(
-                            "p-2 rounded-lg",
-                            currentCategory?.featured 
-                              ? currentCategory.color + " text-white"
-                              : "bg-primary/10 text-primary"
-                          )}>
-                            <TemplateIcon className="h-4 w-4" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <CardTitle className="text-base leading-tight group-hover:text-primary transition-colors">
-                              {template.name}
-                            </CardTitle>
-                            {isSearching && template.categoryLabel && (
-                              <Badge variant="outline" className="mt-1 text-[10px]">
-                                {template.categoryLabel}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <CardDescription className="text-sm line-clamp-2">
-                          {template.description}
-                        </CardDescription>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                {currentTemplates.map((template: any) => (
+                  <LabTemplateCard
+                    key={template.uniqueKey}
+                    template={template}
+                    categoryIcon={currentCategory?.icon}
+                    isFeatured={currentCategory?.featured}
+                    featuredColor={currentCategory?.color}
+                    isSearching={isSearching}
+                    isSelected={selectedLabs.has(template.uniqueKey)}
+                    onToggleSelect={() => toggleLabSelection(template.uniqueKey)}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -339,6 +396,14 @@ const LabCatalog = () => {
           <p>© {new Date().getFullYear()} MakeMyLabs. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* Lab Bundle Bar */}
+      <LabBundleBar
+        selectedCount={selectedLabs.size}
+        selectedLabs={selectedLabDetails}
+        onClear={clearSelection}
+        onRequestBundle={handleRequestBundle}
+      />
     </div>
   );
 };
