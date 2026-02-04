@@ -52,6 +52,7 @@ export const useLabCatalogCategories = () => {
         .from('lab_catalog_categories')
         .select('id, category_id, label, display_order, is_active, icon_name, gradient_color, is_featured')
         .eq('is_active', true)
+        .eq('is_featured', true)
         .order('display_order');
       
       if (error) throw error;
