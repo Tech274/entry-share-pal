@@ -31,15 +31,33 @@ export const useLabCatalog = () => {
   return useQuery({
     queryKey: ['lab-catalog-entries-public'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('lab_catalog_entries')
-        .select('id, category, name, description, display_order')
-        .eq('is_published', true)
-        .order('category')
-        .order('display_order');
+      // Fetch all entries - Supabase has a 1000 row default limit
+      // We need to paginate to get all entries
+      const allEntries: LabCatalogEntry[] = [];
+      let from = 0;
+      const pageSize = 1000;
       
-      if (error) throw error;
-      return data as LabCatalogEntry[];
+      while (true) {
+        const { data, error } = await supabase
+          .from('lab_catalog_entries')
+          .select('id, category, name, description, display_order')
+          .eq('is_published', true)
+          .order('category')
+          .order('display_order')
+          .range(from, from + pageSize - 1);
+        
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          allEntries.push(...(data as LabCatalogEntry[]));
+          if (data.length < pageSize) break; // Last page
+          from += pageSize;
+        } else {
+          break;
+        }
+      }
+      
+      return allEntries;
     },
   });
 };
