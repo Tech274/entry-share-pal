@@ -13,8 +13,35 @@ import { useLabCatalog, useLabCatalogCategories, useLabCatalogEntryLabels, group
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getIconComponent } from '@/lib/categoryIcons';
+import { useCountUp } from '@/hooks/useCountUp';
 
 const EXTERNAL_CATALOG_URL = 'https://mml-labs.com/catalog';
+
+// Animated stats component with count-up effect
+const AnimatedStats = () => {
+  const templatesCount = useCountUp({ end: 2500, duration: 2000, delay: 200, suffix: '+' });
+  const categoriesCount = useCountUp({ end: 36, duration: 1800, delay: 400, suffix: '' });
+  const techCount = useCountUp({ end: 250, duration: 2000, delay: 600, suffix: '+' });
+
+  return (
+    <div className="flex flex-wrap justify-center gap-8 mb-8">
+      <div className="text-center animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+        <div className="text-3xl md:text-4xl font-bold tabular-nums">{templatesCount}</div>
+        <div className="text-sm text-primary-foreground/70">Templates</div>
+      </div>
+      <div className="h-12 w-px bg-primary-foreground/20 hidden sm:block animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'both' }} />
+      <div className="text-center animate-fade-in" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
+        <div className="text-3xl md:text-4xl font-bold tabular-nums">{categoriesCount}</div>
+        <div className="text-sm text-primary-foreground/70">Categories</div>
+      </div>
+      <div className="h-12 w-px bg-primary-foreground/20 hidden sm:block animate-fade-in" style={{ animationDelay: '0.5s', animationFillMode: 'both' }} />
+      <div className="text-center animate-fade-in" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
+        <div className="text-3xl md:text-4xl font-bold tabular-nums">{techCount}</div>
+        <div className="text-sm text-primary-foreground/70">Technologies</div>
+      </div>
+    </div>
+  );
+};
 
 const LabCatalog = () => {
   const navigate = useNavigate();
@@ -237,23 +264,8 @@ const LabCatalog = () => {
             Browse our comprehensive catalog of pre-built lab environments. Select multiple labs to request as a training bundle.
           </p>
           
-          {/* Stats Section */}
-          <div className="flex flex-wrap justify-center gap-8 mb-8">
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold">2500+</div>
-              <div className="text-sm text-primary-foreground/70">Templates</div>
-            </div>
-            <div className="h-12 w-px bg-primary-foreground/20 hidden sm:block" />
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold">36</div>
-              <div className="text-sm text-primary-foreground/70">Categories</div>
-            </div>
-            <div className="h-12 w-px bg-primary-foreground/20 hidden sm:block" />
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold">250+</div>
-              <div className="text-sm text-primary-foreground/70">Technologies</div>
-            </div>
-          </div>
+          {/* Animated Stats Section */}
+          <AnimatedStats />
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <div className="relative w-full max-w-md">
