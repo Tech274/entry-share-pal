@@ -2,10 +2,11 @@ import { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   ExternalLink, Layers, Server, Cloud, Database, Shield, GitBranch, Cpu, Building2, Sparkles, Search,
   Code2, Globe, TestTube2, BarChart3, Smartphone, Terminal, Box, Network, HardDrive, Wrench,
-  Link2, Boxes, Brain, Workflow, Building, FlaskConical
+  Link2, Boxes, Brain, Workflow, Building, FlaskConical, ChevronDown
 } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 import LabTemplateCard from '@/components/catalog/LabTemplateCard';
@@ -239,7 +240,7 @@ const LabCatalog = () => {
         <section className="py-10 bg-gradient-to-b from-muted/40 to-background">
           <div className="container mx-auto px-4">
             <h2 className="text-xl font-bold mb-8 text-center">Featured Technology Stacks</h2>
-            <div className="space-y-1">
+            <div className="space-y-2">
               {featuredGroups.map((group, index) => {
                 const groupCategories = featuredCategories.filter(c => c.group === group.id);
                 if (groupCategories.length === 0) return null;
@@ -257,55 +258,71 @@ const LabCatalog = () => {
                 };
                 const GroupIcon = groupIcons[group.id] || Boxes;
                 
+                // Border colors for each group
+                const borderColors = [
+                  "border-l-violet-500",
+                  "border-l-blue-500",
+                  "border-l-red-500",
+                  "border-l-cyan-500",
+                  "border-l-purple-500"
+                ];
+                
                 return (
-                  <div 
-                    key={group.id} 
-                    className={cn(
-                      "flex flex-wrap items-center gap-4 py-4 px-4 rounded-lg transition-colors",
-                      rowBg,
-                      "border-l-4",
-                      index === 0 && "border-l-violet-500",
-                      index === 1 && "border-l-blue-500",
-                      index === 2 && "border-l-red-500",
-                      index === 3 && "border-l-cyan-500",
-                      index === 4 && "border-l-purple-500"
-                    )}
-                  >
-                    <div className="flex items-center gap-2 w-36 shrink-0">
-                      <GroupIcon className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-semibold text-foreground">{group.label}</span>
+                  <Collapsible key={group.id} defaultOpen={true}>
+                    <div 
+                      className={cn(
+                        "rounded-lg transition-all duration-300",
+                        rowBg,
+                        "border-l-4",
+                        borderColors[index % borderColors.length]
+                      )}
+                    >
+                      <CollapsibleTrigger className="w-full">
+                        <div className="flex items-center justify-between py-3 px-4 hover:bg-muted/30 transition-colors rounded-lg cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <GroupIcon className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-semibold text-foreground">{group.label}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {groupCategories.length} categories
+                            </Badge>
+                          </div>
+                          <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-300 group-data-[state=open]:rotate-180" />
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="animate-accordion-down data-[state=closed]:animate-accordion-up">
+                        <div className="flex flex-wrap gap-2 px-4 pb-4 pt-1">
+                          {groupCategories.map((category) => {
+                            const Icon = category.icon;
+                            const isActive = activeCategory === category.id;
+                            const count = getCategoryCount(category.id);
+                            return (
+                              <button
+                                key={category.id}
+                                onClick={() => setActiveCategory(category.id)}
+                                className={cn(
+                                  "flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-200 text-sm",
+                                  isActive
+                                    ? `${category.color} text-white shadow-lg scale-105`
+                                    : "bg-background text-foreground hover:bg-muted border hover:shadow-md hover:scale-[1.02]"
+                                )}
+                              >
+                                <Icon className="h-4 w-4" />
+                                <span>{category.label}</span>
+                                {count > 0 && (
+                                  <Badge variant="secondary" className={cn(
+                                    "text-xs h-5 px-1.5 transition-colors",
+                                    isActive ? "bg-white/20 text-white" : ""
+                                  )}>
+                                    {count}
+                                  </Badge>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </CollapsibleContent>
                     </div>
-                    <div className="flex flex-wrap gap-2 flex-1">
-                      {groupCategories.map((category) => {
-                        const Icon = category.icon;
-                        const isActive = activeCategory === category.id;
-                        const count = getCategoryCount(category.id);
-                        return (
-                          <button
-                            key={category.id}
-                            onClick={() => setActiveCategory(category.id)}
-                            className={cn(
-                              "flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all text-sm",
-                              isActive
-                                ? `${category.color} text-white shadow-lg scale-105`
-                                : "bg-background text-foreground hover:bg-muted border hover:shadow-md hover:scale-[1.02]"
-                            )}
-                          >
-                            <Icon className="h-4 w-4" />
-                            <span>{category.label}</span>
-                            {count > 0 && (
-                              <Badge variant="secondary" className={cn(
-                                "text-xs h-5 px-1.5",
-                                isActive ? "bg-white/20 text-white" : ""
-                              )}>
-                                {count}
-                              </Badge>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  </Collapsible>
                 );
               })}
             </div>
@@ -365,40 +382,44 @@ const LabCatalog = () => {
       <section className="py-12 pb-32">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-10">
-              <div className="flex items-center justify-center gap-3 mb-3">
-                {currentCategory && (
-                  <currentCategory.icon className={cn(
-                    "h-8 w-8",
-                    currentCategory.featured ? "text-primary" : "text-muted-foreground"
-                  )} />
+            <div 
+              key={activeCategory || 'search'} 
+              className="animate-fade-in"
+            >
+              <div className="text-center mb-10">
+                <div className="flex items-center justify-center gap-3 mb-3">
+                  {currentCategory && (
+                    <currentCategory.icon className={cn(
+                      "h-8 w-8 transition-transform duration-300",
+                      currentCategory.featured ? "text-primary" : "text-muted-foreground"
+                    )} />
+                  )}
+                  <h2 className="text-2xl font-bold">
+                    {isSearching 
+                      ? `Search Results for "${searchQuery}"` 
+                      : currentCategory?.label}
+                  </h2>
+                </div>
+                {isSearching && (
+                  <p className="text-muted-foreground">
+                    Found {currentTemplates.length} matching template{currentTemplates.length !== 1 ? 's' : ''}
+                  </p>
                 )}
-                <h2 className="text-2xl font-bold">
-                  {isSearching 
-                    ? `Search Results for "${searchQuery}"` 
-                    : currentCategory?.label}
-                </h2>
+                {!isSearching && selectedLabs.size === 0 && (
+                  <p className="text-muted-foreground text-sm">
+                    Click on cards to select labs for your training bundle
+                  </p>
+                )}
               </div>
-              {isSearching && (
-                <p className="text-muted-foreground">
-                  Found {currentTemplates.length} matching template{currentTemplates.length !== 1 ? 's' : ''}
-                </p>
-              )}
-              {!isSearching && selectedLabs.size === 0 && (
-                <p className="text-muted-foreground text-sm">
-                  Click on cards to select labs for your training bundle
-                </p>
-              )}
-            </div>
 
-            {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading templates...</div>
-            ) : currentTemplates.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No templates available for this category yet.
-              </div>
-            ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {isLoading ? (
+                <div className="text-center py-8 text-muted-foreground">Loading templates...</div>
+              ) : currentTemplates.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No templates available for this category yet.
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {currentTemplates.map((template: any) => (
                   <LabTemplateCard
                     key={template.uniqueKey}
@@ -412,7 +433,8 @@ const LabCatalog = () => {
                   />
                 ))}
               </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </section>
