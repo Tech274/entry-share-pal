@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Server, Cloud, Database, Brain, Cpu, Layers, Workflow, Shield } from 'lucide-react';
+import { Server, Cloud, Database, Brain, Layers, Workflow, Shield, Code2, BarChart3 } from 'lucide-react';
 
 interface LabHighlight {
   title: string;
@@ -52,6 +52,27 @@ const labHighlights: LabHighlight[] = [
     features: ['GitOps', 'Monitoring', 'Security', 'Observability'],
     icon: Workflow,
     gradient: 'from-emerald-500 to-teal-600',
+  },
+  {
+    title: 'Security Labs',
+    tagline: 'Defend & Protect',
+    features: ['Penetration Testing', 'SIEM', 'Zero Trust', 'Compliance'],
+    icon: Shield,
+    gradient: 'from-slate-500 to-zinc-700',
+  },
+  {
+    title: 'Data Engineering Labs',
+    tagline: 'Transform & Scale Data',
+    features: ['Apache Spark', 'Kafka', 'Airflow', 'Data Lakes'],
+    icon: BarChart3,
+    gradient: 'from-violet-500 to-fuchsia-600',
+  },
+  {
+    title: 'Full Stack Labs',
+    tagline: 'End-to-End Development',
+    features: ['React', 'Node.js', 'APIs', 'Microservices'],
+    icon: Code2,
+    gradient: 'from-lime-500 to-green-600',
   },
 ];
 
