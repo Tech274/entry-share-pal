@@ -2,11 +2,10 @@ import { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
-  ExternalLink, Layers, Server, Cloud, Database, Shield, GitBranch, Cpu, Building2, Sparkles, Search,
+  ExternalLink, Layers, Server, Cloud, Database, Shield, GitBranch, Building2, Search,
   Code2, Globe, TestTube2, BarChart3, Smartphone, Terminal, Box, Network, HardDrive, Wrench,
-  Link2, Boxes, Brain, Workflow, Building, FlaskConical, ChevronDown
+  Link2, Boxes, Brain, Workflow, Building, FlaskConical
 } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 import LabTemplateCard from '@/components/catalog/LabTemplateCard';
@@ -78,7 +77,7 @@ const LabCatalog = () => {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<string | null>('combo');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showAllCategories, setShowAllCategories] = useState(false);
+  // Removed showAllCategories state - no longer needed
   const [selectedLabs, setSelectedLabs] = useState<Set<string>>(new Set());
   const { data: catalogEntries = [], isLoading } = useLabCatalog();
   
@@ -235,117 +234,12 @@ const LabCatalog = () => {
         </div>
       </section>
 
-      {/* Featured Categories by Group */}
+      {/* Featured Stacks - Horizontal Filter */}
       {!isSearching && (
-        <section className="py-10 bg-gradient-to-b from-muted/40 to-background">
+        <section className="py-6 bg-gradient-to-b from-muted/40 to-background border-b">
           <div className="container mx-auto px-4">
-            <h2 className="text-xl font-bold mb-8 text-center">Featured Technology Stacks</h2>
-            <div className="space-y-2">
-              {featuredGroups.map((group, index) => {
-                const groupCategories = featuredCategories.filter(c => c.group === group.id);
-                if (groupCategories.length === 0) return null;
-                
-                // Alternate row backgrounds
-                const rowBg = index % 2 === 0 ? 'bg-background' : 'bg-muted/20';
-                
-                // Icons for each group
-                const groupIcons: Record<string, typeof Boxes> = {
-                  stacks: Layers,
-                  cloud: Cloud,
-                  enterprise: Building,
-                  infra: Server,
-                  data: Database,
-                };
-                const GroupIcon = groupIcons[group.id] || Boxes;
-                
-                // Border colors for each group
-                const borderColors = [
-                  "border-l-violet-500",
-                  "border-l-blue-500",
-                  "border-l-red-500",
-                  "border-l-cyan-500",
-                  "border-l-purple-500"
-                ];
-                
-                return (
-                  <Collapsible key={group.id} defaultOpen={true}>
-                    <div 
-                      className={cn(
-                        "rounded-lg transition-all duration-300",
-                        rowBg,
-                        "border-l-4",
-                        borderColors[index % borderColors.length]
-                      )}
-                    >
-                      <CollapsibleTrigger className="w-full">
-                        <div className="flex items-center justify-between py-3 px-4 hover:bg-muted/30 transition-colors rounded-lg cursor-pointer">
-                          <div className="flex items-center gap-2">
-                            <GroupIcon className="h-4 w-4 text-primary" />
-                            <span className="text-sm font-semibold text-foreground">{group.label}</span>
-                            <Badge variant="outline" className="text-xs">
-                              {groupCategories.length} categories
-                            </Badge>
-                          </div>
-                          <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-300 group-data-[state=open]:rotate-180" />
-                        </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="animate-accordion-down data-[state=closed]:animate-accordion-up">
-                        <div className="flex flex-wrap gap-2 px-4 pb-4 pt-1">
-                          {groupCategories.map((category) => {
-                            const Icon = category.icon;
-                            const isActive = activeCategory === category.id;
-                            const count = getCategoryCount(category.id);
-                            return (
-                              <button
-                                key={category.id}
-                                onClick={() => setActiveCategory(category.id)}
-                                className={cn(
-                                  "flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-200 text-sm",
-                                  isActive
-                                    ? `${category.color} text-white shadow-lg scale-105`
-                                    : "bg-background text-foreground hover:bg-muted border hover:shadow-md hover:scale-[1.02]"
-                                )}
-                              >
-                                <Icon className="h-4 w-4" />
-                                <span>{category.label}</span>
-                                {count > 0 && (
-                                  <Badge variant="secondary" className={cn(
-                                    "text-xs h-5 px-1.5 transition-colors",
-                                    isActive ? "bg-white/20 text-white" : ""
-                                  )}>
-                                    {count}
-                                  </Badge>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </CollapsibleContent>
-                    </div>
-                  </Collapsible>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Individual Technology Categories */}
-      {!isSearching && (
-        <section className="py-4 border-b bg-background">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-muted-foreground">Individual Technologies</h3>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setShowAllCategories(!showAllCategories)}
-              >
-                {showAllCategories ? 'Show Less' : 'Show All'}
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {(showAllCategories ? regularCategories : regularCategories.slice(0, 10)).map((category) => {
+            <div className="flex flex-wrap gap-2 justify-center">
+              {featuredCategories.map((category) => {
                 const Icon = category.icon;
                 const isActive = activeCategory === category.id;
                 const count = getCategoryCount(category.id);
@@ -354,21 +248,21 @@ const LabCatalog = () => {
                     key={category.id}
                     onClick={() => setActiveCategory(category.id)}
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                      "flex items-center gap-2 px-4 py-2.5 rounded-full font-medium transition-all duration-200 text-sm",
                       isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                        ? `${category.color} text-white shadow-lg scale-105`
+                        : "bg-background text-foreground hover:bg-muted border hover:shadow-md hover:scale-[1.02]"
                     )}
                   >
-                    <Icon className="h-3.5 w-3.5" />
+                    <Icon className="h-4 w-4" />
                     <span>{category.label}</span>
                     {count > 0 && (
-                      <span className={cn(
-                        "text-[10px] px-1 rounded",
-                        isActive ? "bg-primary-foreground/20" : "bg-background"
+                      <Badge variant="secondary" className={cn(
+                        "text-xs h-5 px-1.5 transition-colors",
+                        isActive ? "bg-white/20 text-white" : ""
                       )}>
                         {count}
-                      </span>
+                      </Badge>
                     )}
                   </button>
                 );

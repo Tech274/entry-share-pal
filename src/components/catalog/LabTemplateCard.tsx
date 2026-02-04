@@ -1,7 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Layers, LucideIcon } from 'lucide-react';
+import { Heart, Layers, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface LabTemplateCardProps {
@@ -25,7 +24,6 @@ const LabTemplateCard = ({
   categoryIcon,
   isFeatured,
   featuredColor,
-  isSearching,
   isSelected,
   onToggleSelect,
 }: LabTemplateCardProps) => {
@@ -35,26 +33,27 @@ const LabTemplateCard = ({
     <Card 
       className={cn(
         "hover:shadow-lg transition-all hover:-translate-y-1 group relative cursor-pointer",
-        isSelected && "ring-2 ring-primary bg-primary/5"
+        isSelected && "ring-2 ring-rose-500 bg-rose-50 dark:bg-rose-950/20"
       )}
       onClick={onToggleSelect}
     >
-      {/* Selection checkbox */}
-      <div 
-        className="absolute top-3 right-3 z-10"
-        onClick={(e) => e.stopPropagation()}
+      {/* Heart favorite button */}
+      <button 
+        className="absolute top-3 right-3 z-10 p-1.5 rounded-full transition-all duration-200 hover:scale-110"
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleSelect?.();
+        }}
       >
-        <Checkbox
-          checked={isSelected}
-          onCheckedChange={onToggleSelect}
+        <Heart 
           className={cn(
-            "h-5 w-5 border-2",
+            "h-5 w-5 transition-all duration-200",
             isSelected 
-              ? "border-primary bg-primary text-primary-foreground" 
-              : "border-muted-foreground/50 bg-background"
+              ? "fill-rose-500 text-rose-500 scale-110" 
+              : "text-muted-foreground/50 hover:text-rose-400"
           )}
         />
-      </div>
+      </button>
 
       <CardHeader className="pb-2 pr-10">
         <div className="flex items-start gap-3">
@@ -70,18 +69,22 @@ const LabTemplateCard = ({
             <CardTitle className="text-base leading-tight group-hover:text-primary transition-colors">
               {template.name}
             </CardTitle>
-            {isSearching && template.categoryLabel && (
-              <Badge variant="outline" className="mt-1 text-[10px]">
-                {template.categoryLabel}
-              </Badge>
-            )}
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <CardDescription className="text-sm line-clamp-2">
+      <CardContent className="pt-0">
+        <CardDescription className="text-sm line-clamp-2 mb-2">
           {template.description}
         </CardDescription>
+        {/* Category label inside the card */}
+        {template.categoryLabel && (
+          <Badge 
+            variant="outline" 
+            className="text-[10px] bg-muted/50 text-muted-foreground border-muted-foreground/20"
+          >
+            {template.categoryLabel}
+          </Badge>
+        )}
       </CardContent>
     </Card>
   );
