@@ -19,6 +19,7 @@ export interface Filters {
   cloud: string;
   lineOfBusiness: string;
   client: string;
+  invoiceDetails: string;
 }
 
 type SpreadsheetType = 'solutions' | 'delivery';
@@ -88,6 +89,7 @@ const DEFAULT_FILTERS: Filters = {
   cloud: '',
   lineOfBusiness: '',
   client: '',
+  invoiceDetails: '',
 };
 
 function getDefaultColumns(type: SpreadsheetType): ColumnConfig[] {
@@ -218,6 +220,11 @@ export function useSpreadsheetControls<T extends SpreadsheetRequest>(
     if (filters.client) {
       result = result.filter(r => 
         ((r as any).client || '').toLowerCase().includes(filters.client.toLowerCase())
+      );
+    }
+    if (filters.invoiceDetails) {
+      result = result.filter(r => 
+        ((r as any).invoiceDetails || '').toLowerCase().includes(filters.invoiceDetails.toLowerCase())
       );
     }
 
