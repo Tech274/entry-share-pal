@@ -6,10 +6,12 @@ import { ExternalLink, Layers, Search, Tags } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LabTemplateCard from '@/components/catalog/LabTemplateCard';
+import { LabTemplateCardSkeletonGrid } from '@/components/catalog/LabTemplateCardSkeleton';
 import LabBundleBar from '@/components/catalog/LabBundleBar';
 import { LabelFilter } from '@/components/catalog/LabelFilter';
 import { FloatingParticles } from '@/components/catalog/FloatingParticles';
 import { AnimatedCategoryPill } from '@/components/catalog/AnimatedCategoryPill';
+import { ScrollToTopButton } from '@/components/catalog/ScrollToTopButton';
 import { cn } from '@/lib/utils';
 import { useLabCatalog, useLabCatalogCategories, useLabCatalogEntryLabels, groupByCategory } from '@/hooks/useLabCatalog';
 import { useNavigate } from 'react-router-dom';
@@ -433,7 +435,7 @@ const LabCatalog = () => {
               </div>
 
               {isLoading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading templates...</div>
+                <LabTemplateCardSkeletonGrid count={9} />
               ) : currentTemplates.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   No templates available for this category yet.
@@ -489,6 +491,9 @@ const LabCatalog = () => {
         onClear={clearSelection}
         onRequestBundle={handleRequestBundle}
       />
+
+      {/* Scroll to Top Button */}
+      <ScrollToTopButton threshold={400} />
     </div>
   );
 };
