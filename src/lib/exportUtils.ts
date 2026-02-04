@@ -24,6 +24,7 @@ const LAB_HEADERS = [
   'Total Amount for Training',
   'Margin',
   'Status',
+  'Invoice Details',
   'Remarks',
 ];
 
@@ -48,6 +49,7 @@ const DELIVERY_HEADERS = [
   'Input Cost Per User',
   'Selling Cost Per User',
   'Total Amount',
+  'Invoice Details',
 ];
 
 const escapeCSV = (value: string | number): string => {
@@ -91,6 +93,7 @@ export function exportToCSV(requests: (LabRequest | DeliveryRequest)[], filename
         formatINR(dr.inputCostPerUser),
         formatINR(dr.sellingCostPerUser),
         formatINR(dr.totalAmount),
+        dr.invoiceDetails || '',
       ];
     } else {
       const lr = r as LabRequest;
@@ -116,6 +119,7 @@ export function exportToCSV(requests: (LabRequest | DeliveryRequest)[], filename
         formatINR(lr.totalAmountForTraining),
         formatPercentage(lr.margin),
         lr.status,
+        lr.invoiceDetails || '',
         lr.remarks,
       ];
     }
@@ -162,6 +166,7 @@ export function exportToXLS(requests: (LabRequest | DeliveryRequest)[], filename
           <td>${formatINR(dr.inputCostPerUser)}</td>
           <td>${formatINR(dr.sellingCostPerUser)}</td>
           <td>${formatINR(dr.totalAmount)}</td>
+          <td>${dr.invoiceDetails || ''}</td>
         </tr>
       `;
     } else {
@@ -189,6 +194,7 @@ export function exportToXLS(requests: (LabRequest | DeliveryRequest)[], filename
           <td>${formatINR(lr.totalAmountForTraining)}</td>
           <td>${formatPercentage(lr.margin)}</td>
           <td>${lr.status}</td>
+          <td>${lr.invoiceDetails || ''}</td>
           <td>${lr.remarks}</td>
         </tr>
       `;
