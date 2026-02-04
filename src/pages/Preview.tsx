@@ -26,10 +26,9 @@ import logo from '@/assets/makemylabs-logo.png';
 
 // CSV template headers for Solutions
 const SOLUTIONS_CSV_HEADERS = [
-  'Potential ID', 'Training Name', 'Client', 'Month', 'Year', 'Lab Type', 'Cloud Type', 
-  'TP Lab Type', 'LOB', 'User Count', 'Requester', 'Agent', 'Account Manager',
-  'Received On', 'Lab Start Date', 'Lab End Date', 'Duration Days',
-  'Input Cost', 'Selling Cost', 'Total Amount', 'Margin %', 'Status', 'Remarks'
+  'Potential ID', 'Training Name', 'Client', 'Month', 'Year', 'LOB', 
+  'User Count', 'Lab Start Date', 'Lab End Date',
+  'Input Cost', 'Selling Cost', 'Status', 'Invoice Details', 'Remarks'
 ];
 
 // Parse CSV row to LabRequest
@@ -46,23 +45,24 @@ const parseLabRequestRow = (row: Record<string, string | number>): Omit<LabReque
     client,
     month,
     year: Number(row['Year']) || new Date().getFullYear(),
-    cloud: String(row['Lab Type'] || ''),
-    cloudType: String(row['Cloud Type'] || ''),
-    tpLabType: String(row['TP Lab Type'] || ''),
+    cloud: '',
+    cloudType: '',
+    tpLabType: '',
     lineOfBusiness: String(row['LOB'] || ''),
     userCount: Number(row['User Count']) || 0,
-    requester: String(row['Requester'] || ''),
-    agentName: String(row['Agent'] || ''),
-    accountManager: String(row['Account Manager'] || ''),
-    receivedOn: String(row['Received On'] || ''),
+    requester: '',
+    agentName: '',
+    accountManager: '',
+    receivedOn: '',
     labStartDate: String(row['Lab Start Date'] || ''),
     labEndDate: String(row['Lab End Date'] || ''),
-    durationInDays: Number(row['Duration Days']) || 0,
+    durationInDays: 0,
     inputCostPerUser: Number(row['Input Cost']) || 0,
     sellingCostPerUser: Number(row['Selling Cost']) || 0,
-    totalAmountForTraining: Number(row['Total Amount']) || 0,
-    margin: Number(row['Margin %']) || 0,
+    totalAmountForTraining: 0,
+    margin: 0,
     status: String(row['Status'] || 'Solution Pending'),
+    invoiceDetails: String(row['Invoice Details'] || ''),
     remarks: String(row['Remarks'] || ''),
   };
 };

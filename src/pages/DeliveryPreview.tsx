@@ -26,10 +26,9 @@ import logo from '@/assets/makemylabs-logo.png';
 
 // CSV template headers for Delivery
 const DELIVERY_CSV_HEADERS = [
-  'Potential ID', 'Ticket Number', 'Training Name', 'Client', 'Month', 'Year',
-  'Cloud', 'Cloud Type', 'TP Lab Type', 'LOB', 'Users', 'Lab Status', 'Lab Type',
-  'Start Date', 'End Date', 'Requester', 'Agent', 'Account Manager',
-  'Input Cost', 'Selling Cost', 'Total Amount', 'Lab Setup Requirement'
+  'Potential ID', 'Training Name', 'Client', 'Month', 'Year', 'LOB', 
+  'Users', 'Lab Status', 'Start Date', 'End Date',
+  'Input Cost', 'Selling Cost', 'Invoice Details'
 ];
 
 // Parse CSV row to DeliveryRequest
@@ -41,27 +40,28 @@ const parseDeliveryRequestRow = (row: Record<string, string | number>): Omit<Del
 
   return {
     potentialId: String(row['Potential ID'] || ''),
-    freshDeskTicketNumber: String(row['Ticket Number'] || ''),
+    freshDeskTicketNumber: '',
     trainingName: String(row['Training Name'] || ''),
     client,
     month,
     year: Number(row['Year']) || new Date().getFullYear(),
-    cloud: String(row['Cloud'] || ''),
-    cloudType: String(row['Cloud Type'] || ''),
-    tpLabType: String(row['TP Lab Type'] || ''),
+    cloud: '',
+    cloudType: '',
+    tpLabType: '',
     lineOfBusiness: String(row['LOB'] || ''),
     numberOfUsers: Number(row['Users']) || 0,
     labStatus: String(row['Lab Status'] || 'Pending'),
-    labType: String(row['Lab Type'] || ''),
+    labType: '',
     startDate: String(row['Start Date'] || ''),
     endDate: String(row['End Date'] || ''),
-    requester: String(row['Requester'] || ''),
-    agentName: String(row['Agent'] || ''),
-    accountManager: String(row['Account Manager'] || ''),
+    requester: '',
+    agentName: '',
+    accountManager: '',
     inputCostPerUser: Number(row['Input Cost']) || 0,
     sellingCostPerUser: Number(row['Selling Cost']) || 0,
-    totalAmount: Number(row['Total Amount']) || 0,
-    labSetupRequirement: String(row['Lab Setup Requirement'] || ''),
+    totalAmount: 0,
+    labSetupRequirement: '',
+    invoiceDetails: String(row['Invoice Details'] || ''),
     receivedOn: '',
     labName: '',
   };

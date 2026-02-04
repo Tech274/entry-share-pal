@@ -30,6 +30,7 @@ const mapRowToDeliveryRequest = (row: any): DeliveryRequest => ({
   sellingCostPerUser: Number(row.selling_cost_per_user) || 0,
   totalAmount: Number(row.total_amount) || 0,
   lineOfBusiness: row.line_of_business || '',
+  invoiceDetails: row.invoice_details || '',
   assignedTo: row.assigned_to || null,
   createdAt: row.created_at,
 });
@@ -60,6 +61,7 @@ const mapDeliveryRequestToRow = (request: Omit<DeliveryRequest, 'id' | 'createdA
   selling_cost_per_user: request.sellingCostPerUser,
   total_amount: request.totalAmount,
   line_of_business: request.lineOfBusiness,
+  invoice_details: request.invoiceDetails,
 });
 
 export const useDeliveryRequests = () => {
@@ -167,6 +169,7 @@ export const useDeliveryRequests = () => {
       if (data.sellingCostPerUser !== undefined) updateData.selling_cost_per_user = data.sellingCostPerUser;
       if (data.lineOfBusiness !== undefined) updateData.line_of_business = data.lineOfBusiness;
       if (data.totalAmount !== undefined) updateData.total_amount = data.totalAmount;
+      if (data.invoiceDetails !== undefined) updateData.invoice_details = data.invoiceDetails;
 
       const { data: updatedRow, error } = await supabase
         .from('delivery_requests')

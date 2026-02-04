@@ -27,6 +27,7 @@ export type Database = {
           fresh_desk_ticket_number: string | null
           id: string
           input_cost_per_user: number | null
+          invoice_details: string | null
           lab_name: string | null
           lab_setup_requirement: string | null
           lab_status: string | null
@@ -57,6 +58,7 @@ export type Database = {
           fresh_desk_ticket_number?: string | null
           id?: string
           input_cost_per_user?: number | null
+          invoice_details?: string | null
           lab_name?: string | null
           lab_setup_requirement?: string | null
           lab_status?: string | null
@@ -87,6 +89,7 @@ export type Database = {
           fresh_desk_ticket_number?: string | null
           id?: string
           input_cost_per_user?: number | null
+          invoice_details?: string | null
           lab_name?: string | null
           lab_setup_requirement?: string | null
           lab_status?: string | null
@@ -294,6 +297,7 @@ export type Database = {
           fresh_desk_ticket_number: string | null
           id: string
           input_cost_per_user: number | null
+          invoice_details: string | null
           lab_end_date: string | null
           lab_name: string | null
           lab_start_date: string | null
@@ -324,6 +328,7 @@ export type Database = {
           fresh_desk_ticket_number?: string | null
           id?: string
           input_cost_per_user?: number | null
+          invoice_details?: string | null
           lab_end_date?: string | null
           lab_name?: string | null
           lab_start_date?: string | null
@@ -354,6 +359,7 @@ export type Database = {
           fresh_desk_ticket_number?: string | null
           id?: string
           input_cost_per_user?: number | null
+          invoice_details?: string | null
           lab_end_date?: string | null
           lab_name?: string | null
           lab_start_date?: string | null

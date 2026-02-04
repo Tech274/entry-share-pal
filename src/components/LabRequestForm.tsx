@@ -58,6 +58,7 @@ const initialFormState = {
   status: '',
   remarks: '',
   lineOfBusiness: '',
+  invoiceDetails: '',
 };
 
 export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
