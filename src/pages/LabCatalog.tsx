@@ -59,6 +59,8 @@ const LabCatalog = () => {
   const [currentLabHighlight, setCurrentLabHighlight] = useState<LabHighlight>(labHighlights[0]);
   const [currentLabIndex, setCurrentLabIndex] = useState(0);
   const [isHeroTransitioning, setIsHeroTransitioning] = useState(false);
+  const [isHeroPaused, setIsHeroPaused] = useState(false);
+  const [goToLabIndex, setGoToLabIndex] = useState<((idx: number) => void) | null>(null);
   
   // Parallax effect for hero section
   const parallaxOffset = useParallax({ speed: 0.3, maxOffset: 80 });
@@ -267,7 +269,11 @@ const LabCatalog = () => {
       <PublicHeader />
 
       {/* Hero Section with Parallax */}
-      <section className="bg-primary text-primary-foreground py-16 relative overflow-hidden">
+      <section 
+        className="bg-primary text-primary-foreground py-16 relative overflow-hidden"
+        onMouseEnter={() => setIsHeroPaused(true)}
+        onMouseLeave={() => setIsHeroPaused(false)}
+      >
         <FloatingParticles />
         {/* Parallax background layer */}
         <div 
@@ -314,8 +320,9 @@ const LabCatalog = () => {
             {labHighlights.map((lab, idx) => (
               <button
                 key={idx}
+                onClick={() => goToLabIndex?.(idx)}
                 className={cn(
-                  "h-2 rounded-full transition-all duration-300",
+                  "h-2 rounded-full transition-all duration-300 cursor-pointer",
                   idx === currentLabIndex 
                     ? "w-6 bg-primary-foreground" 
                     : "w-2 bg-primary-foreground/30 hover:bg-primary-foreground/50"
@@ -328,11 +335,13 @@ const LabCatalog = () => {
           {/* Hidden RollingBanner to drive state changes */}
           <div className="hidden">
             <RollingBanner 
+              isPaused={isHeroPaused}
               onLabChange={(lab, index, transitioning) => {
                 setCurrentLabHighlight(lab);
                 setCurrentLabIndex(index);
                 setIsHeroTransitioning(transitioning);
-              }} 
+              }}
+              onGoToIndex={(fn) => setGoToLabIndex(() => fn)}
             />
           </div>
           
