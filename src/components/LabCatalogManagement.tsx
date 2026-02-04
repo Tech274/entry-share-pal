@@ -62,6 +62,7 @@ export const LabCatalogManagement = () => {
   const [editingEntry, setEditingEntry] = useState<CatalogEntry | null>(null);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [filterLabels, setFilterLabels] = useState<string[]>([]);
   const [bulkImportData, setBulkImportData] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
@@ -322,9 +323,27 @@ export const LabCatalogManagement = () => {
     }
   };
 
-  const filteredEntries = filterCategory === 'all' 
-    ? entries 
-    : entries.filter(e => e.category === filterCategory);
+  const filteredEntries = useMemo(() => {
+    let result = entries;
+    
+    // Filter by category
+    if (filterCategory !== 'all') {
+      result = result.filter(e => e.category === filterCategory);
+    }
+    
+    // Filter by labels
+    if (filterLabels.length > 0) {
+      result = result.filter(entry => {
+        const entryLabelIds = allEntryLabels
+          .filter(el => el.entry_id === entry.id)
+          .map(el => el.label_id);
+        // Check if entry has ALL selected labels (AND logic)
+        return filterLabels.every(labelId => entryLabelIds.includes(labelId));
+      });
+    }
+    
+    return result;
+  }, [entries, filterCategory, filterLabels, allEntryLabels]);
 
   // Bulk selection
   const {
@@ -508,7 +527,7 @@ export const LabCatalogManagement = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4">
-            <div className="mb-4">
+            <div className="mb-4 flex flex-wrap items-center gap-3">
               <Select value={filterCategory} onValueChange={setFilterCategory}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Filter by category" />
@@ -522,6 +541,25 @@ export const LabCatalogManagement = () => {
                   ))}
                 </SelectContent>
               </Select>
+              
+              <div className="flex-1 min-w-[200px] max-w-md">
+                <LabelMultiSelect
+                  selectedLabelIds={filterLabels}
+                  onChange={setFilterLabels}
+                />
+              </div>
+              
+              {(filterCategory !== 'all' || filterLabels.length > 0) && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => { setFilterCategory('all'); setFilterLabels([]); }}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Clear filters
+                </Button>
+              )}
             </div>
 
             {/* Bulk Actions Bar */}
