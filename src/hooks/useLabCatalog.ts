@@ -9,6 +9,14 @@ export interface LabCatalogEntry {
   display_order: number;
 }
 
+export interface LabCatalogCategory {
+  id: string;
+  category_id: string;
+  label: string;
+  display_order: number;
+  is_active: boolean;
+}
+
 export const useLabCatalog = () => {
   return useQuery({
     queryKey: ['lab-catalog-entries-public'],
@@ -22,6 +30,22 @@ export const useLabCatalog = () => {
       
       if (error) throw error;
       return data as LabCatalogEntry[];
+    },
+  });
+};
+
+export const useLabCatalogCategories = () => {
+  return useQuery({
+    queryKey: ['lab-catalog-categories-public'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lab_catalog_categories')
+        .select('id, category_id, label, display_order, is_active')
+        .eq('is_active', true)
+        .order('display_order');
+      
+      if (error) throw error;
+      return data as LabCatalogCategory[];
     },
   });
 };

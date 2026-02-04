@@ -137,6 +137,36 @@ export type Database = {
         }
         Relationships: []
       }
+      lab_catalog_categories: {
+        Row: {
+          category_id: string
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          label: string
+          updated_at: string | null
+        }
+        Insert: {
+          category_id: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          label: string
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          label?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       lab_catalog_entries: {
         Row: {
           category: string
