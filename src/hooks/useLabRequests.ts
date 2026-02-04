@@ -30,6 +30,7 @@ const mapRowToLabRequest = (row: any): LabRequest => ({
   status: row.status || 'Solution Pending',
   remarks: row.remarks || '',
   lineOfBusiness: row.line_of_business || '',
+  invoiceDetails: row.invoice_details || '',
   assignedTo: row.assigned_to || null,
   createdAt: row.created_at,
 });
@@ -60,6 +61,7 @@ const mapLabRequestToRow = (request: Omit<LabRequest, 'id' | 'createdAt'>) => ({
   status: request.status,
   remarks: request.remarks,
   line_of_business: request.lineOfBusiness,
+  invoice_details: request.invoiceDetails,
 });
 
 export const useLabRequests = () => {
@@ -163,6 +165,7 @@ export const useLabRequests = () => {
       if (data.status !== undefined) updateData.status = data.status;
       if (data.remarks !== undefined) updateData.remarks = data.remarks;
       if (data.lineOfBusiness !== undefined) updateData.line_of_business = data.lineOfBusiness;
+      if (data.invoiceDetails !== undefined) updateData.invoice_details = data.invoiceDetails;
 
       const { data: updatedRow, error } = await supabase
         .from('lab_requests')

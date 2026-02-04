@@ -45,6 +45,7 @@ const initialFormState = {
   sellingCostPerUser: 0,
   totalAmount: 0,
   lineOfBusiness: '',
+  invoiceDetails: '',
 };
 
 export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
