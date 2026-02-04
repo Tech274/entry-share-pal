@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Layers, LucideIcon } from 'lucide-react';
@@ -30,7 +30,7 @@ interface LabTemplateCardProps {
   hideSelection?: boolean;
 }
 
-const LabTemplateCard = ({
+const LabTemplateCard = forwardRef<HTMLDivElement, LabTemplateCardProps>(({
   template,
   categoryIcon,
   isFeatured,
@@ -39,7 +39,7 @@ const LabTemplateCard = ({
   onToggleSelect,
   animationIndex = 0,
   hideSelection = false,
-}: LabTemplateCardProps) => {
+}, ref) => {
   const TemplateIcon = template.icon || categoryIcon || Layers;
   const cardRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -144,8 +144,10 @@ const LabTemplateCard = ({
           )}
         </div>
       </CardContent>
-    </Card>
+  </Card>
   );
-};
+});
+
+LabTemplateCard.displayName = "LabTemplateCard";
 
 export default LabTemplateCard;
