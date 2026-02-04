@@ -90,12 +90,16 @@ export const labHighlights: LabHighlight[] = [
   },
 ];
 
+// RollingBannerProps interface is now defined inside the component file below
+
 interface RollingBannerProps {
   onLabChange?: (lab: LabHighlight, index: number, isTransitioning: boolean) => void;
   onIndexChange?: (index: number) => void;
+  onGoToIndex?: (goToIndex: (idx: number) => void) => void;
+  isPaused?: boolean;
 }
 
-export const RollingBanner = ({ onLabChange, onIndexChange }: RollingBannerProps) => {
+export const RollingBanner = ({ onLabChange, onIndexChange, onGoToIndex, isPaused = false }: RollingBannerProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -117,13 +121,20 @@ export const RollingBanner = ({ onLabChange, onIndexChange }: RollingBannerProps
     }, 300);
   }, [currentIndex]);
 
-  // Expose goToIndex via onIndexChange callback on mount
+  // Expose goToIndex function to parent
+  useEffect(() => {
+    onGoToIndex?.(goToIndex);
+  }, [goToIndex, onGoToIndex]);
+
+  // Expose current index via onIndexChange callback
   useEffect(() => {
     onIndexChange?.(currentIndex);
   }, [currentIndex, onIndexChange]);
 
-  // Auto-cycle through labs
+  // Auto-cycle through labs (respects pause state)
   useEffect(() => {
+    if (isPaused) return;
+    
     const interval = setInterval(() => {
       setIsTransitioning(true);
       setTimeout(() => {
@@ -133,7 +144,7 @@ export const RollingBanner = ({ onLabChange, onIndexChange }: RollingBannerProps
     }, 4000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isPaused]);
 
   return (
     <div className="relative w-full overflow-hidden py-4">
