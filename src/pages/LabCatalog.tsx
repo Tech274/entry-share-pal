@@ -647,12 +647,12 @@ const LabCatalog = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap justify-center gap-8 text-center">
             <div>
-              <div className="text-3xl font-bold text-primary">{catalogEntries.length}</div>
-              <div className="text-sm text-muted-foreground">Total Templates</div>
+              <div className="text-3xl font-bold text-primary">Templates</div>
+              <div className="text-sm text-muted-foreground">Browse our complete catalog</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-primary">{dbCategories.length}</div>
-              <div className="text-sm text-muted-foreground">Categories</div>
+              <div className="text-3xl font-bold text-primary">Categories</div>
+              <div className="text-sm text-muted-foreground">Organized by technology area</div>
             </div>
           </div>
         </div>
