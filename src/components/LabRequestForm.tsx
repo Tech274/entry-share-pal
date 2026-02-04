@@ -502,16 +502,31 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
         </div>
       </div>
 
-      {/* Remarks */}
+      {/* Additional Information */}
       <div className="form-section">
-        <h3 className="form-section-title">Remarks</h3>
-        <Textarea
-          id="remarks"
-          value={formData.remarks}
-          onChange={e => handleChange('remarks', e.target.value)}
-          placeholder="Enter any additional remarks or notes..."
-          rows={3}
-        />
+        <h3 className="form-section-title">Additional Information</h3>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="invoiceDetails">Invoice Details</Label>
+            <Textarea
+              id="invoiceDetails"
+              value={formData.invoiceDetails}
+              onChange={e => handleChange('invoiceDetails', e.target.value)}
+              placeholder="Enter invoice number, billing details, etc..."
+              rows={2}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="remarks">Remarks</Label>
+            <Textarea
+              id="remarks"
+              value={formData.remarks}
+              onChange={e => handleChange('remarks', e.target.value)}
+              placeholder="Enter any additional remarks or notes..."
+              rows={3}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Actions */}

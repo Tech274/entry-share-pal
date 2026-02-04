@@ -52,6 +52,7 @@ const SOLUTIONS_COLUMNS: ColumnConfig[] = [
   { id: 'totalAmountForTraining', label: 'Total Amount', visible: true, sortable: true, filterable: false },
   { id: 'margin', label: 'Margin %', visible: true, sortable: true, filterable: false },
   { id: 'status', label: 'Status', visible: true, sortable: true, filterable: true },
+  { id: 'invoiceDetails', label: 'Invoice Details', visible: true, sortable: false, filterable: false },
   { id: 'actions', label: 'Actions', visible: true, sortable: false, filterable: false },
 ];
 
@@ -77,6 +78,7 @@ const DELIVERY_COLUMNS: ColumnConfig[] = [
   { id: 'inputCostPerUser', label: 'Input Cost', visible: true, sortable: true, filterable: false },
   { id: 'sellingCostPerUser', label: 'Selling Cost', visible: true, sortable: true, filterable: false },
   { id: 'totalAmount', label: 'Total Amount', visible: true, sortable: true, filterable: false },
+  { id: 'invoiceDetails', label: 'Invoice Details', visible: true, sortable: false, filterable: false },
   { id: 'actions', label: 'Actions', visible: true, sortable: false, filterable: false },
 ];
 

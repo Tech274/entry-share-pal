@@ -533,6 +533,9 @@ const Preview = () => {
                           onSort={handleSort}
                         />
                       )}
+                      {isColumnVisible('invoiceDetails') && (
+                        <th className="spreadsheet-cell font-semibold text-left">Invoice Details</th>
+                      )}
                       <th className="spreadsheet-cell font-semibold text-left">Assignee</th>
                       {isColumnVisible('actions') && (
                         <th className="spreadsheet-cell font-semibold text-center">Actions</th>
@@ -774,6 +777,14 @@ const Preview = () => {
                               onSave={(v) => handleCellUpdate(request.id, 'status', v)}
                               type="select"
                               options={STATUS_OPTIONS}
+                            />
+                          </td>
+                        )}
+                        {isColumnVisible('invoiceDetails') && (
+                          <td className="spreadsheet-cell">
+                            <EditableCell
+                              value={request.invoiceDetails}
+                              onSave={(v) => handleCellUpdate(request.id, 'invoiceDetails', v)}
                             />
                           </td>
                         )}
