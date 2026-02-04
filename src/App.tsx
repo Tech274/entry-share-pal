@@ -14,6 +14,7 @@ import DeliveryPreview from "./pages/DeliveryPreview";
 import Auth from "./pages/Auth";
 import Docs from "./pages/Docs";
 import LabCatalog from "./pages/LabCatalog";
+import PublicCatalog from "./pages/PublicCatalog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,7 +33,7 @@ const App = () => (
             <Route path="/my-requests" element={<MyRequests />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="/lab-catalog" element={<LabCatalog />} />
-            <Route path="/catalog" element={<Navigate to="/lab-catalog" replace />} />
+            <Route path="/catalog" element={<PublicCatalog />} />
             <Route path="/auth" element={<Auth />} />
             
             {/* Protected routes - internal staff only */}
