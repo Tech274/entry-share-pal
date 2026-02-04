@@ -3,13 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Layers, Search, Tags, ChevronRight, PlusCircle, Info, X } from 'lucide-react';
+import { Layers, Search, ChevronRight, PlusCircle, Info, X } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LabTemplateCard from '@/components/catalog/LabTemplateCard';
 import { LabTemplateCardSkeletonGrid } from '@/components/catalog/LabTemplateCardSkeleton';
 import LabBundleBar from '@/components/catalog/LabBundleBar';
-import { LabelFilter } from '@/components/catalog/LabelFilter';
+
 import { FloatingParticles } from '@/components/catalog/FloatingParticles';
 import { AnimatedCategoryPill } from '@/components/catalog/AnimatedCategoryPill';
 import { ScrollToTopButton } from '@/components/catalog/ScrollToTopButton';
@@ -58,7 +58,7 @@ const LabCatalog = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLabs, setSelectedLabs] = useState<Set<string>>(new Set());
-  const [selectedLabelFilters, setSelectedLabelFilters] = useState<string[]>([]);
+  
   const [currentLabHighlight, setCurrentLabHighlight] = useState<LabHighlight>(labHighlights[0]);
   const [currentLabIndex, setCurrentLabIndex] = useState(0);
   const [isHeroTransitioning, setIsHeroTransitioning] = useState(false);
@@ -142,16 +142,6 @@ const LabCatalog = () => {
     return map;
   }, [entryLabels]);
 
-  // Get unique labels for filter
-  const uniqueLabels = useMemo(() => {
-    const labelMap = new Map<string, { label_id: string; name: string; color: string }>();
-    entryLabels.forEach(el => {
-      if (!labelMap.has(el.label_id)) {
-        labelMap.set(el.label_id, { label_id: el.label_id, name: el.name, color: el.color });
-      }
-    });
-    return Array.from(labelMap.values());
-  }, [entryLabels]);
   
   // Set initial category when categories load
   useEffect(() => {
@@ -159,19 +149,6 @@ const LabCatalog = () => {
       setActiveCategory(dbCategories[0].category_id);
     }
   }, [dbCategories, activeCategory]);
-
-  // Toggle label filter
-  const toggleLabelFilter = useCallback((labelId: string) => {
-    setSelectedLabelFilters(prev => 
-      prev.includes(labelId) 
-        ? prev.filter(id => id !== labelId)
-        : [...prev, labelId]
-    );
-  }, []);
-
-  const clearLabelFilters = useCallback(() => {
-    setSelectedLabelFilters([]);
-  }, []);
   
   // Group database entries by category
   const dbTemplatesByCategory = useMemo(() => groupByCategory(catalogEntries), [catalogEntries]);
@@ -203,36 +180,25 @@ const LabCatalog = () => {
     });
   }, [dbCategories, getTemplates, entryLabelsMap]);
 
-  // Filter templates based on search query and label filters
+  // Filter templates based on search query
   const searchResults = useMemo(() => {
-    if (!searchQuery.trim() && selectedLabelFilters.length === 0) return null;
+    if (!searchQuery.trim()) return null;
     
     let filtered = allTemplates;
     
     // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(t => 
-        t.name.toLowerCase().includes(query) || 
-        t.description.toLowerCase().includes(query) ||
-        t.categoryLabel.toLowerCase().includes(query) ||
-        t.labels.some(l => l.name.toLowerCase().includes(query))
-      );
-    }
-    
-    // Apply label filter
-    if (selectedLabelFilters.length > 0) {
-      filtered = filtered.filter(t => 
-        selectedLabelFilters.every(labelId => 
-          t.labels.some(l => l.label_id === labelId)
-        )
-      );
-    }
+    const query = searchQuery.toLowerCase();
+    filtered = filtered.filter(t => 
+      t.name.toLowerCase().includes(query) || 
+      t.description.toLowerCase().includes(query) ||
+      t.categoryLabel.toLowerCase().includes(query) ||
+      t.labels.some(l => l.name.toLowerCase().includes(query))
+    );
     
     return filtered;
-  }, [searchQuery, selectedLabelFilters, allTemplates]);
+  }, [searchQuery, allTemplates]);
 
-  const isSearching = searchQuery.trim().length > 0 || selectedLabelFilters.length > 0;
+  const isSearching = searchQuery.trim().length > 0;
   const currentCategoryInfo = getCategoryInfo(activeCategory || '');
   const CurrentCategoryIcon = currentCategoryInfo ? getIconComponent(currentCategoryInfo.icon_name || 'Layers') : Layers;
   
@@ -305,19 +271,12 @@ const LabCatalog = () => {
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
-    if (value.trim() || selectedLabelFilters.length > 0) {
+    if (value.trim()) {
       setActiveCategory(null);
     } else if (dbCategories.length > 0) {
       setActiveCategory(dbCategories[0].category_id);
     }
-  }, [dbCategories, selectedLabelFilters.length]);
-
-  // Reset category when label filters are applied
-  useEffect(() => {
-    if (selectedLabelFilters.length > 0) {
-      setActiveCategory(null);
-    }
-  }, [selectedLabelFilters]);
+  }, [dbCategories]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -503,26 +462,6 @@ const LabCatalog = () => {
         </div>
       </section>
 
-      {/* Label Filter Section */}
-      {uniqueLabels.length > 0 && (
-        <section className="py-4 bg-muted/20 border-b">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center gap-3 justify-center flex-wrap">
-              <span className="text-sm text-muted-foreground flex items-center gap-1">
-                <Tags className="h-4 w-4" />
-                Filter by label:
-              </span>
-              <LabelFilter
-                labels={uniqueLabels}
-                selectedLabels={selectedLabelFilters}
-                onToggleLabel={toggleLabelFilter}
-                onClearAll={clearLabelFilters}
-              />
-            </div>
-          </div>
-        </section>
-      )}
-
       {!isSearching && (
         <section className="py-6 bg-gradient-to-b from-muted/40 to-background border-b">
           <div className="container mx-auto px-4">
@@ -605,7 +544,6 @@ const LabCatalog = () => {
                 {isSearching && (
                   <p className="text-muted-foreground">
                     Found {currentTemplates.length} matching template{currentTemplates.length !== 1 ? 's' : ''}
-                    {selectedLabelFilters.length > 0 && ` with selected labels`}
                   </p>
                 )}
                 {!isSearching && selectedLabs.size === 0 && (
