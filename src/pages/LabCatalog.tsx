@@ -19,26 +19,24 @@ const EXTERNAL_CATALOG_URL = '/catalog';
 
 // Extended categories with icons
 const categories = [
-  // Featured Combo categories
+  // Featured Technology Stacks
   { id: 'combo', label: 'Combo Lab Templates', icon: Boxes, featured: true, color: 'bg-gradient-to-r from-violet-500 to-purple-500' },
+  { id: 'devops', label: 'DevOps Stacks', icon: GitBranch, featured: true, color: 'bg-gradient-to-r from-orange-500 to-amber-500' },
   { id: 'certification', label: 'Certification Labs', icon: FlaskConical, featured: true, color: 'bg-gradient-to-r from-green-500 to-emerald-500' },
   { id: 'gen-ai', label: 'Gen AI & Agentic AI', icon: Brain, featured: true, color: 'bg-gradient-to-r from-pink-500 to-rose-500' },
   { id: 'multicloud', label: 'Multicloud & Hybrid', icon: Cloud, featured: true, color: 'bg-gradient-to-r from-sky-500 to-indigo-500' },
+  { id: 'sap', label: 'SAP Labs', icon: Building2, featured: true, color: 'bg-gradient-to-r from-blue-600 to-blue-400' },
+  { id: 'oracle', label: 'Oracle', icon: Database, featured: true, color: 'bg-gradient-to-r from-red-600 to-red-400' },
+  { id: 'enterprise', label: 'OEM & Enterprise', icon: Building, featured: true, color: 'bg-gradient-to-r from-slate-600 to-slate-400' },
   
   // Cloud Providers
   { id: 'aws', label: 'AWS', icon: Cloud },
   { id: 'azure', label: 'Azure', icon: Cloud },
   { id: 'gcp', label: 'GCP', icon: Cloud },
   
-  // Enterprise & OEM
-  { id: 'enterprise', label: 'Enterprise (Mainframe/AS400)', icon: Building },
-  { id: 'oracle', label: 'Oracle & OEM', icon: Database },
-  { id: 'sap', label: 'SAP Labs', icon: Building2 },
-  
   // Infrastructure & Security
   { id: 'infrastructure', label: 'Infrastructure', icon: Server },
   { id: 'security', label: 'Security', icon: Shield },
-  { id: 'devops', label: 'DevOps', icon: GitBranch },
   
   // Development
   { id: 'programming', label: 'Programming', icon: Code2 },
