@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Tags, GripVertical, Pencil, Trash2 } from 'lucide-react';
 import { useLabLabels, LabelFormData, LabLabel } from '@/hooks/useLabLabels';
+import { useAllEntryLabels } from '@/hooks/useEntryLabels';
 import { GradientPicker } from './GradientPicker';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, arrayMove, useSortable } from '@dnd-kit/sortable';
@@ -25,12 +27,13 @@ const initialFormData: LabelFormData = {
 
 interface SortableLabelRowProps {
   label: LabLabel;
+  templateCount: number;
   onEdit: (label: LabLabel) => void;
   onDelete: (id: string) => void;
   onToggleActive: (id: string, is_active: boolean) => void;
 }
 
-const SortableLabelRow = ({ label, onEdit, onDelete, onToggleActive }: SortableLabelRowProps) => {
+const SortableLabelRow = ({ label, templateCount, onEdit, onDelete, onToggleActive }: SortableLabelRowProps) => {
   const {
     attributes,
     listeners,
@@ -61,6 +64,11 @@ const SortableLabelRow = ({ label, onEdit, onDelete, onToggleActive }: SortableL
       </TableCell>
       <TableCell className="font-medium">{label.label_id}</TableCell>
       <TableCell>{label.name}</TableCell>
+      <TableCell>
+        <Badge variant="secondary" className="text-xs">
+          {templateCount} template{templateCount !== 1 ? 's' : ''}
+        </Badge>
+      </TableCell>
       <TableCell>
         <Switch 
           checked={label.is_active} 
@@ -95,6 +103,20 @@ export const LabelManagement = () => {
     toggleLabelActive,
     reorderLabels,
   } = useLabLabels();
+
+  const { data: allEntryLabels = [] } = useAllEntryLabels();
+
+  // Compute template count for each label
+  const labelTemplateCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    allEntryLabels.forEach(el => {
+      if (!counts[el.label_id]) {
+        counts[el.label_id] = 0;
+      }
+      counts[el.label_id]++;
+    });
+    return counts;
+  }, [allEntryLabels]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -275,6 +297,7 @@ export const LabelManagement = () => {
                     <TableHead className="w-20">Color</TableHead>
                     <TableHead>Label ID</TableHead>
                     <TableHead>Name</TableHead>
+                    <TableHead className="w-24">Templates</TableHead>
                     <TableHead className="w-20">Active</TableHead>
                     <TableHead className="text-right w-24">Actions</TableHead>
                   </TableRow>
@@ -288,6 +311,7 @@ export const LabelManagement = () => {
                       <SortableLabelRow
                         key={label.id}
                         label={label}
+                        templateCount={labelTemplateCounts[label.id] || 0}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
                         onToggleActive={(id, is_active) => toggleLabelActive.mutate({ id, is_active })}
