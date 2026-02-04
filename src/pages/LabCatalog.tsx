@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getIconComponent } from '@/lib/categoryIcons';
 import { useCountUp } from '@/hooks/useCountUp';
+import { useParallax } from '@/hooks/useParallax';
 
 const EXTERNAL_CATALOG_URL = 'https://mml-labs.com/catalog';
 
@@ -51,6 +52,9 @@ const LabCatalog = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLabs, setSelectedLabs] = useState<Set<string>>(new Set());
   const [selectedLabelFilters, setSelectedLabelFilters] = useState<string[]>([]);
+  
+  // Parallax effect for hero section
+  const parallaxOffset = useParallax({ speed: 0.3, maxOffset: 80 });
   
   const { data: catalogEntries = [], isLoading: entriesLoading } = useLabCatalog();
   const { data: dbCategories = [], isLoading: categoriesLoading } = useLabCatalogCategories();
@@ -255,11 +259,22 @@ const LabCatalog = () => {
     <div className="min-h-screen bg-background">
       <PublicHeader />
 
-      {/* Hero Section */}
+      {/* Hero Section with Parallax */}
       <section className="bg-primary text-primary-foreground py-16 relative overflow-hidden">
         <FloatingParticles />
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <Layers className="h-16 w-16 mx-auto mb-6 opacity-90" />
+        {/* Parallax background layer */}
+        <div 
+          className="absolute inset-0 bg-gradient-to-b from-primary-foreground/5 to-transparent pointer-events-none"
+          style={{ transform: `translateY(${parallaxOffset * 0.5}px)` }}
+        />
+        <div 
+          className="container mx-auto px-4 text-center relative z-10"
+          style={{ transform: `translateY(${parallaxOffset * 0.15}px)` }}
+        >
+          <Layers 
+            className="h-16 w-16 mx-auto mb-6 opacity-90" 
+            style={{ transform: `translateY(${parallaxOffset * -0.2}px)` }}
+          />
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Lab Catalog
           </h1>
@@ -425,7 +440,7 @@ const LabCatalog = () => {
                 </div>
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {currentTemplates.map((template: any) => (
+                  {currentTemplates.map((template: any, index: number) => (
                     <LabTemplateCard
                       key={template.uniqueKey}
                       template={template}
@@ -434,6 +449,7 @@ const LabCatalog = () => {
                       isSearching={isSearching}
                       isSelected={selectedLabs.has(template.uniqueKey)}
                       onToggleSelect={() => toggleLabSelection(template.uniqueKey)}
+                      animationIndex={index}
                     />
                   ))}
                 </div>
