@@ -214,34 +214,73 @@ const LabCatalog = () => {
               <div className="text-center py-4 text-muted-foreground">Loading categories...</div>
             ) : (
               <div className="flex flex-wrap gap-2 justify-center">
-                {dbCategories.map((category) => {
-                  const Icon = getIconComponent(category.icon_name || 'Layers');
-                  const isActive = activeCategory === category.category_id;
-                  const count = getCategoryCount(category.category_id);
-                  return (
-                    <button
-                      key={category.id}
-                      onClick={() => setActiveCategory(category.category_id)}
-                      className={cn(
-                        "flex items-center gap-2 px-4 py-2.5 rounded-full font-medium transition-all duration-200 text-sm",
-                        isActive
-                          ? "bg-primary text-primary-foreground shadow-lg scale-105"
-                          : "bg-background text-foreground hover:bg-muted border hover:shadow-md hover:scale-[1.02]"
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span>{category.label}</span>
-                      {count > 0 && (
-                        <Badge variant="secondary" className={cn(
-                          "text-xs h-5 px-1.5 transition-colors",
-                          isActive ? "bg-white/20 text-white" : ""
-                        )}>
-                          {count}
-                        </Badge>
-                      )}
-                    </button>
-                  );
-                })}
+                {dbCategories
+                  .filter(c => c.is_featured)
+                  .map((category) => {
+                    const Icon = getIconComponent(category.icon_name || 'Layers');
+                    const isActive = activeCategory === category.category_id;
+                    const count = getCategoryCount(category.category_id);
+                    const gradientColor = category.gradient_color || 'bg-gradient-to-r from-primary to-primary/80';
+                    return (
+                      <button
+                        key={category.id}
+                        onClick={() => setActiveCategory(category.category_id)}
+                        className={cn(
+                          "flex items-center gap-2 px-4 py-2.5 rounded-full font-medium transition-all duration-200 text-sm",
+                          isActive
+                            ? `${gradientColor} text-white shadow-lg scale-105`
+                            : "bg-background text-foreground hover:bg-muted border hover:shadow-md hover:scale-[1.02]"
+                        )}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span>{category.label}</span>
+                        {count > 0 && (
+                          <Badge variant="secondary" className={cn(
+                            "text-xs h-5 px-1.5 transition-colors",
+                            isActive ? "bg-white/20 text-white" : ""
+                          )}>
+                            {count}
+                          </Badge>
+                        )}
+                      </button>
+                    );
+                  })}
+              </div>
+            )}
+            {/* Show non-featured categories in a secondary row if any exist */}
+            {dbCategories.filter(c => !c.is_featured).length > 0 && (
+              <div className="flex flex-wrap gap-2 justify-center mt-3 pt-3 border-t border-muted/50">
+                {dbCategories
+                  .filter(c => !c.is_featured)
+                  .map((category) => {
+                    const Icon = getIconComponent(category.icon_name || 'Layers');
+                    const isActive = activeCategory === category.category_id;
+                    const count = getCategoryCount(category.category_id);
+                    const gradientColor = category.gradient_color || 'bg-gradient-to-r from-primary to-primary/80';
+                    return (
+                      <button
+                        key={category.id}
+                        onClick={() => setActiveCategory(category.category_id)}
+                        className={cn(
+                          "flex items-center gap-2 px-3 py-1.5 rounded-full font-medium transition-all duration-200 text-xs",
+                          isActive
+                            ? `${gradientColor} text-white shadow-lg scale-105`
+                            : "bg-muted/50 text-muted-foreground hover:bg-muted border border-muted hover:text-foreground"
+                        )}
+                      >
+                        <Icon className="h-3 w-3" />
+                        <span>{category.label}</span>
+                        {count > 0 && (
+                          <Badge variant="outline" className={cn(
+                            "text-[10px] h-4 px-1 transition-colors",
+                            isActive ? "bg-white/20 text-white border-white/30" : ""
+                          )}>
+                            {count}
+                          </Badge>
+                        )}
+                      </button>
+                    );
+                  })}
               </div>
             )}
           </div>

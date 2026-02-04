@@ -3,10 +3,12 @@ import { CSS } from '@dnd-kit/utilities';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { GripVertical, Pencil, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { GripVertical, Pencil, Trash2, Star } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { getIconComponent } from '@/lib/categoryIcons';
 import { LabCategory } from '@/hooks/useLabCategories';
+import { cn } from '@/lib/utils';
 
 interface SortableCategoryRowProps {
   category: LabCategory;
@@ -52,9 +54,21 @@ export const SortableCategoryRow = ({
       <TableCell>
         <IconComponent className="w-4 h-4 text-muted-foreground" />
       </TableCell>
+      <TableCell>
+        <div className={cn("w-8 h-6 rounded", category.gradient_color)} />
+      </TableCell>
       <TableCell className="font-mono text-sm">{category.category_id}</TableCell>
       <TableCell className="font-medium">{category.label}</TableCell>
-      <TableCell>{category.display_order}</TableCell>
+      <TableCell>
+        {category.is_featured ? (
+          <Badge variant="default" className="gap-1">
+            <Star className="w-3 h-3 fill-current" />
+            Featured
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground text-xs">—</span>
+        )}
+      </TableCell>
       <TableCell>
         <Switch 
           checked={category.is_active}

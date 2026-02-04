@@ -9,6 +9,8 @@ export interface LabCategory {
   display_order: number;
   is_active: boolean;
   icon_name: string;
+  gradient_color: string;
+  is_featured: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -19,6 +21,8 @@ export interface CategoryFormData {
   display_order: number;
   is_active: boolean;
   icon_name: string;
+  gradient_color: string;
+  is_featured: boolean;
 }
 
 export const useLabCategories = () => {
