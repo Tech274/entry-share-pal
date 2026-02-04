@@ -16,39 +16,55 @@ const EXTERNAL_CATALOG_URL = '/catalog';
 
 // Extended categories with icons
 const categories = [
-  // Combo categories (featured)
-  { id: 'fullstack', label: 'Full Stack Combos', icon: Boxes, featured: true, color: 'bg-gradient-to-r from-violet-500 to-purple-500' },
-  { id: 'devops-combo', label: 'DevOps Stacks', icon: Workflow, featured: true, color: 'bg-gradient-to-r from-orange-500 to-red-500' },
-  { id: 'data-combo', label: 'Data Engineering', icon: Database, featured: true, color: 'bg-gradient-to-r from-cyan-500 to-blue-500' },
-  { id: 'cloud-combo', label: 'Cloud Stacks', icon: Cloud, featured: true, color: 'bg-gradient-to-r from-sky-500 to-indigo-500' },
-  { id: 'testing-combo', label: 'Testing Suites', icon: FlaskConical, featured: true, color: 'bg-gradient-to-r from-green-500 to-emerald-500' },
-  { id: 'ai-combo', label: 'AI/ML Platforms', icon: Brain, featured: true, color: 'bg-gradient-to-r from-pink-500 to-rose-500' },
-  { id: 'enterprise', label: 'Enterprise', icon: Building, featured: true, color: 'bg-gradient-to-r from-amber-500 to-orange-500' },
+  // Featured Combo categories
+  { id: 'combo', label: 'Combo Lab Templates', icon: Boxes, featured: true, color: 'bg-gradient-to-r from-violet-500 to-purple-500' },
+  { id: 'certification', label: 'Certification Labs', icon: FlaskConical, featured: true, color: 'bg-gradient-to-r from-green-500 to-emerald-500' },
+  { id: 'gen-ai', label: 'Gen AI & Agentic AI', icon: Brain, featured: true, color: 'bg-gradient-to-r from-pink-500 to-rose-500' },
+  { id: 'multicloud', label: 'Multicloud & Hybrid', icon: Cloud, featured: true, color: 'bg-gradient-to-r from-sky-500 to-indigo-500' },
   
-  // Individual technology categories
-  { id: 'cloud', label: 'Cloud', icon: Cloud },
+  // Cloud Providers
+  { id: 'aws', label: 'AWS', icon: Cloud },
+  { id: 'azure', label: 'Azure', icon: Cloud },
+  { id: 'gcp', label: 'GCP', icon: Cloud },
+  
+  // Enterprise & OEM
+  { id: 'enterprise', label: 'Enterprise (Mainframe/AS400)', icon: Building },
+  { id: 'oracle', label: 'Oracle & OEM', icon: Database },
+  { id: 'sap', label: 'SAP Labs', icon: Building2 },
+  
+  // Infrastructure & Security
+  { id: 'infrastructure', label: 'Infrastructure', icon: Server },
+  { id: 'security', label: 'Security', icon: Shield },
   { id: 'devops', label: 'DevOps', icon: GitBranch },
-  { id: 'bigdata', label: 'Big Data', icon: Database },
+  
+  // Development
   { id: 'programming', label: 'Programming', icon: Code2 },
   { id: 'frontend', label: 'Frontend', icon: Globe },
   { id: 'backend', label: 'Backend', icon: Server },
-  { id: 'database', label: 'Databases', icon: HardDrive },
-  { id: 'testing', label: 'Testing & QA', icon: TestTube2 },
-  { id: 'datascience', label: 'Data Science', icon: BarChart3 },
   { id: 'mobile', label: 'Mobile', icon: Smartphone },
-  { id: 'security', label: 'Security', icon: Shield },
+  
+  // Data
+  { id: 'big-data', label: 'Big Data', icon: Database },
+  { id: 'bigdata', label: 'Big Data (Legacy)', icon: Database },
+  { id: 'database', label: 'Databases', icon: HardDrive },
+  { id: 'datascience', label: 'Data Science', icon: BarChart3 },
+  { id: 'data', label: 'ETL & Integration', icon: Link2 },
+  
+  // Other
+  { id: 'testing', label: 'Testing & QA', icon: TestTube2 },
   { id: 'virtualization', label: 'Virtualization', icon: Box },
   { id: 'networking', label: 'Networking', icon: Network },
   { id: 'os', label: 'Operating Systems', icon: Terminal },
   { id: 'tools', label: 'IDEs & Tools', icon: Wrench },
-  { id: 'data', label: 'ETL & Integration', icon: Link2 },
   { id: 'bi', label: 'BI & Analytics', icon: BarChart3 },
-  { id: 'sap', label: 'SAP Labs', icon: Building2 },
   { id: 'cms', label: 'CMS & Low-Code', icon: Layers },
+  { id: 'cloud', label: 'Cloud (General)', icon: Cloud },
+  { id: 'agile', label: 'Agile & PM', icon: Workflow },
+  { id: 'blockchain', label: 'Blockchain', icon: Link2 },
 ];
 
 const LabCatalog = () => {
-  const [activeCategory, setActiveCategory] = useState<string | null>('fullstack');
+  const [activeCategory, setActiveCategory] = useState<string | null>('combo');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAllCategories, setShowAllCategories] = useState(false);
   const { data: catalogEntries = [], isLoading } = useLabCatalog();
@@ -117,7 +133,7 @@ const LabCatalog = () => {
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   if (e.target.value.trim()) setActiveCategory(null);
-                  else setActiveCategory('fullstack');
+                  else setActiveCategory('combo');
                 }}
                 className="pl-10 bg-background text-foreground h-12"
               />
