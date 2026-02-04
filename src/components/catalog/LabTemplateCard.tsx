@@ -27,6 +27,7 @@ interface LabTemplateCardProps {
   isSelected?: boolean;
   onToggleSelect?: () => void;
   animationIndex?: number;
+  hideSelection?: boolean;
 }
 
 const LabTemplateCard = ({
@@ -37,6 +38,7 @@ const LabTemplateCard = ({
   isSelected,
   onToggleSelect,
   animationIndex = 0,
+  hideSelection = false,
 }: LabTemplateCardProps) => {
   const TemplateIcon = template.icon || categoryIcon || Layers;
   const cardRef = useRef<HTMLDivElement>(null);
@@ -66,30 +68,33 @@ const LabTemplateCard = ({
     <Card 
       ref={cardRef}
       className={cn(
-        "hover:shadow-lg transition-all duration-500 hover:-translate-y-1 group relative cursor-pointer",
+        "hover:shadow-lg transition-all duration-500 hover:-translate-y-1 group relative",
+        !hideSelection && "cursor-pointer",
         "opacity-0 translate-y-8 scale-95",
         isVisible && "opacity-100 translate-y-0 scale-100",
-        isSelected && "ring-2 ring-rose-500 bg-rose-50"
+        isSelected && !hideSelection && "ring-2 ring-rose-500 bg-rose-50"
       )}
-      onClick={onToggleSelect}
+      onClick={hideSelection ? undefined : onToggleSelect}
     >
-      {/* Heart favorite button */}
-      <button 
-        className="absolute top-3 right-3 z-10 p-1.5 rounded-full transition-all duration-200 hover:scale-110"
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleSelect?.();
-        }}
-      >
-        <Heart 
-          className={cn(
-            "h-5 w-5 transition-all duration-200",
-            isSelected 
-              ? "fill-rose-500 text-rose-500 scale-110" 
-              : "text-muted-foreground/50 hover:text-rose-400"
-          )}
-        />
-      </button>
+      {/* Heart favorite button - only shown when selection is enabled */}
+      {!hideSelection && (
+        <button 
+          className="absolute top-3 right-3 z-10 p-1.5 rounded-full transition-all duration-200 hover:scale-110"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect?.();
+          }}
+        >
+          <Heart 
+            className={cn(
+              "h-5 w-5 transition-all duration-200",
+              isSelected 
+                ? "fill-rose-500 text-rose-500 scale-110" 
+                : "text-muted-foreground/50 hover:text-rose-400"
+            )}
+          />
+        </button>
+      )}
 
       <CardHeader className="pb-2 pr-10">
         <div className="flex items-start gap-3">
