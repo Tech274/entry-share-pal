@@ -96,7 +96,7 @@ const Landing = () => {
 
             {/* Lab Catalog Card */}
             <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
-              <Link to="/lab-catalog">
+              <Link to="/catalog">
                 <CardHeader className="pb-2">
                   <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                     <Layers className="h-8 w-8 text-primary" />
