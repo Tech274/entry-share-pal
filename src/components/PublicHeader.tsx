@@ -24,7 +24,7 @@ const PublicHeader = () => {
               <Link to="/docs">Docs</Link>
             </Button>
             <Button variant="ghost" asChild className="font-medium">
-              <Link to="/catalog">Lab Catalog</Link>
+              <Link to="/lab-catalog">Lab Catalog</Link>
             </Button>
             <Button variant="outline" asChild>
               <Link to="/submit-request">Submit a Request</Link>

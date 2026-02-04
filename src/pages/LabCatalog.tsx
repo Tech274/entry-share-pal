@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Layers, Search, Tags } from 'lucide-react';
+import { Layers, Search, Tags, ChevronRight, PlusCircle } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LabTemplateCard from '@/components/catalog/LabTemplateCard';
@@ -16,7 +16,7 @@ import { CategoryPillSkeletonRow } from '@/components/catalog/CategoryPillSkelet
 import { RollingBanner, LabHighlight, labHighlights } from '@/components/catalog/RollingBanner';
 import { cn } from '@/lib/utils';
 import { useLabCatalog, useLabCatalogCategories, useLabCatalogEntryLabels, groupByCategory } from '@/hooks/useLabCatalog';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getIconComponent } from '@/lib/categoryIcons';
 import { useCountUp } from '@/hooks/useCountUp';
@@ -289,6 +289,21 @@ const LabCatalog = () => {
     <div className="min-h-screen bg-background">
       <PublicHeader />
 
+      {/* Internal Stakeholder Breadcrumb */}
+      <div className="bg-muted/50 border-b">
+        <div className="container mx-auto px-4 py-2">
+          <nav className="flex items-center gap-1 text-sm">
+            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
+              Home
+            </Link>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            <span className="text-foreground font-medium">Internal Lab Catalog</span>
+            <Badge variant="secondary" className="ml-2 text-xs">
+              Stakeholder Access
+            </Badge>
+          </nav>
+        </div>
+      </div>
       {/* Hero Section with Parallax */}
       <section 
         className="bg-primary text-primary-foreground py-16 relative overflow-hidden"
@@ -408,6 +423,16 @@ const LabCatalog = () => {
                 className="pl-10 bg-background text-foreground h-12"
               />
             </div>
+            <Button 
+              asChild
+              size="lg"
+              className="bg-accent text-accent-foreground hover:bg-accent/90 shrink-0"
+            >
+              <Link to="/submit-request">
+                <PlusCircle className="h-5 w-5 mr-2" />
+                Request New Lab
+              </Link>
+            </Button>
           </div>
           {selectedLabs.size > 0 && (
             <p className="mt-4 text-sm text-primary-foreground/70">
