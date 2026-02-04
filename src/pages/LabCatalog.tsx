@@ -215,14 +215,14 @@ const LabCatalog = () => {
                 className="pl-10 bg-background text-foreground h-12"
               />
             </div>
-            <TooltipProvider>
+            <TooltipProvider delayDuration={100}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
                     variant="secondary" 
                     size="lg" 
                     asChild
-                    className="bg-accent text-accent-foreground hover:bg-accent/90"
+                    className="bg-accent text-accent-foreground hover:bg-accent/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <a href={EXTERNAL_CATALOG_URL} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-5 w-5 mr-2" />
@@ -230,7 +230,7 @@ const LabCatalog = () => {
                     </a>
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent sideOffset={8}>
                   <p>Opens MML Labs external catalog in a new tab</p>
                 </TooltipContent>
               </Tooltip>
