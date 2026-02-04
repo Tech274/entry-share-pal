@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import LabTemplateCard from '@/components/catalog/LabTemplateCard';
 import LabBundleBar from '@/components/catalog/LabBundleBar';
 import { cn } from '@/lib/utils';
-import { useLabCatalog, useLabCatalogCategories, groupByCategory } from '@/hooks/useLabCatalog';
+import { useLabCatalog, useLabCatalogCategories, useLabCatalogEntryLabels, groupByCategory } from '@/hooks/useLabCatalog';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getIconComponent } from '@/lib/categoryIcons';
@@ -23,8 +23,25 @@ const LabCatalog = () => {
   
   const { data: catalogEntries = [], isLoading: entriesLoading } = useLabCatalog();
   const { data: dbCategories = [], isLoading: categoriesLoading } = useLabCatalogCategories();
+  const { data: entryLabels = [], isLoading: labelsLoading } = useLabCatalogEntryLabels();
 
-  const isLoading = entriesLoading || categoriesLoading;
+  const isLoading = entriesLoading || categoriesLoading || labelsLoading;
+  
+  // Create a map of entry_id -> labels for quick lookup
+  const entryLabelsMap = useMemo(() => {
+    const map: Record<string, { label_id: string; name: string; color: string }[]> = {};
+    entryLabels.forEach(el => {
+      if (!map[el.entry_id]) {
+        map[el.entry_id] = [];
+      }
+      map[el.entry_id].push({
+        label_id: el.label_id,
+        name: el.name,
+        color: el.color,
+      });
+    });
+    return map;
+  }, [entryLabels]);
   
   // Set initial category when categories load
   useEffect(() => {
@@ -57,10 +74,11 @@ const LabCatalog = () => {
         categoryLabel: cat.label, 
         icon: IconComponent,
         iconName: cat.icon_name,
-        uniqueKey: `${cat.category_id}-${t.name}`
+        uniqueKey: `${cat.category_id}-${t.name}`,
+        labels: entryLabelsMap[t.id] || [],
       }));
     });
-  }, [dbCategories, getTemplates]);
+  }, [dbCategories, getTemplates, entryLabelsMap]);
 
   // Filter templates based on search query
   const searchResults = useMemo(() => {
@@ -91,11 +109,12 @@ const LabCatalog = () => {
         categoryLabel: currentCategoryInfo?.label || '',
         icon: IconComponent,
         iconName: currentCategoryInfo?.icon_name,
-        uniqueKey: `${activeCategory}-${t.name}`
+        uniqueKey: `${activeCategory}-${t.name}`,
+        labels: entryLabelsMap[t.id] || [],
       }));
     }
     return [];
-  }, [isSearching, searchResults, activeCategory, getTemplates, currentCategoryInfo]);
+  }, [isSearching, searchResults, activeCategory, getTemplates, currentCategoryInfo, entryLabelsMap]);
 
   // Category counts
   const getCategoryCount = useCallback((categoryId: string) => {

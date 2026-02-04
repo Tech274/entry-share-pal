@@ -20,6 +20,13 @@ export interface LabCatalogCategory {
   is_featured: boolean;
 }
 
+export interface EntryLabelInfo {
+  entry_id: string;
+  label_id: string;
+  name: string;
+  color: string;
+}
+
 export const useLabCatalog = () => {
   return useQuery({
     queryKey: ['lab-catalog-entries-public'],
@@ -53,12 +60,42 @@ export const useLabCatalogCategories = () => {
   });
 };
 
+export const useLabCatalogEntryLabels = () => {
+  return useQuery({
+    queryKey: ['lab-catalog-entry-labels-public'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lab_catalog_entry_labels')
+        .select(`
+          entry_id,
+          lab_catalog_labels!inner (
+            label_id,
+            name,
+            color,
+            is_active
+          )
+        `)
+        .eq('lab_catalog_labels.is_active', true);
+      
+      if (error) throw error;
+      
+      // Transform the data to a more usable format
+      return (data || []).map((item: any) => ({
+        entry_id: item.entry_id,
+        label_id: item.lab_catalog_labels.label_id,
+        name: item.lab_catalog_labels.name,
+        color: item.lab_catalog_labels.color,
+      })) as EntryLabelInfo[];
+    },
+  });
+};
+
 export const groupByCategory = (entries: LabCatalogEntry[]) => {
   return entries.reduce((acc, entry) => {
     if (!acc[entry.category]) {
       acc[entry.category] = [];
     }
-    acc[entry.category].push({ name: entry.name, description: entry.description });
+    acc[entry.category].push({ id: entry.id, name: entry.name, description: entry.description });
     return acc;
-  }, {} as Record<string, { name: string; description: string }[]>);
+  }, {} as Record<string, { id: string; name: string; description: string }[]>);
 };
