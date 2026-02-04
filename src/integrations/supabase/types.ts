@@ -142,6 +142,7 @@ export type Database = {
           category_id: string
           created_at: string | null
           display_order: number | null
+          icon_name: string | null
           id: string
           is_active: boolean | null
           label: string
@@ -151,6 +152,7 @@ export type Database = {
           category_id: string
           created_at?: string | null
           display_order?: number | null
+          icon_name?: string | null
           id?: string
           is_active?: boolean | null
           label: string
@@ -160,6 +162,7 @@ export type Database = {
           category_id?: string
           created_at?: string | null
           display_order?: number | null
+          icon_name?: string | null
           id?: string
           is_active?: boolean | null
           label?: string
