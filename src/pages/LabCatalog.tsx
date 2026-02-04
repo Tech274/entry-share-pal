@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Layers, Search, Tags } from 'lucide-react';
+import { Layers, Search, Tags } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LabTemplateCard from '@/components/catalog/LabTemplateCard';
@@ -22,7 +22,7 @@ import { getIconComponent } from '@/lib/categoryIcons';
 import { useCountUp } from '@/hooks/useCountUp';
 import { useParallax } from '@/hooks/useParallax';
 
-const EXTERNAL_CATALOG_URL = 'https://mml-labs.com/catalog';
+// Internal catalog - no external links needed
 
 // Animated stats component with count-up effect
 const AnimatedStats = () => {
@@ -408,26 +408,6 @@ const LabCatalog = () => {
                 className="pl-10 bg-background text-foreground h-12"
               />
             </div>
-            <TooltipProvider delayDuration={100}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="secondary" 
-                    size="lg" 
-                    asChild
-                    className="bg-accent text-accent-foreground hover:bg-accent/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    <a href={EXTERNAL_CATALOG_URL} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-5 w-5 mr-2" />
-                      View MML Complete Catalog
-                    </a>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent sideOffset={8}>
-                  <p>Opens MML Labs complete catalog in a new tab</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </div>
           {selectedLabs.size > 0 && (
             <p className="mt-4 text-sm text-primary-foreground/70">
