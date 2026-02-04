@@ -290,15 +290,17 @@ const LabCatalog = () => {
               </div>
             );
           })()}
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 transition-all duration-500">
+          <h1 className="text-4xl md:text-5xl font-bold mb-2 transition-all duration-500">
             {currentLabHighlight.title}
           </h1>
-          <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto mb-4">
-            Browse our comprehensive catalog of pre-built lab environments. Select multiple labs to request as a training bundle.
+          <p className="text-sm text-primary-foreground/70 mb-6 transition-all duration-500">
+            {currentLabHighlight.tagline}
           </p>
           
-          {/* Rolling Banner showcasing lab types */}
-          <RollingBanner onLabChange={setCurrentLabHighlight} />
+          {/* Hidden RollingBanner to drive state changes */}
+          <div className="hidden">
+            <RollingBanner onLabChange={setCurrentLabHighlight} />
+          </div>
           
           {/* Animated Stats Section */}
           <AnimatedStats />
