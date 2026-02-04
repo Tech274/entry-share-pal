@@ -3,13 +3,21 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, Layers, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+interface TemplateLabel {
+  label_id: string;
+  name: string;
+  color: string;
+}
+
 interface LabTemplateCardProps {
   template: {
+    id?: string;
     name: string;
     description: string;
     category?: string;
     categoryLabel?: string;
     icon?: LucideIcon;
+    labels?: TemplateLabel[];
   };
   categoryIcon?: LucideIcon;
   isFeatured?: boolean;
@@ -76,15 +84,32 @@ const LabTemplateCard = ({
         <CardDescription className="text-sm line-clamp-2 mb-2">
           {template.description}
         </CardDescription>
-        {/* Category label inside the card */}
-        {template.categoryLabel && (
-          <Badge 
-            variant="outline" 
-            className="text-[10px] bg-muted/50 text-muted-foreground border-muted-foreground/20"
-          >
-            {template.categoryLabel}
-          </Badge>
-        )}
+        {/* Labels and category */}
+        <div className="flex flex-wrap gap-1.5">
+          {/* Assigned labels */}
+          {template.labels && template.labels.length > 0 && (
+            template.labels.map((label) => (
+              <Badge 
+                key={label.label_id}
+                className={cn(
+                  "text-[10px] text-white border-0 px-2 py-0.5",
+                  label.color
+                )}
+              >
+                {label.name}
+              </Badge>
+            ))
+          )}
+          {/* Category label */}
+          {template.categoryLabel && (
+            <Badge 
+              variant="outline" 
+              className="text-[10px] bg-muted/50 text-muted-foreground border-muted-foreground/20"
+            >
+              {template.categoryLabel}
+            </Badge>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,10 @@ import { toast } from 'sonner';
 import { useLabCategories } from '@/hooks/useLabCategories';
 import { CategoryManagement } from '@/components/catalog/CategoryManagement';
 import { LabelManagement } from '@/components/catalog/LabelManagement';
+import { LabelMultiSelect } from '@/components/catalog/LabelMultiSelect';
+import { useEntryLabels, useManageEntryLabels } from '@/hooks/useEntryLabels';
+import { cn } from '@/lib/utils';
+import { useLabLabels } from '@/hooks/useLabLabels';
 
 interface CatalogEntry {
   id: string;
@@ -34,6 +38,7 @@ interface FormData {
   description: string;
   is_published: boolean;
   display_order: number;
+  labelIds: string[];
 }
 
 export const LabCatalogManagement = () => {
@@ -45,6 +50,7 @@ export const LabCatalogManagement = () => {
     description: '',
     is_published: false,
     display_order: 0,
+    labelIds: [],
   };
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -55,6 +61,21 @@ export const LabCatalogManagement = () => {
   const [bulkImportData, setBulkImportData] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+  
+  // Entry labels hooks
+  const { data: entryLabels = [] } = useEntryLabels(editingEntry?.id || null);
+  const { updateEntryLabels } = useManageEntryLabels();
+  const { labels: allLabels } = useLabLabels();
+
+  // Update form labelIds when entry labels load
+  useEffect(() => {
+    if (editingEntry && entryLabels.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        labelIds: entryLabels.map(el => el.label_id),
+      }));
+    }
+  }, [editingEntry, entryLabels]);
 
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ['lab-catalog-entries-admin'],
@@ -89,7 +110,7 @@ export const LabCatalogManagement = () => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: FormData }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Omit<FormData, 'labelIds'> }) => {
       const { error } = await supabase
         .from('lab_catalog_entries')
         .update(data)
@@ -170,6 +191,7 @@ export const LabCatalogManagement = () => {
       description: '',
       is_published: false,
       display_order: 0,
+      labelIds: [],
     });
     setEditingEntry(null);
     setIsDialogOpen(false);
@@ -223,6 +245,7 @@ export const LabCatalogManagement = () => {
         name: values[nameIdx],
         description: values[descIdx],
         is_published: publishedIdx !== -1 ? values[publishedIdx]?.toLowerCase() === 'true' : false,
+        labelIds: [],
       });
     }
 
@@ -254,16 +277,43 @@ export const LabCatalogManagement = () => {
       description: entry.description,
       is_published: entry.is_published,
       display_order: entry.display_order,
+      labelIds: [], // Will be populated by useEffect when entry labels load
     });
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const { labelIds, ...entryData } = formData;
+    
     if (editingEntry) {
-      updateMutation.mutate({ id: editingEntry.id, data: formData });
+      updateMutation.mutate({ id: editingEntry.id, data: entryData }, {
+        onSuccess: () => {
+          // Update labels after entry is saved
+          updateEntryLabels.mutate({ entryId: editingEntry.id, labelIds });
+        }
+      });
     } else {
-      createMutation.mutate(formData);
+      // For new entries, we need to create the entry first, then add labels
+      const { data: newEntry, error } = await supabase
+        .from('lab_catalog_entries')
+        .insert(entryData)
+        .select('id')
+        .single();
+      
+      if (error) {
+        toast.error('Failed to add template: ' + error.message);
+        return;
+      }
+      
+      if (newEntry && labelIds.length > 0) {
+        updateEntryLabels.mutate({ entryId: newEntry.id, labelIds });
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['lab-catalog-entries-admin'] });
+      queryClient.invalidateQueries({ queryKey: ['lab-catalog-entries-public'] });
+      toast.success('Lab template added successfully');
+      resetForm();
     }
   };
 
@@ -393,6 +443,16 @@ export const LabCatalogManagement = () => {
                           placeholder="Describe what this lab environment includes..."
                           required
                         />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Labels</Label>
+                        <LabelMultiSelect
+                          selectedLabelIds={formData.labelIds}
+                          onChange={(labelIds) => setFormData({ ...formData, labelIds })}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Assign labels like AWS, Azure, Python etc. to this template
+                        </p>
                       </div>
                       <div className="space-y-2">
                         <Label>Display Order</Label>
