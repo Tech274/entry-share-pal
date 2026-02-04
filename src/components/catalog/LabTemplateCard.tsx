@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Layers, LucideIcon } from 'lucide-react';
@@ -25,6 +26,7 @@ interface LabTemplateCardProps {
   isSearching?: boolean;
   isSelected?: boolean;
   onToggleSelect?: () => void;
+  animationIndex?: number;
 }
 
 const LabTemplateCard = ({
@@ -34,13 +36,39 @@ const LabTemplateCard = ({
   featuredColor,
   isSelected,
   onToggleSelect,
+  animationIndex = 0,
 }: LabTemplateCardProps) => {
   const TemplateIcon = template.icon || categoryIcon || Layers;
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const element = cardRef.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          // Staggered delay based on index (max 6 items per row)
+          const delay = (animationIndex % 6) * 80;
+          setTimeout(() => setIsVisible(true), delay);
+          observer.unobserve(element);
+        }
+      },
+      { threshold: 0.1, rootMargin: '50px' }
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [animationIndex]);
 
   return (
     <Card 
+      ref={cardRef}
       className={cn(
-        "hover:shadow-lg transition-all hover:-translate-y-1 group relative cursor-pointer",
+        "hover:shadow-lg transition-all duration-500 hover:-translate-y-1 group relative cursor-pointer",
+        "opacity-0 translate-y-8 scale-95",
+        isVisible && "opacity-100 translate-y-0 scale-100",
         isSelected && "ring-2 ring-rose-500 bg-rose-50 dark:bg-rose-950/20"
       )}
       onClick={onToggleSelect}
