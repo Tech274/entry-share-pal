@@ -8,6 +8,7 @@ import {
   Link2, Boxes, Brain, Workflow, Building, FlaskConical
 } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LabTemplateCard from '@/components/catalog/LabTemplateCard';
 import LabBundleBar from '@/components/catalog/LabBundleBar';
 import { cn } from '@/lib/utils';
@@ -214,17 +215,26 @@ const LabCatalog = () => {
                 className="pl-10 bg-background text-foreground h-12"
               />
             </div>
-            <Button 
-              variant="secondary" 
-              size="lg" 
-              asChild
-              className="bg-accent text-accent-foreground hover:bg-accent/90"
-            >
-              <a href={EXTERNAL_CATALOG_URL}>
-                <ExternalLink className="h-5 w-5 mr-2" />
-                View Landing Page
-              </a>
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="secondary" 
+                    size="lg" 
+                    asChild
+                    className="bg-accent text-accent-foreground hover:bg-accent/90"
+                  >
+                    <a href={EXTERNAL_CATALOG_URL} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-5 w-5 mr-2" />
+                      View Landing Page
+                    </a>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Opens MML Labs external catalog in a new tab</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           {selectedLabs.size > 0 && (
             <p className="mt-4 text-sm text-primary-foreground/70">
