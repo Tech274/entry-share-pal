@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
-import { Server, Cloud, Database, Brain, Layers, Workflow, Shield, Code2, BarChart3, LucideIcon } from 'lucide-react';
+import { Server, Cloud, Database, Brain, Layers, Workflow, Shield, Code2, BarChart3, Network, Sparkles, LucideIcon } from 'lucide-react';
 
 export interface LabHighlight {
   title: string;
@@ -33,11 +33,25 @@ export const labHighlights: LabHighlight[] = [
     gradient: 'from-red-500 to-rose-600',
   },
   {
-    title: 'GenAI Labs',
+    title: 'GenAI / Agentic AI Labs',
     tagline: 'Future-Ready AI Training',
     features: ['LLM Fine-Tuning', 'Prompt Engineering', 'RAG Systems', 'AI Agents'],
     icon: Brain,
     gradient: 'from-purple-500 to-pink-600',
+  },
+  {
+    title: 'AI/ML Labs',
+    tagline: 'Intelligent Systems Mastery',
+    features: ['Model Training', 'MLOps', 'Deep Learning', 'Computer Vision'],
+    icon: Sparkles,
+    gradient: 'from-indigo-500 to-violet-600',
+  },
+  {
+    title: 'Networking Labs',
+    tagline: 'Connect Everything Securely',
+    features: ['Routing & Switching', 'SD-WAN', 'Network Automation', 'Firewalls'],
+    icon: Network,
+    gradient: 'from-cyan-500 to-blue-600',
   },
   {
     title: 'Cloud Labs',
