@@ -16,13 +16,6 @@ const DELIVERY_CSV_HEADERS = [
   'Total Amount', 'Line of Business', 'Invoice Details'
 ];
 
-const DELIVERY_SAMPLE_ROW = [
-  'POT-2025-001', 'FD-12345', 'Azure Fundamentals Training', '25',
-  'Acme Corp', 'February', '2025', '2025-02-01', 'Public Cloud', 'Azure', '',
-  'Azure Fundamentals', 'John Doe', 'Delivery In-Progress', '2025-02-10', '2025-02-15',
-  'Standard VM setup', '500', '750',
-  '18750', 'Standalone', 'INV-2025-001'
-];
 
 interface DeliveryTabContentProps {
   requests: DeliveryRequest[];
@@ -64,7 +57,7 @@ export const DeliveryTabContent = ({
   };
 
   const handleDownloadTemplate = () => {
-    const csvContent = DELIVERY_CSV_HEADERS.join(',') + '\n' + DELIVERY_SAMPLE_ROW.join(',') + '\n';
+    const csvContent = DELIVERY_CSV_HEADERS.join(',') + '\n';
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
