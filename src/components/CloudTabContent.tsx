@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { format, startOfMonth, endOfMonth, subDays, startOfQuarter, endOfQuarter, startOfYear, endOfYear, isWithinInterval, parseISO } from 'date-fns';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { RequestsTable } from '@/components/RequestsTable';
@@ -6,8 +7,12 @@ import { DeliveryTable } from '@/components/DeliveryTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
-import { Users, IndianRupee, TrendingUp, ClipboardList, Truck } from 'lucide-react';
+import { Users, IndianRupee, TrendingUp, ClipboardList, Truck, CalendarIcon, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface CloudTabContentProps {
   title: string;
@@ -18,6 +23,30 @@ interface CloudTabContentProps {
   onDeliveryDelete: (id: string) => void;
 }
 
+type DatePreset = 'all' | 'today' | 'last7' | 'last30' | 'thisMonth' | 'lastMonth' | 'thisQuarter' | 'thisYear' | 'custom';
+
+const parseDate = (dateStr: string | null | undefined): Date | null => {
+  if (!dateStr) return null;
+  try {
+    return parseISO(dateStr);
+  } catch {
+    return null;
+  }
+};
+
+const isInDateRange = (dateStr: string | null | undefined, startDate: Date | undefined, endDate: Date | undefined): boolean => {
+  if (!startDate && !endDate) return true;
+  const date = parseDate(dateStr);
+  if (!date) return false;
+  
+  if (startDate && endDate) {
+    return isWithinInterval(date, { start: startDate, end: endDate });
+  }
+  if (startDate) return date >= startDate;
+  if (endDate) return date <= endDate;
+  return true;
+};
+
 export const CloudTabContent = ({
   title,
   icon,
@@ -27,34 +56,194 @@ export const CloudTabContent = ({
   onDeliveryDelete,
 }: CloudTabContentProps) => {
   const [showCombined, setShowCombined] = useState(true);
+  const [datePreset, setDatePreset] = useState<DatePreset>('all');
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
-  // Calculate statistics
-  const totalLabRevenue = labRequests.reduce((sum, r) => sum + (r.totalAmountForTraining || 0), 0);
-  const totalDeliveryRevenue = deliveryRequests.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+  const applyPreset = (preset: DatePreset) => {
+    const today = new Date();
+    setDatePreset(preset);
+    
+    switch (preset) {
+      case 'all':
+        setStartDate(undefined);
+        setEndDate(undefined);
+        break;
+      case 'today':
+        setStartDate(today);
+        setEndDate(today);
+        break;
+      case 'last7':
+        setStartDate(subDays(today, 7));
+        setEndDate(today);
+        break;
+      case 'last30':
+        setStartDate(subDays(today, 30));
+        setEndDate(today);
+        break;
+      case 'thisMonth':
+        setStartDate(startOfMonth(today));
+        setEndDate(endOfMonth(today));
+        break;
+      case 'lastMonth':
+        const lastMonth = subDays(startOfMonth(today), 1);
+        setStartDate(startOfMonth(lastMonth));
+        setEndDate(endOfMonth(lastMonth));
+        break;
+      case 'thisQuarter':
+        setStartDate(startOfQuarter(today));
+        setEndDate(endOfQuarter(today));
+        break;
+      case 'thisYear':
+        setStartDate(startOfYear(today));
+        setEndDate(endOfYear(today));
+        break;
+      case 'custom':
+        // Keep existing dates for custom
+        break;
+    }
+  };
+
+  const clearDateFilter = () => {
+    setDatePreset('all');
+    setStartDate(undefined);
+    setEndDate(undefined);
+  };
+
+  // Filter requests based on date range
+  const filteredLabRequests = useMemo(() => {
+    return labRequests.filter(r => isInDateRange(r.labStartDate || r.receivedOn, startDate, endDate));
+  }, [labRequests, startDate, endDate]);
+
+  const filteredDeliveryRequests = useMemo(() => {
+    return deliveryRequests.filter(r => isInDateRange(r.startDate || r.receivedOn, startDate, endDate));
+  }, [deliveryRequests, startDate, endDate]);
+
+  // Calculate statistics from filtered data
+  const totalLabRevenue = filteredLabRequests.reduce((sum, r) => sum + (r.totalAmountForTraining || 0), 0);
+  const totalDeliveryRevenue = filteredDeliveryRequests.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
   const totalRevenue = totalLabRevenue + totalDeliveryRevenue;
 
-  const totalLabUsers = labRequests.reduce((sum, r) => sum + (r.userCount || 0), 0);
-  const totalDeliveryUsers = deliveryRequests.reduce((sum, r) => sum + (r.numberOfUsers || 0), 0);
+  const totalLabUsers = filteredLabRequests.reduce((sum, r) => sum + (r.userCount || 0), 0);
+  const totalDeliveryUsers = filteredDeliveryRequests.reduce((sum, r) => sum + (r.numberOfUsers || 0), 0);
   const totalUsers = totalLabUsers + totalDeliveryUsers;
 
-  const avgMargin = labRequests.length > 0
-    ? labRequests.reduce((sum, r) => sum + (r.margin || 0), 0) / labRequests.length
+  const avgMargin = filteredLabRequests.length > 0
+    ? filteredLabRequests.reduce((sum, r) => sum + (r.margin || 0), 0) / filteredLabRequests.length
     : 0;
 
-  const totalRequests = labRequests.length + deliveryRequests.length;
+  const totalRequests = filteredLabRequests.length + filteredDeliveryRequests.length;
 
   // Combine and sort all requests for combined view
-  const combinedRequests = [
-    ...labRequests.map(r => ({ ...r, type: 'solution' as const, date: r.labStartDate || r.receivedOn })),
-    ...deliveryRequests.map(r => ({ ...r, type: 'delivery' as const, date: r.startDate || r.receivedOn })),
+  const combinedRequests = useMemo(() => [
+    ...filteredLabRequests.map(r => ({ ...r, type: 'solution' as const, date: r.labStartDate || r.receivedOn })),
+    ...filteredDeliveryRequests.map(r => ({ ...r, type: 'delivery' as const, date: r.startDate || r.receivedOn })),
   ].sort((a, b) => {
     const dateA = a.date ? new Date(a.date).getTime() : 0;
     const dateB = b.date ? new Date(b.date).getTime() : 0;
     return dateB - dateA;
-  });
+  }), [filteredLabRequests, filteredDeliveryRequests]);
+
+  const presets: { value: DatePreset; label: string }[] = [
+    { value: 'all', label: 'All Time' },
+    { value: 'today', label: 'Today' },
+    { value: 'last7', label: 'Last 7 Days' },
+    { value: 'last30', label: 'Last 30 Days' },
+    { value: 'thisMonth', label: 'This Month' },
+    { value: 'lastMonth', label: 'Last Month' },
+    { value: 'thisQuarter', label: 'This Quarter' },
+    { value: 'thisYear', label: 'This Year' },
+  ];
 
   return (
     <div className="space-y-6">
+      {/* Date Range Filter */}
+      <div className="flex flex-wrap items-center gap-2 p-4 bg-muted/30 rounded-lg border">
+        <span className="text-sm font-medium text-muted-foreground mr-2">Filter by Date:</span>
+        
+        {/* Quick Presets */}
+        <div className="flex flex-wrap gap-1">
+          {presets.map((preset) => (
+            <Button
+              key={preset.value}
+              variant={datePreset === preset.value ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyPreset(preset.value)}
+              className="h-7 text-xs"
+            >
+              {preset.label}
+            </Button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2 ml-auto">
+          {/* Custom Date Range */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={datePreset === 'custom' ? 'default' : 'outline'}
+                size="sm"
+                className={cn('h-7 text-xs gap-1', datePreset === 'custom' && 'bg-primary')}
+              >
+                <CalendarIcon className="h-3 w-3" />
+                {startDate ? format(startDate, 'MMM d') : 'Start'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={(date) => {
+                  setStartDate(date);
+                  setDatePreset('custom');
+                }}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+
+          <span className="text-xs text-muted-foreground">to</span>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={datePreset === 'custom' ? 'default' : 'outline'}
+                size="sm"
+                className={cn('h-7 text-xs gap-1', datePreset === 'custom' && 'bg-primary')}
+              >
+                <CalendarIcon className="h-3 w-3" />
+                {endDate ? format(endDate, 'MMM d') : 'End'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={(date) => {
+                  setEndDate(date);
+                  setDatePreset('custom');
+                }}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+
+          {/* Clear Filter */}
+          {(startDate || endDate) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearDateFilter}
+              className="h-7 w-7 p-0"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+      </div>
+
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
@@ -91,7 +280,7 @@ export const CloudTabContent = ({
           <CardContent>
             <div className="text-2xl font-bold">{formatPercentage(avgMargin)}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Based on {labRequests.length} solutions
+              Based on {filteredLabRequests.length} solutions
             </p>
           </CardContent>
         </Card>
@@ -104,7 +293,7 @@ export const CloudTabContent = ({
           <CardContent>
             <div className="text-2xl font-bold">{totalRequests}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Solutions: {labRequests.length} | Delivery: {deliveryRequests.length}
+              Solutions: {filteredLabRequests.length} | Delivery: {filteredDeliveryRequests.length}
             </p>
           </CardContent>
         </Card>
@@ -143,16 +332,16 @@ export const CloudTabContent = ({
           <div className="space-y-4">
             <h4 className="text-md font-medium flex items-center gap-2">
               <ClipboardList className="w-4 h-4" />
-              Solutions ({labRequests.length})
+              Solutions ({filteredLabRequests.length})
             </h4>
-            <RequestsTable requests={labRequests} onDelete={onLabDelete} />
+            <RequestsTable requests={filteredLabRequests} onDelete={onLabDelete} />
           </div>
           <div className="space-y-4">
             <h4 className="text-md font-medium flex items-center gap-2">
               <Truck className="w-4 h-4" />
-              Delivery ({deliveryRequests.length})
+              Delivery ({filteredDeliveryRequests.length})
             </h4>
-            <DeliveryTable requests={deliveryRequests} onDelete={onDeliveryDelete} />
+            <DeliveryTable requests={filteredDeliveryRequests} onDelete={onDeliveryDelete} />
           </div>
         </div>
       )}
