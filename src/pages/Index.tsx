@@ -156,11 +156,8 @@ const Index = () => {
 
               <TabsContent value="adr" className="space-y-6">
                 <ADRTabContent
-                  labRequests={requests}
                   deliveryRequests={deliveryRequests}
-                  onLabDelete={handleDelete}
                   onDeliveryDelete={handleDeliveryDelete}
-                  onBulkImport={bulkInsert}
                 />
               </TabsContent>
 
