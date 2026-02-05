@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, ArrowRight } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
 import { getStatusColor, getCloudColor, getCloudTypeColor, getTPLabTypeColor, getLOBColor } from '@/lib/statusColors';
 import { cn } from '@/lib/utils';
@@ -38,7 +38,7 @@ export const RequestsTable = ({ requests, onDelete, onConvertToDelivery }: Reque
 
   return (
     <div className="form-section p-0 overflow-hidden">
-      <ScrollArea className="w-full max-h-[calc(100vh-300px)]">
+      <ScrollArea className="w-full h-[calc(100vh-300px)]">
         <div className="min-w-[1400px]">
           <Table>
             <TableHeader className="sticky top-0 z-10 bg-muted">
@@ -145,6 +145,8 @@ export const RequestsTable = ({ requests, onDelete, onConvertToDelivery }: Reque
             </TableBody>
           </Table>
         </div>
+        <ScrollBar orientation="horizontal" />
+        <ScrollBar orientation="vertical" />
       </ScrollArea>
     </div>
   );
