@@ -1,22 +1,24 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useLabRequests } from '@/hooks/useLabRequests';
 import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Download, Cloud, Server, Building2, FileSpreadsheet, Package } from 'lucide-react';
+import { ArrowLeft, Download, Upload, Cloud, Server, Building2, FileSpreadsheet, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
 import { getStatusBadgeVariant } from '@/lib/statusColors';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
+import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import logo from '@/assets/makemylabs-logo.png';
 
@@ -24,10 +26,12 @@ import logo from '@/assets/makemylabs-logo.png';
 const ADR_STATUSES = ['Delivered', 'Delivery In-Progress', 'Completed'];
 
 const MasterDataSheet = () => {
-  const { requests: labRequests } = useLabRequests();
-  const { requests: deliveryRequests } = useDeliveryRequests();
+  const { requests: labRequests, addRequest: addLabRequest } = useLabRequests();
+  const { requests: deliveryRequests, addRequest: addDeliveryRequest } = useDeliveryRequests();
   const { toast } = useToast();
   const [activeLabType, setActiveLabType] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<string>('solutions');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Filter delivery requests by ADR statuses only
   const adrDeliveryRequests = deliveryRequests.filter(r => 
@@ -61,35 +65,155 @@ const MasterDataSheet = () => {
   };
 
   const handleExportCSV = () => {
-    // Basic CSV export for master data
-    const headers = ['Type', 'Client', 'Month', 'Year', 'Lab Type', 'Status', 'User Count', 'Total Amount'];
-    
-    const solutionRows = filteredLabRequests.map(r => [
-      'Solution', r.client, r.month, r.year, r.cloud || '', r.status || '', r.userCount || 0, r.totalAmountForTraining || 0
-    ]);
-    
-    const deliveryRows = filteredDeliveryRequests.map(r => [
-      'Delivery', r.client, r.month, r.year, r.cloud || '', r.labStatus || '', r.numberOfUsers || 0, r.totalAmount || 0
-    ]);
-
-    const csvContent = [
-      headers.join(','),
-      ...solutionRows.map(row => row.join(',')),
-      ...deliveryRows.map(row => row.join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `master-data-sheet-${activeLabType.replace(/\s+/g, '-').toLowerCase()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-
+    const filename = `master-${activeTab}-${activeLabType.replace(/\s+/g, '-').toLowerCase()}`;
+    if (activeTab === 'solutions') {
+      exportToCSV(filteredLabRequests, filename);
+    } else {
+      exportToCSV(filteredDeliveryRequests, filename);
+    }
     toast({
       title: 'Export Complete',
-      description: `Exported ${filteredLabRequests.length + filteredDeliveryRequests.length} records as CSV.`,
+      description: `Exported ${activeTab === 'solutions' ? filteredLabRequests.length : filteredDeliveryRequests.length} records as CSV.`,
     });
+  };
+
+  const handleExportXLS = () => {
+    const filename = `master-${activeTab}-${activeLabType.replace(/\s+/g, '-').toLowerCase()}`;
+    if (activeTab === 'solutions') {
+      exportToXLS(filteredLabRequests, filename);
+    } else {
+      exportToXLS(filteredDeliveryRequests, filename);
+    }
+    toast({
+      title: 'Export Complete',
+      description: `Exported ${activeTab === 'solutions' ? filteredLabRequests.length : filteredDeliveryRequests.length} records as XLS.`,
+    });
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const isCSV = file.name.endsWith('.csv');
+    const isXLS = file.name.endsWith('.xls') || file.name.endsWith('.xlsx');
+
+    if (!isCSV && !isXLS) {
+      toast({
+        title: 'Invalid File',
+        description: 'Please upload a CSV or XLS file.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        toast({
+          title: 'Empty File',
+          description: 'The file contains no data rows.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      let importedCount = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+        const row: Record<string, string> = {};
+        headers.forEach((h, idx) => {
+          row[h] = values[idx] || '';
+        });
+
+        const currentDate = new Date();
+        const month = row.month || currentDate.toLocaleString('default', { month: 'long' });
+        const year = parseInt(row.year) || currentDate.getFullYear();
+
+        if (activeTab === 'solutions') {
+          await addLabRequest({
+            potentialId: row['potential id'] || '',
+            freshDeskTicketNumber: row['freshdesk ticket number'] || row['ticket'] || '',
+            client: row.client || 'Unknown Client',
+            month,
+            year,
+            cloud: row['lab type'] || row.cloud || '',
+            cloudType: row['cloud type'] || '',
+            tpLabType: row['tp lab type'] || '',
+            labName: row['training name'] || row['lab name'] || '',
+            requester: row.requester || '',
+            agentName: row['agent name'] || '',
+            accountManager: row['account manager'] || '',
+            receivedOn: row['received on'] || '',
+            labStartDate: row['lab start date'] || row['start date'] || '',
+            labEndDate: row['lab end date'] || row['end date'] || '',
+            userCount: parseInt(row['user count'] || row.users || '0') || 0,
+            durationInDays: parseInt(row['duration'] || row['duration (in days)'] || '0') || 0,
+            inputCostPerUser: parseFloat(row['input cost per user'] || '0') || 0,
+            sellingCostPerUser: parseFloat(row['selling cost per user'] || '0') || 0,
+            totalAmountForTraining: parseFloat(row['total amount'] || row['total amount for training'] || '0') || 0,
+            margin: parseFloat(row.margin || '0') || 0,
+            status: row.status || 'Solution Pending',
+            remarks: row.remarks || '',
+            lineOfBusiness: row.lob || row['line of business'] || '',
+            invoiceDetails: row['invoice details'] || '',
+          });
+        } else {
+          await addDeliveryRequest({
+            potentialId: row['potential id'] || '',
+            freshDeskTicketNumber: row['freshdesk ticket number'] || row['ticket'] || '',
+            trainingName: row['training name'] || '',
+            numberOfUsers: parseInt(row['number of users'] || row['user count'] || row.users || '0') || 0,
+            client: row.client || 'Unknown Client',
+            month,
+            year,
+            receivedOn: row['received on'] || '',
+            cloud: row['lab type'] || row.cloud || '',
+            cloudType: row['cloud type'] || '',
+            tpLabType: row['tp lab type'] || '',
+            labName: row['lab name'] || '',
+            requester: row.requester || '',
+            agentName: row['agent name'] || '',
+            accountManager: row['account manager'] || '',
+            labStatus: row.status || row['lab status'] || 'Pending',
+            labType: row['lab type category'] || '',
+            startDate: row['start date'] || '',
+            endDate: row['end date'] || '',
+            labSetupRequirement: row['lab setup requirement'] || '',
+            inputCostPerUser: parseFloat(row['input cost per user'] || '0') || 0,
+            sellingCostPerUser: parseFloat(row['selling cost per user'] || '0') || 0,
+            totalAmount: parseFloat(row['total amount'] || '0') || 0,
+            lineOfBusiness: row.lob || row['line of business'] || '',
+            invoiceDetails: row['invoice details'] || '',
+          });
+        }
+        importedCount++;
+      }
+
+      toast({
+        title: 'Import Complete',
+        description: `Successfully imported ${importedCount} ${activeTab} records.`,
+      });
+    } catch (error) {
+      console.error('Import error:', error);
+      toast({
+        title: 'Import Failed',
+        description: 'There was an error processing the file.',
+        variant: 'destructive',
+      });
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const getLabTypeIcon = (labType: string) => {
@@ -123,9 +247,20 @@ const MasterDataSheet = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileImport}
+                accept=".csv,.xls,.xlsx"
+                className="hidden"
+              />
+              <Button variant="outline" onClick={handleImportClick}>
+                <Upload className="w-4 h-4 mr-2" />
+                Import
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="default" disabled={filteredLabRequests.length + filteredDeliveryRequests.length === 0}>
+                  <Button variant="default" disabled={(activeTab === 'solutions' ? filteredLabRequests.length : filteredDeliveryRequests.length) === 0}>
                     <Download className="w-4 h-4 mr-2" />
                     Export
                   </Button>
@@ -133,6 +268,10 @@ const MasterDataSheet = () => {
                 <DropdownMenuContent align="end" className="bg-popover">
                   <DropdownMenuItem onClick={handleExportCSV}>
                     Export as CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleExportXLS}>
+                    Export as XLS
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -169,7 +308,7 @@ const MasterDataSheet = () => {
         </div>
 
         {/* Data Classification Tabs */}
-        <Tabs defaultValue="solutions" className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="solutions" className="gap-2">
               <FileSpreadsheet className="w-4 h-4" />
