@@ -90,14 +90,22 @@ export const ADRTabContent = ({
 
   const canImportExport = isAdmin || isOpsLead || isOpsEngineer;
 
+  // ADR Status filter - only show records with specific delivery statuses
+  const adrStatuses = ['Delivered', 'Delivery In-Progress', 'Completed'];
+  
+  // Filter delivery requests by ADR statuses first
+  const adrDeliveryRequests = deliveryRequests.filter(r => 
+    r.labStatus && adrStatuses.includes(r.labStatus)
+  );
+
   // Filter requests by cloud type
   const publicCloudLabRequests = labRequests.filter(r => r.cloud === 'Public Cloud');
   const privateCloudLabRequests = labRequests.filter(r => r.cloud === 'Private Cloud');
   const tpLabsLabRequests = labRequests.filter(r => r.cloud === 'TP Labs');
 
-  const publicCloudDeliveryRequests = deliveryRequests.filter(r => r.cloud === 'Public Cloud');
-  const privateCloudDeliveryRequests = deliveryRequests.filter(r => r.cloud === 'Private Cloud');
-  const tpLabsDeliveryRequests = deliveryRequests.filter(r => r.cloud === 'TP Labs');
+  const publicCloudDeliveryRequests = adrDeliveryRequests.filter(r => r.cloud === 'Public Cloud');
+  const privateCloudDeliveryRequests = adrDeliveryRequests.filter(r => r.cloud === 'Private Cloud');
+  const tpLabsDeliveryRequests = adrDeliveryRequests.filter(r => r.cloud === 'TP Labs');
 
   const handleExportCSV = () => {
     exportToCSV(labRequests);
@@ -129,7 +137,10 @@ export const ADRTabContent = ({
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">ADR Management</span>
             <span className="text-xs text-muted-foreground">
-              ({labRequests.length} Solutions, {deliveryRequests.length} Deliveries)
+              ({labRequests.length} Solutions, {adrDeliveryRequests.length} Deliveries)
+            </span>
+            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+              Status: Delivered, Delivery In-Progress, Completed
             </span>
           </div>
           <div className="flex items-center gap-2">
