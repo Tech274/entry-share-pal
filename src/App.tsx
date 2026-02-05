@@ -11,6 +11,7 @@ import MyRequests from "./pages/MyRequests";
 import Index from "./pages/Index";
 import Preview from "./pages/Preview";
 import DeliveryPreview from "./pages/DeliveryPreview";
+import MasterDataSheet from "./pages/MasterDataSheet";
 import Auth from "./pages/Auth";
 import Docs from "./pages/Docs";
 import LabCatalog from "./pages/LabCatalog";
@@ -58,6 +59,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <DeliveryPreview />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/master-data-sheet" 
+              element={
+                <ProtectedRoute>
+                  <MasterDataSheet />
                 </ProtectedRoute>
               } 
             />
