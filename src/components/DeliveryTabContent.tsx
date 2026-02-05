@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DeliveryRequestForm } from '@/components/DeliveryRequestForm';
 import { DeliveryTable } from '@/components/DeliveryTable';
 import { DeliveryRequest } from '@/types/deliveryRequest';
-import { Truck, FileText, Upload, CheckCircle, Clock, ListFilter, Share2, Download, PackageCheck } from 'lucide-react';
+import { Truck, FileText, Upload, CheckCircle, Download, PackageCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -32,25 +32,6 @@ export const DeliveryTabContent = ({
 }: DeliveryTabContentProps) => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [listSubTab, setListSubTab] = useState<string>('all');
-
-  // Filter requests by status (exclude Completed from these filters as it has its own tab)
-  const deliveredRequests = requests.filter(r => r.labStatus === 'Delivered');
-  const inProgressRequests = requests.filter(r => r.labStatus === 'Delivery In-Progress' || r.labStatus === 'Work-in-Progress');
-  const testCredentialsRequests = requests.filter(r => r.labStatus === 'Test Credentials Shared');
-
-  const getFilteredRequests = () => {
-    switch (listSubTab) {
-      case 'delivered':
-        return deliveredRequests;
-      case 'in-progress':
-        return inProgressRequests;
-      case 'test-credentials':
-        return testCredentialsRequests;
-      default:
-        return requests;
-    }
-  };
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -230,62 +211,7 @@ export const DeliveryTabContent = ({
       </TabsContent>
 
       <TabsContent value="list" className="space-y-4">
-        {/* Sub-tabs for filtering by status */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-muted-foreground mr-2">
-            <ListFilter className="w-4 h-4 inline mr-1" />
-            Filter:
-          </span>
-          <Button
-            variant={listSubTab === 'all' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setListSubTab('all')}
-            className="gap-2"
-          >
-            All
-            <Badge variant="secondary" className="ml-1">
-              {requests.length}
-            </Badge>
-          </Button>
-          <Button
-            variant={listSubTab === 'delivered' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setListSubTab('delivered')}
-            className="gap-2"
-          >
-            <CheckCircle className="w-4 h-4" />
-            Delivered
-            <Badge variant="secondary" className="ml-1">
-              {deliveredRequests.length}
-            </Badge>
-          </Button>
-          <Button
-            variant={listSubTab === 'in-progress' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setListSubTab('in-progress')}
-            className="gap-2"
-          >
-            <Clock className="w-4 h-4" />
-            In-Progress
-            <Badge variant="secondary" className="ml-1">
-              {inProgressRequests.length}
-            </Badge>
-          </Button>
-          <Button
-            variant={listSubTab === 'test-credentials' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setListSubTab('test-credentials')}
-            className="gap-2"
-          >
-            <Share2 className="w-4 h-4" />
-            Test Credentials
-            <Badge variant="secondary" className="ml-1">
-              {testCredentialsRequests.length}
-            </Badge>
-          </Button>
-        </div>
-
-        <DeliveryTable requests={getFilteredRequests()} onDelete={onDelete} />
+        <DeliveryTable requests={activeRequests} onDelete={onDelete} />
       </TabsContent>
 
       <TabsContent value="delivered" className="space-y-4">
