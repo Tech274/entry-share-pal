@@ -1,315 +1,276 @@
 
-# Smart Request Assignment & Automated Status Transitions
+# Dashboard Restructuring Plan
 
-✅ **IMPLEMENTED**
+## Understanding the Workflow
 
-This plan implements two major automation features: a smart request assignment system with workload balancing and automated status transitions based on dates.
+Based on your explanation, here's the clarified process:
+
+```text
++--------------------------------------------------+
+|               EXTERNAL FLOW                       |
+|   Solution Manager / Delivery Manager raises      |
+|   requests via public portal (/submit-request)    |
++--------------------------------------------------+
+                        |
+                        v
++--------------------------------------------------+
+|               INTERNAL SYSTEM                     |
+|   Ops Team can:                                   |
+|   1. View external requests                       |
+|   2. Raise internal requests via forms            |
+|   3. Manage all requests in consolidated view     |
+|   4. Import/Export data via Excel                 |
++--------------------------------------------------+
+                        |
+                        v
++--------------------------------------------------+
+|               ADR (All Delivery Records)          |
+|   Categorized by Lab Type:                        |
+|   - Public Cloud Labs                             |
+|   - Private Cloud Labs                            |
+|   - Third-Party Labs                              |
++--------------------------------------------------+
+```
 
 ---
 
-## Current State Analysis
+## Proposed Tab Structure
 
-| Component | Status |
-|-----------|--------|
-| `assigned_to` column | ✅ Already exists in both `lab_requests` and `delivery_requests` tables |
-| Profiles table | ✅ Contains `user_id`, `email`, `full_name` for engineers |
-| User roles | ✅ `ops_engineer`, `ops_lead`, `finance`, `admin` already defined |
-| Existing hooks | ✅ `useLabRequests` and `useDeliveryRequests` updated with assignedTo |
-| Email notifications | ✅ Edge function `send-notification-email` already exists |
-| Activity log table | ✅ Created `request_activity_log` |
-| Engineer settings | ✅ Created `engineer_settings` table |
+```text
+HOME PAGE TABS (4 Main Tabs)
++-------------------------------------------------------------------+
+| Dashboard | Solutions | Delivery | ADR                            |
++-------------------------------------------------------------------+
+
+SOLUTIONS TAB (2 Sub-tabs)
++-------------------------------------------------------------------+
+| Entry Form | Requests List                                        |
++-------------------------------------------------------------------+
+  - Entry Form: Form for Ops team to raise internal solution requests
+  - Requests List: Consolidated view of ALL solution requests
+    (both internal from Ops + external from Solution Managers)
+
+DELIVERY TAB (2 Sub-tabs)
++-------------------------------------------------------------------+
+| Entry Form | Requests List                                        |
++-------------------------------------------------------------------+
+  - Entry Form: Form for Ops team to raise internal delivery requests
+  - Requests List: Consolidated view of ALL delivery requests
+    (both internal from Ops + external from Delivery Managers)
+
+ADR TAB (3 Sub-tabs)
++-------------------------------------------------------------------+
+| Public Cloud | Private Cloud | Third-Party Labs                   |
++-------------------------------------------------------------------+
+  - Each sub-tab shows combined Solutions + Delivery for that lab type
+  - Import/Export features available (CSV/Excel)
+  - Date range filtering
+  - Summary statistics
+```
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Database Schema Changes
+### Phase 1: Restructure Main Index.tsx Navigation
 
-Create new tables for activity logging, assignment configuration, and engineer settings:
+**Current State:** 9 tabs (Dashboard, Calendar, Solutions, Delivery, Solutions Table, Delivery Table, Private, Public, TP Labs)
 
-**New Tables:**
+**New State:** 4 tabs (Dashboard, Solutions, Delivery, ADR)
 
-1. **`request_activity_log`** - Audit trail for all request changes
-   - `id`, `request_id`, `request_type` (solution/delivery)
-   - `action` (created, updated, assigned, status_changed)
-   - `old_values`, `new_values` (JSONB)
-   - `performed_by` (user_id), `created_at`
+| Change | Description |
+|--------|-------------|
+| Remove tabs | Calendar, Solutions Table, Delivery Table, Private Cloud, Public Cloud, TP Labs |
+| Restructure Solutions | Merge form + table into one tab with sub-tabs |
+| Restructure Delivery | Merge form + table into one tab with sub-tabs |
+| Create ADR | Move cloud-based views here with Import/Export |
 
-2. **`engineer_settings`** - Engineer capacity and expertise configuration
-   - `user_id`, `max_active_requests` (default: 10)
-   - `expertise` (JSONB array of lab types they specialize in)
-   - `is_available` (for vacation/unavailable status)
+### Phase 2: Create Solutions Tab with Sub-tabs
 
-**Database Functions:**
+Create a new component that combines the entry form and requests list:
 
-1. **`get_engineer_workload(user_id)`** - Returns count of active requests
-2. **`get_available_engineers()`** - Returns engineers with capacity ordered by workload
-3. **`log_request_activity()`** - Trigger function to auto-log changes
-
----
-
-### Phase 2: Smart Assignment System
-
-**New Components:**
-
-1. **`AssigneeDropdown.tsx`** - Dropdown showing engineers with workload indicators
-   - Shows engineer name, current load (e.g., "Mahesh (3/10)")
-   - Color-coded: green (<50%), yellow (50-80%), red (>80%)
-   - "Assign to Me" quick option for logged-in user
-   - Only visible to Ops Lead and Admin roles
-
-2. **`TeamWorkloadPanel.tsx`** - Visual workload distribution panel
-   - Progress bars showing each engineer's capacity
-   - Shows pending vs. in-progress breakdown
-   - Quick filter to show unassigned requests
-
-3. **`BulkAssignDialog.tsx`** - Dialog for bulk assigning selected rows
-   - Dropdown to select engineer
-   - Shows how many will be assigned
-   - Auto-assignment option (round-robin)
-
-**New Hooks:**
-
-1. **`useEngineers.ts`** - Fetch engineers with roles and workload
-   ```typescript
-   // Returns: { engineers, loading, getWorkload, refreshWorkload }
-   // Each engineer: { user_id, full_name, email, activeCount, maxCapacity, expertise }
-   ```
-
-2. **`useAssignment.ts`** - Assignment operations
-   ```typescript
-   // Methods: assignRequest, bulkAssign, assignToMe, autoAssign
-   ```
-
-**UI Updates:**
-
-- Add "Assignee" column to both Preview.tsx and DeliveryPreview.tsx spreadsheets
-- Update BulkActionsBar to include bulk assignment option
-- Add workload panel to OpsLeadDashboard
-
----
-
-### Phase 3: Automated Status Transitions
-
-**New Edge Function: `auto-status-update`**
-
-Scheduled to run daily via cron, this function will:
+**File: `src/components/SolutionsTabContent.tsx`**
 
 ```text
-Status Transition Rules:
-+---------------------------------+------------------------+-------------------+
-| Condition                       | From Status            | To Status         |
-+---------------------------------+------------------------+-------------------+
-| Lab Start Date = Today          | Solution Pending       | In Progress       |
-| Lab End Date passed (yesterday) | In Progress            | Ready             |
-| Lab End Date passed + 3 days    | Ready                  | Completed         |
-+---------------------------------+------------------------+-------------------+
+Structure:
++------------------------------------------------------------+
+| Solutions                                                   |
++------------------------------------------------------------+
+| [Entry Form] [Requests List (count)]                        |
++------------------------------------------------------------+
+|                                                              |
+|  Tab Content:                                                |
+|  - Entry Form: LabRequestForm component                      |
+|  - Requests List: RequestsTable with full CRUD               |
+|                                                              |
++------------------------------------------------------------+
 ```
 
-**Implementation:**
+**Features:**
+- Sub-tabs: "Entry Form" and "Requests List"
+- Requests List shows combined internal + external requests
+- Full table functionality (sorting, filtering, inline editing)
 
-1. Query requests where date conditions match
-2. Update status in batch
-3. Log activity for each transition
-4. Send email notifications to assignee and requester
+### Phase 3: Create Delivery Tab with Sub-tabs
 
-**Cron Setup:**
-```sql
--- Run daily at 1:00 AM UTC
-SELECT cron.schedule(
-  'auto-status-update-daily',
-  '0 1 * * *',
-  $$ SELECT net.http_post(...) $$
-);
-```
+Similar structure to Solutions:
 
----
-
-### Phase 4: Activity Timeline
-
-**New Components:**
-
-1. **`ActivityTimeline.tsx`** - Timeline view of request history
-   - Shows all status changes, assignments, updates
-   - User avatars/names and timestamps
-   - Expandable to show before/after values
-
-2. **`ActivityFeed.tsx`** - Dashboard widget showing recent activity
-   - Real-time updates via Supabase subscriptions
-   - Filterable by type (assignments, status changes)
-   - Click to navigate to request
-
-**Integration:**
-- Add activity tab/panel to request detail views
-- Add activity feed widget to OpsLead and Admin dashboards
-
----
-
-## File Structure
+**File: `src/components/DeliveryTabContent.tsx`**
 
 ```text
-New Files to Create:
-+-- src/components/assignment/
-|   +-- AssigneeDropdown.tsx
-|   +-- TeamWorkloadPanel.tsx
-|   +-- BulkAssignDialog.tsx
-|
-+-- src/components/activity/
-|   +-- ActivityTimeline.tsx
-|   +-- ActivityFeed.tsx
-|
-+-- src/hooks/
-|   +-- useEngineers.ts
-|   +-- useAssignment.ts
-|   +-- useActivityLog.ts
-|
-+-- supabase/functions/auto-status-update/
-    +-- index.ts
-
-Files to Modify:
-+-- src/pages/Preview.tsx (add Assignee column, bulk assign)
-+-- src/pages/DeliveryPreview.tsx (add Assignee column, bulk assign)
-+-- src/components/BulkActionsBar.tsx (add assign action)
-+-- src/components/dashboards/OpsLeadDashboard.tsx (add workload panel)
-+-- src/hooks/useLabRequests.ts (add assignRequest method)
-+-- src/hooks/useDeliveryRequests.ts (add assignRequest method)
-+-- supabase/config.toml (add new edge function)
+Structure:
++------------------------------------------------------------+
+| Delivery                                                    |
++------------------------------------------------------------+
+| [Entry Form] [Requests List (count)]                        |
++------------------------------------------------------------+
+|                                                              |
+|  Tab Content:                                                |
+|  - Entry Form: DeliveryRequestForm component                 |
+|  - Requests List: DeliveryTable with full CRUD               |
+|                                                              |
++------------------------------------------------------------+
 ```
+
+### Phase 4: Create ADR Tab with Cloud Sub-tabs
+
+Restructure the existing cloud-based views into the ADR tab:
+
+**Updates to `src/pages/Index.tsx`:**
+
+```text
+ADR Tab Structure:
++------------------------------------------------------------+
+| ADR (All Delivery Records)                                  |
++------------------------------------------------------------+
+| [Public Cloud] [Private Cloud] [Third-Party Labs]           |
++------------------------------------------------------------+
+|                                                              |
+|  Import/Export Toolbar:                                      |
+|  [Import CSV] [Export CSV] [Export XLS]                      |
+|                                                              |
+|  Summary Stats (filtered by cloud type)                      |
+|  +------------+  +------------+  +------------+              |
+|  | Revenue    |  | Users      |  | Margin     |              |
+|  +------------+  +------------+  +------------+              |
+|                                                              |
+|  Date Range Filter                                           |
+|  [Presets] [Custom Date Picker]                              |
+|                                                              |
+|  Combined/Separate View Toggle                               |
+|  [Combined View] / [Separate Tables]                         |
+|                                                              |
+|  Data Table(s)                                               |
++------------------------------------------------------------+
+```
+
+**Role-Based Access:**
+- Import/Export visible to: Admin, Ops Lead, Ops Engineer
+- Finance role: View-only access (no import feature)
+
+### Phase 5: Update Index.tsx Tab Structure
+
+**Before:**
+```text
+Tabs: Dashboard | Calendar | Solutions | Delivery | Solutions (n) | Delivery (n) | Private | Public | TP Labs
+```
+
+**After:**
+```text
+Tabs: Dashboard | Solutions | Delivery | ADR
+```
+
+### Phase 6: Enhance ADR with Import/Export
+
+Add import/export functionality to the ADR tab:
+
+**Features:**
+- "Import CSV" button opens bulk upload dialog
+- "Export" dropdown with CSV and XLS options
+- Role-based visibility (ops_engineer, ops_lead, admin)
+- Template download for import
+
+---
+
+## File Changes Summary
+
+| File | Action | Description |
+|------|--------|-------------|
+| `src/pages/Index.tsx` | Modify | Restructure to 4 main tabs with nested sub-tabs |
+| `src/components/SolutionsTabContent.tsx` | Create | New component with Entry Form + Requests List sub-tabs |
+| `src/components/DeliveryTabContent.tsx` | Create | New component with Entry Form + Requests List sub-tabs |
+| `src/components/ADRTabContent.tsx` | Create | New component for ADR with cloud sub-tabs and Import/Export |
+| `src/components/CloudTabContent.tsx` | Modify | Add Import/Export toolbar, role-based visibility |
 
 ---
 
 ## Technical Details
 
-### Database Migration
-
-```sql
--- Activity log table
-CREATE TABLE request_activity_log (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  request_id UUID NOT NULL,
-  request_type TEXT NOT NULL CHECK (request_type IN ('solution', 'delivery')),
-  action TEXT NOT NULL,
-  old_values JSONB,
-  new_values JSONB,
-  performed_by UUID REFERENCES auth.users(id),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- Engineer settings
-CREATE TABLE engineer_settings (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  max_active_requests INTEGER NOT NULL DEFAULT 10,
-  expertise JSONB DEFAULT '[]'::jsonb,
-  is_available BOOLEAN NOT NULL DEFAULT true,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE(user_id)
-);
-
--- Enable RLS with appropriate policies
-```
-
-### Edge Function: auto-status-update
+### SolutionsTabContent Component
 
 ```typescript
-// Pseudo-code structure
-Deno.serve(async (req) => {
-  const supabase = createClient(url, serviceKey);
-  const today = new Date().toISOString().split('T')[0];
+// Structure
+<Tabs defaultValue="form">
+  <TabsList>
+    <TabsTrigger value="form">Entry Form</TabsTrigger>
+    <TabsTrigger value="list">Requests List ({count})</TabsTrigger>
+  </TabsList>
   
-  // 1. Lab Start Date = Today -> In Progress
-  const { data: starting } = await supabase
-    .from('lab_requests')
-    .update({ status: 'In Progress' })
-    .eq('status', 'Solution Pending')
-    .eq('lab_start_date', today)
-    .select();
+  <TabsContent value="form">
+    <LabRequestForm onSubmit={handleSubmit} />
+  </TabsContent>
   
-  // 2. Lab End Date passed -> Ready
-  const { data: ending } = await supabase
-    .from('delivery_requests')
-    .update({ lab_status: 'Ready' })
-    .eq('lab_status', 'In Progress')
-    .lt('end_date', today)
-    .select();
-  
-  // 3. Log activities and send notifications
-  // ...
-  
-  return new Response(JSON.stringify({ 
-    transitioned: { starting: starting?.length, ending: ending?.length }
-  }));
-});
+  <TabsContent value="list">
+    {/* Toolbar with Import/Export */}
+    <RequestsTable requests={requests} onDelete={handleDelete} />
+  </TabsContent>
+</Tabs>
 ```
 
-### AssigneeDropdown Component
+### ADRTabContent Component
 
 ```typescript
-interface AssigneeDropdownProps {
-  requestId: string;
-  requestType: 'solution' | 'delivery';
-  currentAssignee: string | null;
-  onAssign: (userId: string) => Promise<void>;
-}
+// Structure  
+<Tabs defaultValue="public-cloud">
+  {/* Import/Export Toolbar - visible to Ops roles */}
+  {canImportExport && (
+    <div className="toolbar">
+      <BulkUploadDialog ... />
+      <ExportDropdown ... />
+    </div>
+  )}
+  
+  <TabsList>
+    <TabsTrigger value="public-cloud">Public Cloud ({count})</TabsTrigger>
+    <TabsTrigger value="private-cloud">Private Cloud ({count})</TabsTrigger>
+    <TabsTrigger value="tp-labs">Third-Party Labs ({count})</TabsTrigger>
+  </TabsList>
+  
+  {/* Each TabsContent uses CloudTabContent */}
+</Tabs>
+```
 
-// Features:
-// - Fetches engineers with workload via useEngineers hook
-// - Shows capacity indicators (progress bars or color coding)
-// - "Assign to Me" shortcut for current user
-// - Triggers activity log on assignment change
+### Role-Based Access for Import/Export
+
+```typescript
+const { isAdmin, isOpsLead, isOpsEngineer } = useAuth();
+const canImportExport = isAdmin || isOpsLead || isOpsEngineer;
 ```
 
 ---
 
-## Implementation Order
+## Minimal Changes Approach
 
-| Step | Task | Effort |
-|------|------|--------|
-| 1 | Create database tables (`request_activity_log`, `engineer_settings`) | Low |
-| 2 | Create `useEngineers` hook to fetch engineers with workload | Low |
-| 3 | Create `AssigneeDropdown` component | Medium |
-| 4 | Add Assignee column to Preview.tsx and DeliveryPreview.tsx | Low |
-| 5 | Create `useAssignment` hook with assign/bulk assign methods | Medium |
-| 6 | Update `BulkActionsBar` with bulk assign option | Low |
-| 7 | Create `TeamWorkloadPanel` for OpsLead dashboard | Medium |
-| 8 | Create `auto-status-update` edge function | Medium |
-| 9 | Set up cron schedule for daily status updates | Low |
-| 10 | Create `ActivityTimeline` component | Medium |
-| 11 | Add activity logging trigger/hook | Medium |
+This plan focuses on:
 
----
+1. **Reusing existing components** - LabRequestForm, DeliveryRequestForm, RequestsTable, DeliveryTable, CloudTabContent, BulkUploadDialog
+2. **Restructuring navigation** - Moving existing functionality under new tab hierarchy
+3. **Creating wrapper components** - SolutionsTabContent, DeliveryTabContent, ADRTabContent as thin wrappers
+4. **Adding role-based visibility** - Using existing auth context for Import/Export access
 
-## User Experience Flow
-
-### Assignment Flow (Ops Lead/Admin)
-
-1. Navigate to Solutions or Delivery spreadsheet
-2. See new "Assignee" column with current assignment or "Unassigned"
-3. Click dropdown to see engineers with workload indicators
-4. Select engineer to assign (or use "Assign to Me")
-5. Activity is logged, notification sent to assignee
-
-### Bulk Assignment Flow
-
-1. Select multiple rows using checkboxes
-2. Bulk actions bar appears with new "Assign" button
-3. Click "Assign" to open dialog with engineer dropdown
-4. Optionally enable "Auto-assign (round-robin)"
-5. Confirm to assign all selected requests
-
-### Automated Status Updates
-
-1. Cron job runs daily at 1:00 AM
-2. Requests with matching date conditions are transitioned
-3. Email notifications sent to affected parties
-4. Activity logged for compliance/audit
-
----
-
-## Security Considerations
-
-- Assignment operations restricted to `ops_lead` and `admin` roles
-- Activity log is append-only (no delete/update policies)
-- Engineer settings editable only by `admin`
-- Edge function uses service role key for status updates
+**No changes needed to:**
+- Database schema
+- Existing hooks (useLabRequests, useDeliveryRequests)
+- Export utilities (exportToCSV, exportToXLS)
+- Form components (LabRequestForm, DeliveryRequestForm)
+- Table components (RequestsTable, DeliveryTable)
