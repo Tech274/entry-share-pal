@@ -70,13 +70,13 @@ export const ADRTabContent = ({
 
         <TabsContent value="overall">
           <div className="space-y-4">
-            {/* Preview Button - Only in Overall tab */}
+            {/* Preview Master Sheet Button - Only in Overall tab */}
             {canPreview && (
               <div className="flex justify-end">
-                <Link to="/preview">
+                <Link to="/master-data-sheet">
                   <Button variant="secondary" className="gap-2">
                     <Eye className="w-4 h-4" />
-                    Preview Master Sheet
+                    Preview Master Data Sheet
                   </Button>
                 </Link>
               </div>
