@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
       errors.push(`Exception in starting labs: ${errorMessage}`);
     }
 
-    // 2. Delivery Start Date = Today -> Pending to In Progress (for delivery_requests)
+    // 2. Delivery Start Date = Today -> Pending to Delivery In-Progress (for delivery_requests)
     try {
       const { data: startingDeliveries, error: delStartError } = await supabase
         .from('delivery_requests')
@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
         
         const { error: updateError } = await supabase
           .from('delivery_requests')
-          .update({ lab_status: 'In Progress' })
+          .update({ lab_status: 'Delivery In-Progress' })
           .eq('lab_status', 'Pending')
           .eq('start_date', today);
 
@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
               id: delivery.id,
               type: 'delivery',
               oldStatus: 'Pending',
-              newStatus: 'In Progress',
+              newStatus: 'Delivery In-Progress',
               assignedTo: delivery.assigned_to,
               client: delivery.client,
             });
@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
               request_type: 'delivery',
               action: 'status_changed',
               old_values: { status: 'Pending' },
-              new_values: { status: 'In Progress' },
+              new_values: { status: 'Delivery In-Progress' },
               performed_by: null,
             });
           }
@@ -132,12 +132,12 @@ Deno.serve(async (req) => {
       errors.push(`Exception in starting deliveries: ${errorMessage}`);
     }
 
-    // 3. Delivery End Date passed -> In Progress to Ready
+    // 3. Delivery End Date passed -> Delivery In-Progress to Delivered
     try {
       const { data: endingDeliveries, error: endingError } = await supabase
         .from('delivery_requests')
         .select('id, lab_status, assigned_to, client, end_date')
-        .eq('lab_status', 'In Progress')
+        .eq('lab_status', 'Delivery In-Progress')
         .lt('end_date', today)
         .not('end_date', 'is', null);
 
@@ -148,8 +148,8 @@ Deno.serve(async (req) => {
         
         const { error: updateError } = await supabase
           .from('delivery_requests')
-          .update({ lab_status: 'Ready' })
-          .eq('lab_status', 'In Progress')
+          .update({ lab_status: 'Delivered' })
+          .eq('lab_status', 'Delivery In-Progress')
           .lt('end_date', today)
           .not('end_date', 'is', null);
 
@@ -160,8 +160,8 @@ Deno.serve(async (req) => {
             transitions.push({
               id: delivery.id,
               type: 'delivery',
-              oldStatus: 'In Progress',
-              newStatus: 'Ready',
+              oldStatus: 'Delivery In-Progress',
+              newStatus: 'Delivered',
               assignedTo: delivery.assigned_to,
               client: delivery.client,
             });
@@ -170,8 +170,8 @@ Deno.serve(async (req) => {
               request_id: delivery.id,
               request_type: 'delivery',
               action: 'status_changed',
-              old_values: { status: 'In Progress' },
-              new_values: { status: 'Ready' },
+              old_values: { status: 'Delivery In-Progress' },
+              new_values: { status: 'Delivered' },
               performed_by: null,
             });
           }
@@ -182,36 +182,36 @@ Deno.serve(async (req) => {
       errors.push(`Exception in ending deliveries: ${errorMessage}`);
     }
 
-    // 4. End Date + 3 days passed -> Ready to Completed
+    // 4. Work-in-Progress end date passed -> Work-in-Progress to Test Credentials Shared
     try {
-      const { data: completingDeliveries, error: completingError } = await supabase
+      const { data: wipDeliveries, error: wipError } = await supabase
         .from('delivery_requests')
         .select('id, lab_status, assigned_to, client, end_date')
-        .eq('lab_status', 'Ready')
-        .lt('end_date', threeDaysAgo)
+        .eq('lab_status', 'Work-in-Progress')
+        .lt('end_date', today)
         .not('end_date', 'is', null);
 
-      if (completingError) {
-        errors.push(`Error fetching completing deliveries: ${completingError.message}`);
-      } else if (completingDeliveries && completingDeliveries.length > 0) {
-        console.log(`Found ${completingDeliveries.length} deliveries ready for completion`);
+      if (wipError) {
+        errors.push(`Error fetching WIP deliveries: ${wipError.message}`);
+      } else if (wipDeliveries && wipDeliveries.length > 0) {
+        console.log(`Found ${wipDeliveries.length} WIP deliveries past end date`);
         
         const { error: updateError } = await supabase
           .from('delivery_requests')
-          .update({ lab_status: 'Completed' })
-          .eq('lab_status', 'Ready')
-          .lt('end_date', threeDaysAgo)
+          .update({ lab_status: 'Test Credentials Shared' })
+          .eq('lab_status', 'Work-in-Progress')
+          .lt('end_date', today)
           .not('end_date', 'is', null);
 
         if (updateError) {
-          errors.push(`Error updating completing deliveries: ${updateError.message}`);
+          errors.push(`Error updating WIP deliveries: ${updateError.message}`);
         } else {
-          for (const delivery of completingDeliveries) {
+          for (const delivery of wipDeliveries) {
             transitions.push({
               id: delivery.id,
               type: 'delivery',
-              oldStatus: 'Ready',
-              newStatus: 'Completed',
+              oldStatus: 'Work-in-Progress',
+              newStatus: 'Test Credentials Shared',
               assignedTo: delivery.assigned_to,
               client: delivery.client,
             });
@@ -220,8 +220,8 @@ Deno.serve(async (req) => {
               request_id: delivery.id,
               request_type: 'delivery',
               action: 'status_changed',
-              old_values: { status: 'Ready' },
-              new_values: { status: 'Completed' },
+              old_values: { status: 'Work-in-Progress' },
+              new_values: { status: 'Test Credentials Shared' },
               performed_by: null,
             });
           }
@@ -229,7 +229,7 @@ Deno.serve(async (req) => {
       }
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : String(e);
-      errors.push(`Exception in completing deliveries: ${errorMessage}`);
+      errors.push(`Exception in WIP deliveries: ${errorMessage}`);
     }
 
     const response = {
