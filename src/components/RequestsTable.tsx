@@ -9,18 +9,25 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2 } from 'lucide-react';
+import { Trash2, ArrowRight } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
 import { getStatusColor, getCloudColor, getCloudTypeColor, getTPLabTypeColor, getLOBColor } from '@/lib/statusColors';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface RequestsTableProps {
   requests: LabRequest[];
   onDelete: (id: string) => void;
+  onConvertToDelivery?: (request: LabRequest) => Promise<void>;
 }
 
-export const RequestsTable = ({ requests, onDelete }: RequestsTableProps) => {
+export const RequestsTable = ({ requests, onDelete, onConvertToDelivery }: RequestsTableProps) => {
   if (requests.length === 0) {
     return (
       <div className="form-section text-center py-12">
@@ -32,7 +39,7 @@ export const RequestsTable = ({ requests, onDelete }: RequestsTableProps) => {
   return (
     <div className="form-section p-0 overflow-hidden">
       <ScrollArea className="w-full max-h-[calc(100vh-300px)]">
-        <div className="min-w-[1200px]">
+        <div className="min-w-[1400px]">
           <Table>
             <TableHeader className="sticky top-0 z-10 bg-muted">
               <TableRow className="bg-muted/50">
@@ -50,7 +57,7 @@ export const RequestsTable = ({ requests, onDelete }: RequestsTableProps) => {
                 <TableHead className="font-semibold">Total Amount</TableHead>
                 <TableHead className="font-semibold">Margin</TableHead>
                 <TableHead className="font-semibold">Status</TableHead>
-                <TableHead className="font-semibold w-[80px]">Actions</TableHead>
+                <TableHead className="font-semibold w-[120px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -103,14 +110,35 @@ export const RequestsTable = ({ requests, onDelete }: RequestsTableProps) => {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDelete(request.id)}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      {onConvertToDelivery && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => onConvertToDelivery(request)}
+                                className="text-primary hover:text-primary hover:bg-primary/10"
+                              >
+                                <ArrowRight className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Convert to Delivery</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDelete(request.id)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

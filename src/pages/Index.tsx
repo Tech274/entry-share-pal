@@ -11,9 +11,10 @@ import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { ClipboardList, Truck, LayoutDashboard, Database, Calendar } from 'lucide-react';
+import { LabRequest } from '@/types/labRequest';
 
 const Index = () => {
-  const { requests, addRequest, deleteRequest, clearAll, bulkInsert } = useLabRequests();
+  const { requests, addRequest, deleteRequest, clearAll, bulkInsert, refetch: refetchLabRequests } = useLabRequests();
   const { 
     requests: deliveryRequests, 
     addRequest: addDeliveryRequest,
@@ -84,6 +85,54 @@ const Index = () => {
     });
   };
 
+  // Convert solution to delivery - creates delivery record and DB trigger auto-removes the solution
+  const handleConvertToDelivery = async (request: LabRequest) => {
+    try {
+      await addDeliveryRequest({
+        potentialId: request.potentialId,
+        freshDeskTicketNumber: request.freshDeskTicketNumber,
+        trainingName: request.labName,
+        numberOfUsers: request.userCount,
+        month: request.month,
+        year: request.year,
+        receivedOn: request.receivedOn,
+        client: request.client,
+        cloud: request.cloud,
+        cloudType: request.cloudType,
+        tpLabType: request.tpLabType,
+        labName: request.labName,
+        requester: request.requester,
+        agentName: request.agentName,
+        accountManager: request.accountManager,
+        labStatus: 'Pending',
+        labType: '',
+        startDate: request.labStartDate,
+        endDate: request.labEndDate,
+        labSetupRequirement: '',
+        inputCostPerUser: request.inputCostPerUser,
+        sellingCostPerUser: request.sellingCostPerUser,
+        totalAmount: request.totalAmountForTraining,
+        lineOfBusiness: request.lineOfBusiness,
+        invoiceDetails: request.invoiceDetails,
+      });
+      
+      // Refetch lab requests to reflect auto-removal by DB trigger
+      await refetchLabRequests();
+      
+      toast({
+        title: 'Converted to Delivery',
+        description: 'Solution has been moved to Delivery workflow.',
+      });
+    } catch (error) {
+      console.error('Error converting to delivery:', error);
+      toast({
+        title: 'Conversion Failed',
+        description: 'There was an error converting to delivery.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Finance users have limited tabs
   const showOperationalTabs = !isFinance;
 
@@ -144,6 +193,8 @@ const Index = () => {
                   requests={requests}
                   onSubmit={handleSubmit}
                   onDelete={handleDelete}
+                  onBulkInsert={bulkInsert}
+                  onConvertToDelivery={handleConvertToDelivery}
                 />
               </TabsContent>
 

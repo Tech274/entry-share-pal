@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DeliveryRequestForm } from '@/components/DeliveryRequestForm';
 import { DeliveryTable } from '@/components/DeliveryTable';
 import { DeliveryRequest } from '@/types/deliveryRequest';
-import { Truck, FileText, Upload, CheckCircle, Clock, ListFilter } from 'lucide-react';
+import { Truck, FileText, Upload, CheckCircle, Clock, ListFilter, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,7 @@ export const DeliveryTabContent = ({
   // Filter requests by status
   const deliveredRequests = requests.filter(r => r.labStatus === 'Delivered' || r.labStatus === 'Completed');
   const inProgressRequests = requests.filter(r => r.labStatus === 'Delivery In-Progress' || r.labStatus === 'Work-in-Progress');
+  const testCredentialsRequests = requests.filter(r => r.labStatus === 'Test Credentials Shared');
 
   const getFilteredRequests = () => {
     switch (listSubTab) {
@@ -35,6 +36,8 @@ export const DeliveryTabContent = ({
         return deliveredRequests;
       case 'in-progress':
         return inProgressRequests;
+      case 'test-credentials':
+        return testCredentialsRequests;
       default:
         return requests;
     }
@@ -224,6 +227,18 @@ export const DeliveryTabContent = ({
             In-Progress
             <Badge variant="secondary" className="ml-1">
               {inProgressRequests.length}
+            </Badge>
+          </Button>
+          <Button
+            variant={listSubTab === 'test-credentials' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setListSubTab('test-credentials')}
+            className="gap-2"
+          >
+            <Share2 className="w-4 h-4" />
+            Test Credentials
+            <Badge variant="secondary" className="ml-1">
+              {testCredentialsRequests.length}
             </Badge>
           </Button>
         </div>
