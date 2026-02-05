@@ -34,8 +34,8 @@ export const DeliveryTabContent = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [listSubTab, setListSubTab] = useState<string>('all');
 
-  // Filter requests by status
-  const deliveredRequests = requests.filter(r => r.labStatus === 'Delivered' || r.labStatus === 'Completed');
+  // Filter requests by status (exclude Completed from these filters as it has its own tab)
+  const deliveredRequests = requests.filter(r => r.labStatus === 'Delivered');
   const inProgressRequests = requests.filter(r => r.labStatus === 'Delivery In-Progress' || r.labStatus === 'Work-in-Progress');
   const testCredentialsRequests = requests.filter(r => r.labStatus === 'Test Credentials Shared');
 
@@ -179,17 +179,25 @@ export const DeliveryTabContent = ({
     }
   };
 
+  // Filter completed requests for the Completed tab
+  const completedRequests = requests.filter(r => r.labStatus === 'Completed');
+  const activeRequests = requests.filter(r => r.labStatus !== 'Completed');
+
   return (
     <Tabs defaultValue="form" className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-xl grid-cols-3">
           <TabsTrigger value="form" className="gap-2">
             <FileText className="w-4 h-4" />
             Entry Form
           </TabsTrigger>
           <TabsTrigger value="list" className="gap-2">
             <Truck className="w-4 h-4" />
-            Requests List ({requests.length})
+            Requests List ({activeRequests.length})
+          </TabsTrigger>
+          <TabsTrigger value="completed" className="gap-2">
+            <CheckCircle className="w-4 h-4" />
+            Completed ({completedRequests.length})
           </TabsTrigger>
         </TabsList>
 
@@ -273,6 +281,17 @@ export const DeliveryTabContent = ({
         </div>
 
         <DeliveryTable requests={getFilteredRequests()} onDelete={onDelete} />
+      </TabsContent>
+
+      <TabsContent value="completed" className="space-y-4">
+        <div className="flex items-center gap-2 p-3 bg-accent/50 border border-accent rounded-lg">
+          <CheckCircle className="w-5 h-5 text-primary" />
+          <span className="text-sm font-medium">Completed Deliveries</span>
+          <Badge variant="secondary" className="ml-auto">
+            {completedRequests.length} records
+          </Badge>
+        </div>
+        <DeliveryTable requests={completedRequests} onDelete={onDelete} />
       </TabsContent>
     </Tabs>
   );
