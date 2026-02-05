@@ -180,8 +180,12 @@ export const ADRTabContent = ({
       )}
 
       {/* Cloud Type Sub-tabs */}
-      <Tabs defaultValue="public-cloud" className="space-y-6">
-        <TabsList className="grid w-full max-w-2xl grid-cols-3">
+      <Tabs defaultValue="overall" className="space-y-6">
+        <TabsList className="grid w-full max-w-3xl grid-cols-4">
+          <TabsTrigger value="overall" className="gap-2">
+            <Building2 className="w-4 h-4" />
+            Overall ({labRequests.length + adrDeliveryRequests.length})
+          </TabsTrigger>
           <TabsTrigger value="public-cloud" className="gap-2">
             <Cloud className="w-4 h-4" />
             Public Cloud ({publicCloudLabRequests.length + publicCloudDeliveryRequests.length})
@@ -195,6 +199,17 @@ export const ADRTabContent = ({
             Third-Party Labs ({tpLabsLabRequests.length + tpLabsDeliveryRequests.length})
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="overall">
+          <CloudTabContent
+            title="All Delivery Records"
+            icon={<Building2 className="w-5 h-5" />}
+            labRequests={labRequests}
+            deliveryRequests={adrDeliveryRequests}
+            onLabDelete={onLabDelete}
+            onDeliveryDelete={onDeliveryDelete}
+          />
+        </TabsContent>
 
         <TabsContent value="public-cloud">
           <CloudTabContent
