@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import {
   Table,
@@ -21,6 +22,22 @@ interface DeliveryTableProps {
 }
 
 export const DeliveryTable = ({ requests, onDelete }: DeliveryTableProps) => {
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+
+  const toggleRowSelection = (id: string) => {
+    setSelectedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const isRowSelected = (id: string) => selectedRows.has(id);
+
   if (requests.length === 0) {
     return (
       <div className="form-section text-center py-12">
@@ -32,10 +49,11 @@ export const DeliveryTable = ({ requests, onDelete }: DeliveryTableProps) => {
   return (
     <div className="form-section p-0 overflow-hidden">
       <ScrollArea className="w-full h-[calc(100vh-300px)]">
-        <div className="min-w-[1400px]">
+        <div className="min-w-[1500px]">
           <Table>
             <TableHeader className="sticky top-0 z-10 bg-muted">
               <TableRow className="bg-muted/50">
+                <TableHead className="font-semibold w-[50px] sticky left-0 bg-muted z-20">#</TableHead>
                 <TableHead className="font-semibold">LOB</TableHead>
                 <TableHead className="font-semibold">Potential ID</TableHead>
                 <TableHead className="font-semibold">Ticket #</TableHead>
@@ -56,8 +74,27 @@ export const DeliveryTable = ({ requests, onDelete }: DeliveryTableProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {requests.map((request) => (
-                <TableRow key={request.id} className="hover:bg-muted/30 transition-colors">
+              {requests.map((request, index) => (
+                <TableRow 
+                  key={request.id} 
+                  className={cn(
+                    "transition-colors cursor-pointer",
+                    isRowSelected(request.id) 
+                      ? "bg-primary/10 hover:bg-primary/15" 
+                      : "hover:bg-muted/30"
+                  )}
+                  onClick={() => toggleRowSelection(request.id)}
+                >
+                  <TableCell 
+                    className={cn(
+                      "font-medium sticky left-0 z-10 border-r",
+                      isRowSelected(request.id) 
+                        ? "bg-primary/20 text-primary" 
+                        : "bg-card"
+                    )}
+                  >
+                    {index + 1}
+                  </TableCell>
                   <TableCell>
                     {request.lineOfBusiness ? (
                       <Badge variant="outline" className={cn('text-xs', getLOBColor(request.lineOfBusiness))}>
@@ -116,7 +153,10 @@ export const DeliveryTable = ({ requests, onDelete }: DeliveryTableProps) => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => onDelete(request.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(request.id);
+                      }}
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="w-4 h-4" />
