@@ -5,6 +5,7 @@ import { DeliveryTabContent } from '@/components/DeliveryTabContent';
 import { ADRTabContent } from '@/components/ADRTabContent';
 import { CalendarView } from '@/components/CalendarView';
 import { Header } from '@/components/Header';
+import { AIAssistant } from '@/components/AIAssistant';
 import { useLabRequests } from '@/hooks/useLabRequests';
 import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
@@ -12,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { ClipboardList, Truck, LayoutDashboard, Database, Calendar } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
+import { useMemo } from 'react';
 
 const Index = () => {
   const { requests, addRequest, deleteRequest, clearAll, bulkInsert, refetch: refetchLabRequests } = useLabRequests();
@@ -136,6 +138,13 @@ const Index = () => {
   // Finance users have limited tabs
   const showOperationalTabs = !isFinance;
 
+  // AI Assistant context
+  const aiContext = useMemo(() => ({
+    solutionsCount: requests.length,
+    deliveriesCount: deliveryRequests.length,
+    pendingCount: requests.filter(r => r.status === 'Solution Pending').length,
+  }), [requests, deliveryRequests]);
+
   return (
     <div className="min-h-screen bg-background">
       <Header
@@ -229,6 +238,9 @@ const Index = () => {
           )}
         </Tabs>
       </main>
+
+      {/* AI Assistant */}
+      <AIAssistant context={aiContext} />
     </div>
   );
 };
