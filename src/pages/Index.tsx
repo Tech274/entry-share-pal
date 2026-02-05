@@ -3,16 +3,17 @@ import { RoleBasedDashboard } from '@/components/RoleBasedDashboard';
 import { SolutionsTabContent } from '@/components/SolutionsTabContent';
 import { DeliveryTabContent } from '@/components/DeliveryTabContent';
 import { ADRTabContent } from '@/components/ADRTabContent';
+import { CalendarView } from '@/components/CalendarView';
 import { Header } from '@/components/Header';
 import { useLabRequests } from '@/hooks/useLabRequests';
 import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { ClipboardList, Truck, LayoutDashboard, Database } from 'lucide-react';
+import { ClipboardList, Truck, LayoutDashboard, Database, Calendar } from 'lucide-react';
 
 const Index = () => {
-  const { requests, addRequest, deleteRequest, clearAll } = useLabRequests();
+  const { requests, addRequest, deleteRequest, clearAll, bulkInsert } = useLabRequests();
   const { 
     requests: deliveryRequests, 
     addRequest: addDeliveryRequest,
@@ -98,7 +99,7 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className={`grid w-full ${isFinance ? 'max-w-md grid-cols-2' : 'max-w-2xl grid-cols-4'}`}>
+          <TabsList className={`grid w-full ${isFinance ? 'max-w-md grid-cols-2' : 'max-w-3xl grid-cols-5'}`}>
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="w-4 h-4" />
               Dashboard
@@ -116,6 +117,10 @@ const Index = () => {
                 <TabsTrigger value="adr" className="gap-2">
                   <Database className="w-4 h-4" />
                   ADR
+                </TabsTrigger>
+                <TabsTrigger value="calendar" className="gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Calendar
                 </TabsTrigger>
               </>
             )}
@@ -155,7 +160,12 @@ const Index = () => {
                   deliveryRequests={deliveryRequests}
                   onLabDelete={handleDelete}
                   onDeliveryDelete={handleDeliveryDelete}
+                  onBulkImport={bulkInsert}
                 />
+              </TabsContent>
+
+              <TabsContent value="calendar" className="space-y-6">
+                <CalendarView labRequests={requests} deliveryRequests={deliveryRequests} />
               </TabsContent>
             </>
           )}
