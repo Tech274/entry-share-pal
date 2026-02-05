@@ -65,11 +65,25 @@ export const GlobalSearch = ({ labRequests, deliveryRequests }: GlobalSearchProp
 
       const content = data?.content;
       if (content) {
-        // Parse JSON from AI response
-        const jsonMatch = content.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const criteria = JSON.parse(jsonMatch[0]) as AISearchCriteria;
+        // Parse JSON from AI response - handle markdown code blocks
+        let jsonStr = content;
+        // Remove markdown code blocks if present
+        const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          jsonStr = codeBlockMatch[1].trim();
+        } else {
+          // Try to find raw JSON object
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            jsonStr = jsonMatch[0];
+          }
+        }
+        
+        try {
+          const criteria = JSON.parse(jsonStr) as AISearchCriteria;
           setAiCriteria(criteria);
+        } catch (parseError) {
+          console.error('Failed to parse AI search criteria:', parseError);
         }
       }
     } catch (error) {
