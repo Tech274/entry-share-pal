@@ -1,18 +1,15 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LabRequestForm } from '@/components/LabRequestForm';
-import { DeliveryRequestForm } from '@/components/DeliveryRequestForm';
-import { RequestsTable } from '@/components/RequestsTable';
-import { DeliveryTable } from '@/components/DeliveryTable';
 import { RoleBasedDashboard } from '@/components/RoleBasedDashboard';
-import { CalendarView } from '@/components/CalendarView';
-import { CloudTabContent } from '@/components/CloudTabContent';
+import { SolutionsTabContent } from '@/components/SolutionsTabContent';
+import { DeliveryTabContent } from '@/components/DeliveryTabContent';
+import { ADRTabContent } from '@/components/ADRTabContent';
 import { Header } from '@/components/Header';
 import { useLabRequests } from '@/hooks/useLabRequests';
 import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { ClipboardList, Truck, TableProperties, LayoutDashboard, Calendar, Cloud, Server, Building2 } from 'lucide-react';
+import { ClipboardList, Truck, LayoutDashboard, Database } from 'lucide-react';
 
 const Index = () => {
   const { requests, addRequest, deleteRequest, clearAll } = useLabRequests();
@@ -22,7 +19,7 @@ const Index = () => {
     deleteRequest: deleteDeliveryRequest
   } = useDeliveryRequests();
   const { toast } = useToast();
-  const { role, isFinance } = useAuth();
+  const { isFinance } = useAuth();
 
   const handleDeliveryDelete = (id: string) => {
     deleteDeliveryRequest(id);
@@ -88,15 +85,6 @@ const Index = () => {
   // Finance users have limited tabs
   const showOperationalTabs = !isFinance;
 
-  // Filter requests by cloud type for cloud-based tabs
-  const privateCloudLabRequests = requests.filter(r => r.cloud === 'Private Cloud');
-  const publicCloudLabRequests = requests.filter(r => r.cloud === 'Public Cloud');
-  const tpLabsLabRequests = requests.filter(r => r.cloud === 'TP Labs');
-
-  const privateCloudDeliveryRequests = deliveryRequests.filter(r => r.cloud === 'Private Cloud');
-  const publicCloudDeliveryRequests = deliveryRequests.filter(r => r.cloud === 'Public Cloud');
-  const tpLabsDeliveryRequests = deliveryRequests.filter(r => r.cloud === 'TP Labs');
-
   return (
     <div className="min-h-screen bg-background">
       <Header
@@ -110,17 +98,13 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className={`grid w-full ${isFinance ? 'max-w-md grid-cols-2' : 'max-w-6xl grid-cols-9'}`}>
+          <TabsList className={`grid w-full ${isFinance ? 'max-w-md grid-cols-2' : 'max-w-2xl grid-cols-4'}`}>
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="w-4 h-4" />
               Dashboard
             </TabsTrigger>
             {showOperationalTabs && (
               <>
-                <TabsTrigger value="calendar" className="gap-2">
-                  <Calendar className="w-4 h-4" />
-                  Calendar
-                </TabsTrigger>
                 <TabsTrigger value="solutions" className="gap-2">
                   <ClipboardList className="w-4 h-4" />
                   Solutions
@@ -129,31 +113,15 @@ const Index = () => {
                   <Truck className="w-4 h-4" />
                   Delivery
                 </TabsTrigger>
-                <TabsTrigger value="solutions-table" className="gap-2">
-                  <TableProperties className="w-4 h-4" />
-                  Solutions ({requests.length})
-                </TabsTrigger>
-                <TabsTrigger value="delivery-table" className="gap-2">
-                  <TableProperties className="w-4 h-4" />
-                  Delivery ({deliveryRequests.length})
-                </TabsTrigger>
-                <TabsTrigger value="private-cloud" className="gap-2">
-                  <Server className="w-4 h-4" />
-                  Private ({privateCloudLabRequests.length + privateCloudDeliveryRequests.length})
-                </TabsTrigger>
-                <TabsTrigger value="public-cloud" className="gap-2">
-                  <Cloud className="w-4 h-4" />
-                  Public ({publicCloudLabRequests.length + publicCloudDeliveryRequests.length})
-                </TabsTrigger>
-                <TabsTrigger value="tp-labs" className="gap-2">
-                  <Building2 className="w-4 h-4" />
-                  TP Labs ({tpLabsLabRequests.length + tpLabsDeliveryRequests.length})
+                <TabsTrigger value="adr" className="gap-2">
+                  <Database className="w-4 h-4" />
+                  ADR
                 </TabsTrigger>
               </>
             )}
             {isFinance && (
               <TabsTrigger value="reports" className="gap-2">
-                <TableProperties className="w-4 h-4" />
+                <Database className="w-4 h-4" />
                 Reports
               </TabsTrigger>
             )}
@@ -165,54 +133,26 @@ const Index = () => {
 
           {showOperationalTabs && (
             <>
-              <TabsContent value="calendar" className="space-y-6">
-                <CalendarView labRequests={requests} deliveryRequests={deliveryRequests} />
-              </TabsContent>
-
               <TabsContent value="solutions" className="space-y-6">
-                <LabRequestForm onSubmit={handleSubmit} />
+                <SolutionsTabContent
+                  requests={requests}
+                  onSubmit={handleSubmit}
+                  onDelete={handleDelete}
+                />
               </TabsContent>
 
               <TabsContent value="delivery" className="space-y-6">
-                <DeliveryRequestForm onSubmit={handleDeliverySubmit} />
-              </TabsContent>
-
-              <TabsContent value="solutions-table">
-                <RequestsTable requests={requests} onDelete={handleDelete} />
-              </TabsContent>
-
-              <TabsContent value="delivery-table">
-                <DeliveryTable requests={deliveryRequests} onDelete={handleDeliveryDelete} />
-              </TabsContent>
-
-              <TabsContent value="private-cloud" className="space-y-6">
-                <CloudTabContent
-                  title="Private Cloud"
-                  icon={<Server className="w-5 h-5" />}
-                  labRequests={privateCloudLabRequests}
-                  deliveryRequests={privateCloudDeliveryRequests}
-                  onLabDelete={handleDelete}
-                  onDeliveryDelete={handleDeliveryDelete}
+                <DeliveryTabContent
+                  requests={deliveryRequests}
+                  onSubmit={handleDeliverySubmit}
+                  onDelete={handleDeliveryDelete}
                 />
               </TabsContent>
 
-              <TabsContent value="public-cloud" className="space-y-6">
-                <CloudTabContent
-                  title="Public Cloud"
-                  icon={<Cloud className="w-5 h-5" />}
-                  labRequests={publicCloudLabRequests}
-                  deliveryRequests={publicCloudDeliveryRequests}
-                  onLabDelete={handleDelete}
-                  onDeliveryDelete={handleDeliveryDelete}
-                />
-              </TabsContent>
-
-              <TabsContent value="tp-labs" className="space-y-6">
-                <CloudTabContent
-                  title="Third-Party Labs"
-                  icon={<Building2 className="w-5 h-5" />}
-                  labRequests={tpLabsLabRequests}
-                  deliveryRequests={tpLabsDeliveryRequests}
+              <TabsContent value="adr" className="space-y-6">
+                <ADRTabContent
+                  labRequests={requests}
+                  deliveryRequests={deliveryRequests}
                   onLabDelete={handleDelete}
                   onDeliveryDelete={handleDeliveryDelete}
                 />
