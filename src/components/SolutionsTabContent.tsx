@@ -3,8 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LabRequestForm } from '@/components/LabRequestForm';
 import { RequestsTable } from '@/components/RequestsTable';
 import { LabRequest } from '@/types/labRequest';
-import { DeliveryRequest } from '@/types/deliveryRequest';
-import { ClipboardList, FileText, Upload, CheckCircle, Clock, ListFilter, ArrowRight } from 'lucide-react';
+
+import { ClipboardList, FileText, Upload, CheckCircle, Clock, ListFilter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
