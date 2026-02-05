@@ -3,11 +3,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LabRequestForm } from '@/components/LabRequestForm';
 import { RequestsTable } from '@/components/RequestsTable';
 import { LabRequest } from '@/types/labRequest';
-
-import { ClipboardList, FileText, Upload, CheckCircle, Clock, ListFilter } from 'lucide-react';
+import { ClipboardList, FileText, Upload, CheckCircle, Clock, ListFilter, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+
+const SOLUTIONS_CSV_HEADERS = [
+  'Potential ID', 'FreshDesk Ticket Number', 'Client', 'Month', 'Year',
+  'Lab Type', 'Cloud Type', 'TP Lab Type', 'Lab Name', 'Requester',
+  'Received On', 'Lab Start Date', 'Lab End Date', 'User Count',
+  'Duration', 'Input Cost Per User', 'Selling Cost Per User',
+  'Total Amount', 'Margin', 'Status', 'Line of Business', 'Invoice Details', 'Remarks'
+];
 
 interface SolutionsTabContentProps {
   requests: LabRequest[];
@@ -45,6 +52,20 @@ export const SolutionsTabContent = ({
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleDownloadTemplate = () => {
+    const csvContent = SOLUTIONS_CSV_HEADERS.join(',') + '\n';
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'solutions-import-template.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast({
+      title: 'Template Downloaded',
+      description: 'Fill in the template and use Import to upload your data.',
+    });
   };
 
   const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,17 +185,23 @@ export const SolutionsTabContent = ({
           </TabsTrigger>
         </TabsList>
 
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileImport}
-          accept=".csv,.xls,.xlsx"
-          className="hidden"
-        />
-        <Button variant="outline" onClick={handleImportClick} className="gap-2">
-          <Upload className="w-4 h-4" />
-          Import
-        </Button>
+        <div className="flex items-center gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileImport}
+            accept=".csv,.xls,.xlsx"
+            className="hidden"
+          />
+          <Button variant="outline" onClick={handleDownloadTemplate} className="gap-2">
+            <Download className="w-4 h-4" />
+            Template
+          </Button>
+          <Button variant="outline" onClick={handleImportClick} className="gap-2">
+            <Upload className="w-4 h-4" />
+            Import
+          </Button>
+        </div>
       </div>
 
       <TabsContent value="form" className="space-y-6">
