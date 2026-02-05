@@ -362,19 +362,6 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="labType">Lab Type</Label>
-            <Select value={formData.labType} onValueChange={v => handleChange('labType', v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                {LAB_TYPE_OPTIONS.map(t => (
-                  <SelectItem key={t} value={t}>{t}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="startDate">Start Date</Label>
             <Input
               id="startDate"
