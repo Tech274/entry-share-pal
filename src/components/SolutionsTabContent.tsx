@@ -16,6 +16,14 @@ const SOLUTIONS_CSV_HEADERS = [
   'Total Amount', 'Margin', 'Status', 'Line of Business', 'Invoice Details', 'Remarks'
 ];
 
+const SOLUTIONS_SAMPLE_ROW = [
+  'POT-2025-001', 'FD-12345', 'Acme Corp', 'February', '2025',
+  'Public Cloud', 'AWS', '', 'Azure Fundamentals', 'John Doe',
+  '2025-02-01', '2025-02-10', '2025-02-15', '25',
+  '5', '500', '750',
+  '18750', '33', 'Solution Pending', 'Standalone', 'INV-2025-001', 'Sample training request'
+];
+
 interface SolutionsTabContentProps {
   requests: LabRequest[];
   onSubmit: (data: Omit<LabRequest, 'id' | 'createdAt'>) => void;
@@ -55,7 +63,7 @@ export const SolutionsTabContent = ({
   };
 
   const handleDownloadTemplate = () => {
-    const csvContent = SOLUTIONS_CSV_HEADERS.join(',') + '\n';
+    const csvContent = SOLUTIONS_CSV_HEADERS.join(',') + '\n' + SOLUTIONS_SAMPLE_ROW.join(',') + '\n';
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
