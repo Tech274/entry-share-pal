@@ -17,7 +17,8 @@ const Index = () => {
   const { 
     requests: deliveryRequests, 
     addRequest: addDeliveryRequest,
-    deleteRequest: deleteDeliveryRequest
+    deleteRequest: deleteDeliveryRequest,
+    bulkInsert: bulkInsertDelivery
   } = useDeliveryRequests();
   const { toast } = useToast();
   const { isFinance } = useAuth();
@@ -151,6 +152,7 @@ const Index = () => {
                   requests={deliveryRequests}
                   onSubmit={handleDeliverySubmit}
                   onDelete={handleDeliveryDelete}
+                  onBulkInsert={bulkInsertDelivery}
                 />
               </TabsContent>
 
