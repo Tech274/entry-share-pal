@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -9,11 +10,25 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+interface SharedItem {
+  id?: string;
+  name: string;
+  category: string;
+  description?: string;
+}
+
 interface ShareCatalogRequest {
   recipientEmail: string;
   recipientName?: string;
   personalMessage?: string;
   catalogUrl: string;
+  shareType?: 'catalog' | 'template' | 'bundle';
+  sharedItems?: SharedItem[];
+}
+
+// Generate a unique share ID for tracking
+function generateShareId(): string {
+  return `share_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -23,9 +38,16 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { recipientEmail, recipientName, personalMessage, catalogUrl }: ShareCatalogRequest = await req.json();
+    const { 
+      recipientEmail, 
+      recipientName, 
+      personalMessage, 
+      catalogUrl,
+      shareType = 'catalog',
+      sharedItems = []
+    }: ShareCatalogRequest = await req.json();
 
-    console.log(`Sending catalog share email to ${recipientEmail}`);
+    console.log(`Sending ${shareType} share email to ${recipientEmail}`, { itemCount: sharedItems.length });
 
     // Validate required fields
     if (!recipientEmail) {
@@ -42,6 +64,37 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Invalid email address format");
     }
 
+    // Generate share ID for tracking
+    const shareId = generateShareId();
+    
+    // Create Supabase client with service role for inserting tracking record
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    if (supabaseUrl && supabaseServiceKey) {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      
+      // Insert tracking record
+      const { error: trackingError } = await supabase
+        .from('catalog_share_tracking')
+        .insert({
+          share_id: shareId,
+          recipient_email: recipientEmail,
+          recipient_name: recipientName || null,
+          share_type: shareType,
+          shared_items: sharedItems.length > 0 ? sharedItems : null,
+          personal_message: personalMessage || null,
+          catalog_url: catalogUrl,
+        });
+      
+      if (trackingError) {
+        console.error("Error creating tracking record:", trackingError);
+        // Don't fail the email send if tracking fails
+      } else {
+        console.log("Tracking record created:", shareId);
+      }
+    }
+
     const greeting = recipientName 
       ? `Hi ${recipientName},` 
       : 'Hi there,';
@@ -50,7 +103,51 @@ const handler = async (req: Request): Promise<Response> => {
       ? `<p style="margin: 20px 0; padding: 15px; background: #f0f7ff; border-left: 4px solid #0066cc; border-radius: 4px; font-style: italic;">"${personalMessage}"</p>` 
       : '';
 
-    const subject = 'MakeMyLabs Lab Catalog - Explore Our Training Solutions';
+    // Build subject and content based on share type
+    let subject: string;
+    let introText: string;
+    let itemsSection = '';
+
+    if (shareType === 'template' && sharedItems.length > 0) {
+      const templateName = sharedItems[0].name;
+      subject = `MakeMyLabs Lab Recommendation: ${templateName}`;
+      introText = `Someone shared a lab template with you from the <strong>MakeMyLabs Lab Catalog</strong>.`;
+      
+      itemsSection = `
+        <div style="margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+          <h3 style="margin: 0 0 10px; font-size: 18px; color: #333;">${sharedItems[0].name}</h3>
+          <p style="margin: 0 0 10px; color: #666; font-size: 14px;">${sharedItems[0].description || ''}</p>
+          <span style="display: inline-block; padding: 4px 12px; background: #e6f0ff; color: #0066cc; border-radius: 20px; font-size: 12px;">${sharedItems[0].category}</span>
+        </div>
+      `;
+    } else if (shareType === 'bundle' && sharedItems.length > 0) {
+      subject = `MakeMyLabs Lab Bundle: ${sharedItems.length} Labs Selected for You`;
+      introText = `Someone has curated a bundle of ${sharedItems.length} labs for you from the <strong>MakeMyLabs Lab Catalog</strong>.`;
+      
+      const labsList = sharedItems.map(item => `
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid #eee;">
+            <div style="font-weight: 600; color: #333;">${item.name}</div>
+            <div style="font-size: 12px; color: #666; margin-top: 4px;">${item.category}</div>
+          </td>
+        </tr>
+      `).join('');
+      
+      itemsSection = `
+        <div style="margin: 20px 0;">
+          <h3 style="margin: 0 0 15px; font-size: 16px; color: #333;">Labs in this bundle:</h3>
+          <table width="100%" cellpadding="0" cellspacing="0" style="background: #f8f9fa; border-radius: 8px; overflow: hidden;">
+            ${labsList}
+          </table>
+        </div>
+      `;
+    } else {
+      subject = 'MakeMyLabs Lab Catalog - Explore Our Training Solutions';
+      introText = `You've been invited to explore the <strong>MakeMyLabs Lab Catalog</strong> — your comprehensive resource for enterprise training solutions.`;
+    }
+
+    // Tracking pixel URL (1x1 transparent gif endpoint)
+    const trackingPixelUrl = `${supabaseUrl}/functions/v1/track-email-open?sid=${shareId}`;
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -58,7 +155,7 @@ const handler = async (req: Request): Promise<Response> => {
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>MakeMyLabs Lab Catalog</title>
+        <title>${subject}</title>
         <style>
           body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
@@ -92,30 +189,6 @@ const handler = async (req: Request): Promise<Response> => {
           .content { 
             padding: 30px 20px; 
           }
-          .stats {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 25px 0;
-            text-align: center;
-          }
-          .stat {
-            padding: 15px 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            min-width: 80px;
-          }
-          .stat-number {
-            font-size: 24px;
-            font-weight: 700;
-            color: #0066cc;
-          }
-          .stat-label {
-            font-size: 12px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          }
           .cta-button {
             display: inline-block;
             background: linear-gradient(135deg, #0066cc 0%, #004499 100%);
@@ -126,39 +199,6 @@ const handler = async (req: Request): Promise<Response> => {
             font-weight: 600;
             font-size: 16px;
             margin: 20px 0;
-          }
-          .cta-button:hover {
-            background: #004499;
-          }
-          .features {
-            margin: 30px 0;
-          }
-          .feature {
-            display: flex;
-            align-items: flex-start;
-            margin: 15px 0;
-            padding: 10px 0;
-          }
-          .feature-icon {
-            width: 40px;
-            height: 40px;
-            background: #e6f0ff;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            flex-shrink: 0;
-          }
-          .feature-text h4 {
-            margin: 0 0 5px;
-            font-size: 16px;
-            color: #333;
-          }
-          .feature-text p {
-            margin: 0;
-            font-size: 14px;
-            color: #666;
           }
           .footer { 
             text-align: center; 
@@ -178,19 +218,24 @@ const handler = async (req: Request): Promise<Response> => {
         <div class="container">
           <div class="header">
             <h1>MakeMyLabs</h1>
-            <p>Enterprise Training Lab Solutions</p>
+            <p>${shareType === 'bundle' ? 'Lab Bundle Recommendation' : shareType === 'template' ? 'Lab Template Recommendation' : 'Enterprise Training Lab Solutions'}</p>
           </div>
           <div class="content">
             <p>${greeting}</p>
             
-            <p>You've been invited to explore the <strong>MakeMyLabs Lab Catalog</strong> — your comprehensive resource for enterprise training solutions.</p>
+            <p>${introText}</p>
             
             ${personalSection}
             
+            ${itemsSection}
+            
             <div style="text-align: center;">
-              <a href="${catalogUrl}" class="cta-button">View Lab Catalog</a>
+              <a href="${catalogUrl}?ref=${shareId}" class="cta-button">
+                ${shareType === 'bundle' ? 'View Bundle Details' : shareType === 'template' ? 'View Lab Template' : 'View Lab Catalog'}
+              </a>
             </div>
             
+            ${shareType === 'catalog' ? `
             <table width="100%" cellpadding="0" cellspacing="0" style="margin: 25px 0; text-align: center;">
               <tr>
                 <td style="padding: 15px 10px; background: #f8f9fa; border-radius: 8px;">
@@ -209,51 +254,7 @@ const handler = async (req: Request): Promise<Response> => {
                 </td>
               </tr>
             </table>
-            
-            <div class="features">
-              <h3 style="margin-bottom: 20px; color: #333;">What you'll find:</h3>
-              
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding: 10px 0; vertical-align: top; width: 50px;">
-                    <div style="width: 40px; height: 40px; background: #e6f0ff; border-radius: 8px; text-align: center; line-height: 40px; font-size: 18px;">☁️</div>
-                  </td>
-                  <td style="padding: 10px 0; vertical-align: top;">
-                    <h4 style="margin: 0 0 5px; font-size: 15px;">Cloud & DevOps Labs</h4>
-                    <p style="margin: 0; font-size: 13px; color: #666;">AWS, Azure, GCP, Kubernetes, Docker, and more</p>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 10px 0; vertical-align: top; width: 50px;">
-                    <div style="width: 40px; height: 40px; background: #e6f0ff; border-radius: 8px; text-align: center; line-height: 40px; font-size: 18px;">🔒</div>
-                  </td>
-                  <td style="padding: 10px 0; vertical-align: top;">
-                    <h4 style="margin: 0 0 5px; font-size: 15px;">Security Training</h4>
-                    <p style="margin: 0; font-size: 13px; color: #666;">Cybersecurity, ethical hacking, compliance labs</p>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 10px 0; vertical-align: top; width: 50px;">
-                    <div style="width: 40px; height: 40px; background: #e6f0ff; border-radius: 8px; text-align: center; line-height: 40px; font-size: 18px;">🤖</div>
-                  </td>
-                  <td style="padding: 10px 0; vertical-align: top;">
-                    <h4 style="margin: 0 0 5px; font-size: 15px;">AI & Machine Learning</h4>
-                    <p style="margin: 0; font-size: 13px; color: #666;">TensorFlow, PyTorch, MLOps, Data Science</p>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 10px 0; vertical-align: top; width: 50px;">
-                    <div style="width: 40px; height: 40px; background: #e6f0ff; border-radius: 8px; text-align: center; line-height: 40px; font-size: 18px;">💼</div>
-                  </td>
-                  <td style="padding: 10px 0; vertical-align: top;">
-                    <h4 style="margin: 0 0 5px; font-size: 15px;">Enterprise Solutions</h4>
-                    <p style="margin: 0; font-size: 13px; color: #666;">SAP, Salesforce, ServiceNow, Oracle</p>
-                  </td>
-                </tr>
-              </table>
-            </div>
-            
-            <p style="margin-top: 25px;">Browse our complete catalog to find the perfect training solutions for your organization's needs.</p>
+            ` : ''}
             
             <p style="color: #666; font-size: 14px;">
               Have questions? Reply to this email or contact our team directly.
@@ -266,6 +267,8 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
           </div>
         </div>
+        <!-- Tracking pixel -->
+        <img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />
       </body>
       </html>
     `;
@@ -281,7 +284,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Catalog share email sent successfully:", emailResponse);
 
     return new Response(
-      JSON.stringify({ success: true, data: emailResponse }),
+      JSON.stringify({ success: true, data: emailResponse, shareId }),
       {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
