@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      catalog_share_tracking: {
+        Row: {
+          catalog_url: string
+          created_at: string
+          first_opened_at: string | null
+          id: string
+          last_opened_at: string | null
+          link_click_count: number
+          link_clicked_at: string | null
+          open_count: number
+          personal_message: string | null
+          recipient_email: string
+          recipient_name: string | null
+          sender_email: string | null
+          share_id: string
+          share_type: string
+          shared_items: Json | null
+        }
+        Insert: {
+          catalog_url: string
+          created_at?: string
+          first_opened_at?: string | null
+          id?: string
+          last_opened_at?: string | null
+          link_click_count?: number
+          link_clicked_at?: string | null
+          open_count?: number
+          personal_message?: string | null
+          recipient_email: string
+          recipient_name?: string | null
+          sender_email?: string | null
+          share_id: string
+          share_type?: string
+          shared_items?: Json | null
+        }
+        Update: {
+          catalog_url?: string
+          created_at?: string
+          first_opened_at?: string | null
+          id?: string
+          last_opened_at?: string | null
+          link_click_count?: number
+          link_clicked_at?: string | null
+          open_count?: number
+          personal_message?: string | null
+          recipient_email?: string
+          recipient_name?: string | null
+          sender_email?: string | null
+          share_id?: string
+          share_type?: string
+          shared_items?: Json | null
+        }
+        Relationships: []
+      }
       delivery_requests: {
         Row: {
           account_manager: string | null

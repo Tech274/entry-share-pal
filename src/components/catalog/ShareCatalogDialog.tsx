@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Loader2, Share2, CheckCircle2, Copy } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Send, Loader2, Share2, CheckCircle2, Copy, Package, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
+import { cn } from '@/lib/utils';
 
 const emailSchema = z.object({
   recipientEmail: z.string().trim().email({ message: "Please enter a valid email address" }),
@@ -15,13 +18,31 @@ const emailSchema = z.object({
   message: z.string().trim().max(500, { message: "Message must be less than 500 characters" }).optional(),
 });
 
+interface SharedItem {
+  id?: string;
+  name: string;
+  category: string;
+  description?: string;
+}
+
 interface ShareCatalogDialogProps {
   catalogUrl?: string;
   trigger?: React.ReactNode;
+  shareType?: 'catalog' | 'template' | 'bundle';
+  sharedItems?: SharedItem[];
+  onClose?: () => void;
+  defaultOpen?: boolean;
 }
 
-const ShareCatalogDialog = ({ catalogUrl, trigger }: ShareCatalogDialogProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+const ShareCatalogDialog = ({ 
+  catalogUrl, 
+  trigger, 
+  shareType = 'catalog',
+  sharedItems = [],
+  onClose,
+  defaultOpen = false,
+}: ShareCatalogDialogProps) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isSending, setIsSending] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState('');
@@ -32,10 +53,33 @@ const ShareCatalogDialog = ({ catalogUrl, trigger }: ShareCatalogDialogProps) =>
   // Use the published URL for sharing
   const shareUrl = catalogUrl || 'https://entry-share-pal.lovable.app/public-catalog';
 
+  // Generate title based on share type
+  const getDialogTitle = () => {
+    switch (shareType) {
+      case 'template':
+        return sharedItems.length === 1 ? `Share "${sharedItems[0].name}"` : 'Share Lab Template';
+      case 'bundle':
+        return `Share ${sharedItems.length} Lab${sharedItems.length > 1 ? 's' : ''} Bundle`;
+      default:
+        return 'Share Lab Catalog';
+    }
+  };
+
+  const getDialogDescription = () => {
+    switch (shareType) {
+      case 'template':
+        return 'Send this lab template to a colleague via email.';
+      case 'bundle':
+        return 'Share your selected labs bundle with a colleague via email.';
+      default:
+        return 'Send the lab catalog link to an account manager or sales manager via email.';
+    }
+  };
+
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
-      toast.success('Catalog link copied to clipboard!');
+      toast.success('Link copied to clipboard!');
     } catch {
       toast.error('Failed to copy link');
     }
@@ -78,18 +122,28 @@ const ShareCatalogDialog = ({ catalogUrl, trigger }: ShareCatalogDialogProps) =>
           recipientName: recipientName.trim() || undefined,
           personalMessage: personalMessage.trim() || undefined,
           catalogUrl: shareUrl,
+          shareType,
+          sharedItems: sharedItems.length > 0 ? sharedItems : undefined,
         },
       });
 
       if (error) throw error;
 
       setIsSent(true);
-      toast.success(`Catalog link sent to ${recipientEmail}`);
+      
+      const successMessage = shareType === 'bundle' 
+        ? `Bundle with ${sharedItems.length} labs sent to ${recipientEmail}`
+        : shareType === 'template'
+        ? `Lab template sent to ${recipientEmail}`
+        : `Catalog link sent to ${recipientEmail}`;
+        
+      toast.success(successMessage);
       
       // Reset after a delay
       setTimeout(() => {
         resetForm();
         setIsOpen(false);
+        onClose?.();
       }, 2000);
     } catch (error: any) {
       console.error('Error sending share email:', error);
@@ -103,27 +157,36 @@ const ShareCatalogDialog = ({ catalogUrl, trigger }: ShareCatalogDialogProps) =>
     setIsOpen(open);
     if (!open) {
       resetForm();
+      onClose?.();
     }
   };
 
+  // Sync with defaultOpen prop
+  useEffect(() => {
+    if (defaultOpen) {
+      setIsOpen(true);
+    }
+  }, [defaultOpen]);
+
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button variant="secondary" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2">
-            <Share2 className="w-4 h-4" />
-            Share Catalog
-          </Button>
-        )}
-      </DialogTrigger>
+      {trigger && (
+        <DialogTrigger asChild>
+          {trigger}
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Share2 className="w-5 h-5 text-primary" />
-            Share Lab Catalog
+            {shareType === 'bundle' ? (
+              <Package className="w-5 h-5 text-primary" />
+            ) : (
+              <Share2 className="w-5 h-5 text-primary" />
+            )}
+            {getDialogTitle()}
           </DialogTitle>
           <DialogDescription>
-            Send the lab catalog link to an account manager or sales manager via email.
+            {getDialogDescription()}
           </DialogDescription>
         </DialogHeader>
 
@@ -132,11 +195,40 @@ const ShareCatalogDialog = ({ catalogUrl, trigger }: ShareCatalogDialogProps) =>
             <CheckCircle2 className="w-16 h-16 text-emerald-500 mb-4" />
             <h3 className="text-lg font-medium">Email Sent!</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              The catalog link has been sent to {recipientEmail}
+              {shareType === 'bundle' 
+                ? `Your bundle of ${sharedItems.length} labs has been sent to ${recipientEmail}`
+                : shareType === 'template'
+                ? `The lab template has been sent to ${recipientEmail}`
+                : `The catalog link has been sent to ${recipientEmail}`}
             </p>
           </div>
         ) : (
           <div className="space-y-4 pt-2">
+            {/* Show shared items for bundle/template */}
+            {(shareType === 'bundle' || shareType === 'template') && sharedItems.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">
+                  {shareType === 'bundle' ? 'Labs in this bundle:' : 'Sharing:'}
+                </Label>
+                <ScrollArea className={cn(
+                  "rounded-md border bg-muted/30 p-2",
+                  sharedItems.length > 3 ? "h-24" : ""
+                )}>
+                  <div className="flex flex-wrap gap-1.5">
+                    {sharedItems.map((item, idx) => (
+                      <Badge 
+                        key={idx} 
+                        variant="secondary" 
+                        className="text-xs"
+                      >
+                        {item.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+
             {/* Quick Copy Link */}
             <div className="flex gap-2">
               <Input
@@ -198,7 +290,13 @@ const ShareCatalogDialog = ({ catalogUrl, trigger }: ShareCatalogDialogProps) =>
                 <Label htmlFor="personalMessage">Personal Message (optional)</Label>
                 <Textarea
                   id="personalMessage"
-                  placeholder="Check out our lab catalog for training solutions..."
+                  placeholder={
+                    shareType === 'bundle' 
+                      ? "Check out these labs I've selected for our training needs..."
+                      : shareType === 'template'
+                      ? "I thought you might be interested in this lab..."
+                      : "Check out our lab catalog for training solutions..."
+                  }
                   value={personalMessage}
                   onChange={(e) => setPersonalMessage(e.target.value)}
                   rows={3}
@@ -229,7 +327,11 @@ const ShareCatalogDialog = ({ catalogUrl, trigger }: ShareCatalogDialogProps) =>
               ) : (
                 <>
                   <Send className="w-4 h-4 mr-2" />
-                  Send Catalog Link
+                  {shareType === 'bundle' 
+                    ? `Send ${sharedItems.length} Labs`
+                    : shareType === 'template'
+                    ? 'Send Lab Template'
+                    : 'Send Catalog Link'}
                 </>
               )}
             </Button>
