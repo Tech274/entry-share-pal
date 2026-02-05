@@ -5,6 +5,7 @@ import { RequestsTable } from '@/components/RequestsTable';
 import { DeliveryTable } from '@/components/DeliveryTable';
 import { RoleBasedDashboard } from '@/components/RoleBasedDashboard';
 import { CalendarView } from '@/components/CalendarView';
+import { CloudTabContent } from '@/components/CloudTabContent';
 import { Header } from '@/components/Header';
 import { useLabRequests } from '@/hooks/useLabRequests';
 import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
@@ -185,48 +186,36 @@ const Index = () => {
               </TabsContent>
 
               <TabsContent value="private-cloud" className="space-y-6">
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <Server className="w-5 h-5" />
-                    Private Cloud - Solutions ({privateCloudLabRequests.length})
-                  </h3>
-                  <RequestsTable requests={privateCloudLabRequests} onDelete={handleDelete} />
-                  <h3 className="text-lg font-semibold flex items-center gap-2 mt-8">
-                    <Server className="w-5 h-5" />
-                    Private Cloud - Delivery ({privateCloudDeliveryRequests.length})
-                  </h3>
-                  <DeliveryTable requests={privateCloudDeliveryRequests} onDelete={handleDeliveryDelete} />
-                </div>
+                <CloudTabContent
+                  title="Private Cloud"
+                  icon={<Server className="w-5 h-5" />}
+                  labRequests={privateCloudLabRequests}
+                  deliveryRequests={privateCloudDeliveryRequests}
+                  onLabDelete={handleDelete}
+                  onDeliveryDelete={handleDeliveryDelete}
+                />
               </TabsContent>
 
               <TabsContent value="public-cloud" className="space-y-6">
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <Cloud className="w-5 h-5" />
-                    Public Cloud - Solutions ({publicCloudLabRequests.length})
-                  </h3>
-                  <RequestsTable requests={publicCloudLabRequests} onDelete={handleDelete} />
-                  <h3 className="text-lg font-semibold flex items-center gap-2 mt-8">
-                    <Cloud className="w-5 h-5" />
-                    Public Cloud - Delivery ({publicCloudDeliveryRequests.length})
-                  </h3>
-                  <DeliveryTable requests={publicCloudDeliveryRequests} onDelete={handleDeliveryDelete} />
-                </div>
+                <CloudTabContent
+                  title="Public Cloud"
+                  icon={<Cloud className="w-5 h-5" />}
+                  labRequests={publicCloudLabRequests}
+                  deliveryRequests={publicCloudDeliveryRequests}
+                  onLabDelete={handleDelete}
+                  onDeliveryDelete={handleDeliveryDelete}
+                />
               </TabsContent>
 
               <TabsContent value="tp-labs" className="space-y-6">
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <Building2 className="w-5 h-5" />
-                    Third-Party Labs - Solutions ({tpLabsLabRequests.length})
-                  </h3>
-                  <RequestsTable requests={tpLabsLabRequests} onDelete={handleDelete} />
-                  <h3 className="text-lg font-semibold flex items-center gap-2 mt-8">
-                    <Building2 className="w-5 h-5" />
-                    Third-Party Labs - Delivery ({tpLabsDeliveryRequests.length})
-                  </h3>
-                  <DeliveryTable requests={tpLabsDeliveryRequests} onDelete={handleDeliveryDelete} />
-                </div>
+                <CloudTabContent
+                  title="Third-Party Labs"
+                  icon={<Building2 className="w-5 h-5" />}
+                  labRequests={tpLabsLabRequests}
+                  deliveryRequests={tpLabsDeliveryRequests}
+                  onLabDelete={handleDelete}
+                  onDeliveryDelete={handleDeliveryDelete}
+                />
               </TabsContent>
             </>
           )}
