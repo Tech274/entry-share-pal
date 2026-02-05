@@ -166,11 +166,17 @@ const MasterDataSheet = () => {
             invoiceDetails: row['invoice details'] || '',
           });
         } else {
+          // Map status - "Sent for Testing" -> "Test Credentials Shared"
+          let mappedStatus = row.status || row['lab status'] || 'Pending';
+          if (mappedStatus.toLowerCase() === 'sent for testing') {
+            mappedStatus = 'Test Credentials Shared';
+          }
+
           await addDeliveryRequest({
             potentialId: row['potential id'] || '',
             freshDeskTicketNumber: row['freshdesk ticket number'] || row['ticket'] || '',
-            trainingName: row['training name'] || '',
-            numberOfUsers: parseInt(row['number of users'] || row['user count'] || row.users || '0') || 0,
+            trainingName: row['lab name'] || row['training name'] || '',
+            numberOfUsers: parseInt(row['user count'] || row['number of users'] || row.users || '0') || 0,
             client: row.client || 'Unknown Client',
             month,
             year,
@@ -182,16 +188,16 @@ const MasterDataSheet = () => {
             requester: row.requester || '',
             agentName: row['agent name'] || '',
             accountManager: row['account manager'] || '',
-            labStatus: row.status || row['lab status'] || 'Pending',
+            labStatus: mappedStatus,
             labType: row['lab type category'] || '',
-            startDate: row['start date'] || '',
-            endDate: row['end date'] || '',
+            startDate: row['lab start date'] || row['start date'] || '',
+            endDate: row['lab end date'] || row['end date'] || '',
             labSetupRequirement: row['lab setup requirement'] || '',
             inputCostPerUser: parseFloat(row['input cost per user'] || '0') || 0,
             sellingCostPerUser: parseFloat(row['selling cost per user'] || '0') || 0,
             totalAmount: parseFloat(row['total amount'] || '0') || 0,
             lineOfBusiness: row.lob || row['line of business'] || '',
-            invoiceDetails: row['invoice details'] || '',
+            invoiceDetails: row['invoice details'] || row['invoice number'] || '',
           });
         }
         importedCount++;
