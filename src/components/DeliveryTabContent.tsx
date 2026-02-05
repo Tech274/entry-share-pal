@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DeliveryRequestForm } from '@/components/DeliveryRequestForm';
 import { DeliveryTable } from '@/components/DeliveryTable';
 import { DeliveryRequest } from '@/types/deliveryRequest';
-import { Truck, FileText, Upload, CheckCircle, Clock, ListFilter, Share2, Download } from 'lucide-react';
+import { Truck, FileText, Upload, CheckCircle, Clock, ListFilter, Share2, Download, PackageCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -179,14 +179,15 @@ export const DeliveryTabContent = ({
     }
   };
 
-  // Filter completed requests for the Completed tab
+  // Filter completed and delivered requests for their respective tabs
   const completedRequests = requests.filter(r => r.labStatus === 'Completed');
-  const activeRequests = requests.filter(r => r.labStatus !== 'Completed');
+  const deliveredTabRequests = requests.filter(r => r.labStatus === 'Delivered');
+  const activeRequests = requests.filter(r => r.labStatus !== 'Completed' && r.labStatus !== 'Delivered');
 
   return (
     <Tabs defaultValue="form" className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <TabsList className="grid w-full max-w-xl grid-cols-3">
+        <TabsList className="grid w-full max-w-2xl grid-cols-4">
           <TabsTrigger value="form" className="gap-2">
             <FileText className="w-4 h-4" />
             Entry Form
@@ -194,6 +195,10 @@ export const DeliveryTabContent = ({
           <TabsTrigger value="list" className="gap-2">
             <Truck className="w-4 h-4" />
             Requests List ({activeRequests.length})
+          </TabsTrigger>
+          <TabsTrigger value="delivered" className="gap-2">
+            <PackageCheck className="w-4 h-4" />
+            Delivered ({deliveredTabRequests.length})
           </TabsTrigger>
           <TabsTrigger value="completed" className="gap-2">
             <CheckCircle className="w-4 h-4" />
@@ -281,6 +286,17 @@ export const DeliveryTabContent = ({
         </div>
 
         <DeliveryTable requests={getFilteredRequests()} onDelete={onDelete} />
+      </TabsContent>
+
+      <TabsContent value="delivered" className="space-y-4">
+        <div className="flex items-center gap-2 p-3 bg-accent/50 border border-accent rounded-lg">
+          <PackageCheck className="w-5 h-5 text-primary" />
+          <span className="text-sm font-medium">Delivered Records</span>
+          <Badge variant="secondary" className="ml-auto">
+            {deliveredTabRequests.length} records
+          </Badge>
+        </div>
+        <DeliveryTable requests={deliveredTabRequests} onDelete={onDelete} />
       </TabsContent>
 
       <TabsContent value="completed" className="space-y-4">
