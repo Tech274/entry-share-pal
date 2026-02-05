@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
-import { Download, Trash2, Eye, LogOut, User } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Trash2, LogOut, User } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,32 +52,6 @@ export const Header = ({ requestCount, onExportCSV, onExportXLS, onClearAll, lab
 
           <div className="flex items-center gap-2">
             <GlobalSearch labRequests={labRequests} deliveryRequests={deliveryRequests} />
-            
-            <Link to="/preview">
-              <Button variant="secondary" className="bg-accent text-accent-foreground hover:bg-accent/90">
-                <Eye className="w-4 h-4 mr-2" />
-                Preview
-              </Button>
-            </Link>
-            
-            {canExport && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="secondary" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={requestCount === 0}>
-                    <Download className="w-4 h-4 mr-2" />
-                    Export
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={onExportCSV}>
-                    Export as CSV
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onExportXLS}>
-                    Export as XLS (Excel)
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
 
             {canClearAll && requestCount > 0 && (
               <Button variant="destructive" size="icon" onClick={onClearAll} title="Clear all entries">
