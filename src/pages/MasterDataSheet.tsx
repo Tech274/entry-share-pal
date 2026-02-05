@@ -338,7 +338,7 @@ const MasterDataSheet = () => {
                   )}
                 </h2>
               </div>
-              <ScrollArea className="w-full">
+              <ScrollArea className="w-full h-[calc(100vh-400px)]">
                 <div className="min-w-[1200px]">
                   <table className="w-full border-collapse text-sm">
                     <thead>
@@ -395,6 +395,7 @@ const MasterDataSheet = () => {
                   </table>
                 </div>
                 <ScrollBar orientation="horizontal" />
+                <ScrollBar orientation="vertical" />
               </ScrollArea>
             </div>
           </TabsContent>
@@ -414,7 +415,7 @@ const MasterDataSheet = () => {
                   </Badge>
                 </h2>
               </div>
-              <ScrollArea className="w-full">
+              <ScrollArea className="w-full h-[calc(100vh-400px)]">
                 <div className="min-w-[1200px]">
                   <table className="w-full border-collapse text-sm">
                     <thead>
@@ -471,6 +472,7 @@ const MasterDataSheet = () => {
                   </table>
                 </div>
                 <ScrollBar orientation="horizontal" />
+                <ScrollBar orientation="vertical" />
               </ScrollArea>
             </div>
           </TabsContent>
