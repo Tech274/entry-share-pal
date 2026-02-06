@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Download, Upload, Cloud, Server, Building2, FileSpreadsheet, Package } from 'lucide-react';
+import { ArrowLeft, Download, Upload, Cloud, Server, Building2, FileSpreadsheet, Package, Sparkles, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
@@ -13,6 +13,7 @@ import { getStatusBadgeVariant } from '@/lib/statusColors';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
+import { supabase } from '@/integrations/supabase/client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +32,7 @@ const MasterDataSheet = () => {
   const { toast } = useToast();
   const [activeLabType, setActiveLabType] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<string>('solutions');
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Filter delivery requests by ADR statuses only
@@ -94,6 +96,27 @@ const MasterDataSheet = () => {
     fileInputRef.current?.click();
   };
 
+  // Helper to parse CSV line with quote handling
+  const parseCSVLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current);
+    return result;
+  };
+
   const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -110,6 +133,13 @@ const MasterDataSheet = () => {
       return;
     }
 
+    setIsProcessing(true);
+    
+    toast({
+      title: 'AI Processing',
+      description: 'Analyzing and auto-correcting your data...',
+    });
+
     try {
       const text = await file.text();
       const lines = text.split('\n').filter(line => line.trim());
@@ -120,105 +150,144 @@ const MasterDataSheet = () => {
           description: 'The file contains no data rows.',
           variant: 'destructive',
         });
+        setIsProcessing(false);
         return;
       }
 
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      let importedCount = 0;
+      // Parse headers and rows
+      const headers = lines[0].split(',').map(h => h.trim());
+      const rows: Record<string, string>[] = [];
 
       for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+        const values = parseCSVLine(lines[i]);
         const row: Record<string, string> = {};
         headers.forEach((h, idx) => {
-          row[h] = values[idx] || '';
+          row[h] = values[idx]?.trim().replace(/^"|"$/g, '') || '';
         });
-
-        const currentDate = new Date();
-        const month = row.month || currentDate.toLocaleString('default', { month: 'long' });
-        const year = parseInt(row.year) || currentDate.getFullYear();
-
-        if (activeTab === 'solutions') {
-          await addLabRequest({
-            potentialId: row['potential id'] || '',
-            freshDeskTicketNumber: row['freshdesk ticket number'] || row['ticket'] || '',
-            client: row.client || 'Unknown Client',
-            month,
-            year,
-            cloud: row['lab type'] || row.cloud || '',
-            cloudType: row['cloud type'] || '',
-            tpLabType: row['tp lab type'] || '',
-            labName: row['training name'] || row['lab name'] || '',
-            requester: row.requester || '',
-            agentName: row['agent name'] || '',
-            accountManager: row['account manager'] || '',
-            receivedOn: row['received on'] || '',
-            labStartDate: row['lab start date'] || row['start date'] || '',
-            labEndDate: row['lab end date'] || row['end date'] || '',
-            userCount: parseInt(row['user count'] || row.users || '0') || 0,
-            durationInDays: parseInt(row['duration'] || row['duration (in days)'] || '0') || 0,
-            inputCostPerUser: parseFloat(row['input cost per user'] || '0') || 0,
-            sellingCostPerUser: parseFloat(row['selling cost per user'] || '0') || 0,
-            totalAmountForTraining: parseFloat(row['total amount'] || row['total amount for training'] || '0') || 0,
-            margin: parseFloat(row.margin || '0') || 0,
-            status: row.status || 'Solution Pending',
-            remarks: row.remarks || '',
-            lineOfBusiness: row.lob || row['line of business'] || '',
-            invoiceDetails: row['invoice details'] || '',
-          });
-        } else {
-          // Map status - "Sent for Testing" -> "Test Credentials Shared"
-          let mappedStatus = row.status || row['lab status'] || 'Pending';
-          if (mappedStatus.toLowerCase() === 'sent for testing') {
-            mappedStatus = 'Test Credentials Shared';
-          }
-
-          await addDeliveryRequest({
-            potentialId: row['potential id'] || '',
-            freshDeskTicketNumber: row['freshdesk ticket number'] || row['ticket'] || '',
-            trainingName: row['lab name'] || row['training name'] || '',
-            numberOfUsers: parseInt(row['user count'] || row['number of users'] || row.users || '0') || 0,
-            client: row.client || 'Unknown Client',
-            month,
-            year,
-            receivedOn: row['received on'] || '',
-            cloud: row['lab type'] || row.cloud || '',
-            cloudType: row['cloud type'] || '',
-            tpLabType: row['tp lab type'] || '',
-            labName: row['lab name'] || '',
-            requester: row.requester || '',
-            agentName: row['agent name'] || '',
-            accountManager: row['account manager'] || '',
-            labStatus: mappedStatus,
-            labType: row['lab type category'] || '',
-            startDate: row['lab start date'] || row['start date'] || '',
-            endDate: row['lab end date'] || row['end date'] || '',
-            labSetupRequirement: row['lab setup requirement'] || '',
-            inputCostPerUser: parseFloat(row['input cost per user'] || '0') || 0,
-            sellingCostPerUser: parseFloat(row['selling cost per user'] || '0') || 0,
-            totalAmount: parseFloat(row['total amount'] || '0') || 0,
-            lineOfBusiness: row.lob || row['line of business'] || '',
-            invoiceDetails: row['invoice details'] || row['invoice number'] || '',
-          });
-        }
-        importedCount++;
+        rows.push(row);
       }
 
-      toast({
-        title: 'Import Complete',
-        description: `Successfully imported ${importedCount} ${activeTab} records.`,
-      });
+      // Call AI autocorrect edge function for Delivery records
+      if (activeTab === 'delivery') {
+        const { data: aiResult, error: aiError } = await supabase.functions.invoke('ai-csv-autocorrect', {
+          body: { headers, rows }
+        });
+
+        if (aiError) {
+          console.error('AI autocorrect error:', aiError);
+          throw new Error('AI processing failed.');
+        }
+
+        if (aiResult?.success && aiResult?.correctedRows) {
+          let importedCount = 0;
+          
+          for (const row of aiResult.correctedRows) {
+            await addDeliveryRequest({
+              potentialId: row.potentialId || '',
+              freshDeskTicketNumber: row.freshDeskTicketNumber || '',
+              trainingName: row.trainingName || row.labName || '',
+              numberOfUsers: row.numberOfUsers || 0,
+              client: row.client || 'Unknown Client',
+              month: row.month,
+              year: row.year,
+              receivedOn: row.receivedOn || '',
+              cloud: row.cloud || '',
+              cloudType: row.cloudType || '',
+              tpLabType: row.tpLabType || '',
+              labName: row.labName || row.trainingName || '',
+              requester: row.requester || '',
+              agentName: row.agentName || '',
+              accountManager: row.accountManager || '',
+              labStatus: row.labStatus || 'Delivered',
+              labType: row.labType || '',
+              startDate: row.startDate || '',
+              endDate: row.endDate || '',
+              labSetupRequirement: row.labSetupRequirement || '',
+              inputCostPerUser: row.inputCostPerUser || 0,
+              sellingCostPerUser: row.sellingCostPerUser || 0,
+              totalAmount: row.totalAmount || 0,
+              lineOfBusiness: row.lineOfBusiness || '',
+              invoiceDetails: row.invoiceDetails || '',
+            });
+            importedCount++;
+          }
+
+          // Show AI corrections summary
+          if (aiResult.corrections && aiResult.corrections.length > 0) {
+            toast({
+              title: 'AI Auto-Corrections Applied',
+              description: aiResult.corrections.slice(0, 3).join(' • '),
+            });
+          }
+
+          toast({
+            title: 'Import Complete',
+            description: `Successfully imported ${importedCount} delivery records with AI corrections.`,
+          });
+        }
+      } else {
+        // Solutions import (standard processing)
+        let importedCount = 0;
+        const headersLower = headers.map(h => h.toLowerCase());
+
+        for (const row of rows) {
+          const rowLower: Record<string, string> = {};
+          Object.keys(row).forEach(k => {
+            rowLower[k.toLowerCase()] = row[k];
+          });
+
+          const currentDate = new Date();
+          const month = rowLower.month || currentDate.toLocaleString('default', { month: 'long' });
+          const year = parseInt(rowLower.year) || currentDate.getFullYear();
+
+          await addLabRequest({
+            potentialId: rowLower['potential id'] || '',
+            freshDeskTicketNumber: rowLower['freshdesk ticket number'] || rowLower['ticket'] || '',
+            client: rowLower.client || 'Unknown Client',
+            month,
+            year,
+            cloud: rowLower['lab type'] || rowLower.cloud || '',
+            cloudType: rowLower['cloud type'] || '',
+            tpLabType: rowLower['tp lab type'] || '',
+            labName: rowLower['training name'] || rowLower['lab name'] || '',
+            requester: rowLower.requester || '',
+            agentName: rowLower['agent name'] || '',
+            accountManager: rowLower['account manager'] || '',
+            receivedOn: rowLower['received on'] || '',
+            labStartDate: rowLower['lab start date'] || rowLower['start date'] || '',
+            labEndDate: rowLower['lab end date'] || rowLower['end date'] || '',
+            userCount: parseInt(rowLower['user count'] || rowLower.users || '0') || 0,
+            durationInDays: parseInt(rowLower['duration'] || rowLower['duration (in days)'] || '0') || 0,
+            inputCostPerUser: parseFloat(rowLower['input cost per user'] || '0') || 0,
+            sellingCostPerUser: parseFloat(rowLower['selling cost per user'] || '0') || 0,
+            totalAmountForTraining: parseFloat(rowLower['total amount'] || rowLower['total amount for training'] || '0') || 0,
+            margin: parseFloat(rowLower.margin || '0') || 0,
+            status: rowLower.status || 'Solution Pending',
+            remarks: rowLower.remarks || '',
+            lineOfBusiness: rowLower.lob || rowLower['line of business'] || '',
+            invoiceDetails: rowLower['invoice details'] || '',
+          });
+          importedCount++;
+        }
+
+        toast({
+          title: 'Import Complete',
+          description: `Successfully imported ${importedCount} solutions records.`,
+        });
+      }
     } catch (error) {
       console.error('Import error:', error);
       toast({
         title: 'Import Failed',
-        description: 'There was an error processing the file.',
+        description: error instanceof Error ? error.message : 'There was an error processing the file.',
         variant: 'destructive',
       });
-    }
-
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+    } finally {
+      setIsProcessing(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -259,10 +328,21 @@ const MasterDataSheet = () => {
                 onChange={handleFileImport}
                 accept=".csv,.xls,.xlsx"
                 className="hidden"
+                disabled={isProcessing}
               />
-              <Button variant="outline" onClick={handleImportClick}>
-                <Upload className="w-4 h-4 mr-2" />
-                Import
+              <Button variant="outline" onClick={handleImportClick} disabled={isProcessing}>
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    <Upload className="w-4 h-4 mr-2" />
+                    AI Import
+                  </>
+                )}
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
