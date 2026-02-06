@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DeliveryRequestForm } from '@/components/DeliveryRequestForm';
 import { DeliveryTable } from '@/components/DeliveryTable';
 import { DeliveryRequest } from '@/types/deliveryRequest';
-import { Truck, FileText, Upload, CheckCircle, Download, PackageCheck } from 'lucide-react';
+import { Truck, FileText, Upload, CheckCircle, Download, PackageCheck, Cloud, Server, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -16,13 +16,73 @@ const DELIVERY_CSV_HEADERS = [
   'Total Amount', 'Line of Business', 'Invoice Details'
 ];
 
-
 interface DeliveryTabContentProps {
   requests: DeliveryRequest[];
   onSubmit: (data: Omit<DeliveryRequest, 'id' | 'createdAt'>) => void;
   onDelete: (id: string) => void;
   onBulkInsert?: (data: Omit<DeliveryRequest, 'id' | 'createdAt'>[]) => Promise<boolean>;
 }
+
+// Sub-component for Lab Type filtered view
+const LabTypeSubTabs = ({ 
+  requests, 
+  onDelete,
+  label 
+}: { 
+  requests: DeliveryRequest[]; 
+  onDelete: (id: string) => void;
+  label: string;
+}) => {
+  const publicCloudRequests = requests.filter(r => r.cloud === 'Public Cloud');
+  const privateCloudRequests = requests.filter(r => r.cloud === 'Private Cloud');
+  const tpLabsRequests = requests.filter(r => r.cloud === 'TP Labs');
+
+  return (
+    <Tabs defaultValue="all" className="space-y-4">
+      <div className="flex items-center gap-2 p-3 bg-accent/50 border border-accent rounded-lg">
+        <span className="text-sm font-medium">{label}</span>
+        <Badge variant="secondary" className="ml-auto">
+          {requests.length} total records
+        </Badge>
+      </div>
+      
+      <TabsList className="grid w-full max-w-2xl grid-cols-4">
+        <TabsTrigger value="all" className="gap-2">
+          <Building2 className="w-4 h-4" />
+          All ({requests.length})
+        </TabsTrigger>
+        <TabsTrigger value="public" className="gap-2">
+          <Cloud className="w-4 h-4" />
+          Public Cloud ({publicCloudRequests.length})
+        </TabsTrigger>
+        <TabsTrigger value="private" className="gap-2">
+          <Server className="w-4 h-4" />
+          Private Cloud ({privateCloudRequests.length})
+        </TabsTrigger>
+        <TabsTrigger value="tp-labs" className="gap-2">
+          <Building2 className="w-4 h-4" />
+          TP Labs ({tpLabsRequests.length})
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="all">
+        <DeliveryTable requests={requests} onDelete={onDelete} />
+      </TabsContent>
+
+      <TabsContent value="public">
+        <DeliveryTable requests={publicCloudRequests} onDelete={onDelete} />
+      </TabsContent>
+
+      <TabsContent value="private">
+        <DeliveryTable requests={privateCloudRequests} onDelete={onDelete} />
+      </TabsContent>
+
+      <TabsContent value="tp-labs">
+        <DeliveryTable requests={tpLabsRequests} onDelete={onDelete} />
+      </TabsContent>
+    </Tabs>
+  );
+};
 
 export const DeliveryTabContent = ({
   requests,
@@ -211,29 +271,27 @@ export const DeliveryTabContent = ({
       </TabsContent>
 
       <TabsContent value="list" className="space-y-4">
-        <DeliveryTable requests={activeRequests} onDelete={onDelete} />
+        <LabTypeSubTabs 
+          requests={activeRequests} 
+          onDelete={onDelete} 
+          label="Active Requests" 
+        />
       </TabsContent>
 
       <TabsContent value="delivered" className="space-y-4">
-        <div className="flex items-center gap-2 p-3 bg-accent/50 border border-accent rounded-lg">
-          <PackageCheck className="w-5 h-5 text-primary" />
-          <span className="text-sm font-medium">Delivered Records</span>
-          <Badge variant="secondary" className="ml-auto">
-            {deliveredTabRequests.length} records
-          </Badge>
-        </div>
-        <DeliveryTable requests={deliveredTabRequests} onDelete={onDelete} />
+        <LabTypeSubTabs 
+          requests={deliveredTabRequests} 
+          onDelete={onDelete} 
+          label="Delivered Records" 
+        />
       </TabsContent>
 
       <TabsContent value="completed" className="space-y-4">
-        <div className="flex items-center gap-2 p-3 bg-accent/50 border border-accent rounded-lg">
-          <CheckCircle className="w-5 h-5 text-primary" />
-          <span className="text-sm font-medium">Completed Deliveries</span>
-          <Badge variant="secondary" className="ml-auto">
-            {completedRequests.length} records
-          </Badge>
-        </div>
-        <DeliveryTable requests={completedRequests} onDelete={onDelete} />
+        <LabTypeSubTabs 
+          requests={completedRequests} 
+          onDelete={onDelete} 
+          label="Completed Deliveries" 
+        />
       </TabsContent>
     </Tabs>
   );
