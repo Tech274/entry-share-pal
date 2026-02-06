@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.ai-assistant]
 verify_jwt = false
+
+[functions.ai-csv-autocorrect]
+verify_jwt = false
