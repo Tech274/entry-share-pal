@@ -16,7 +16,7 @@ import { LabRequest } from '@/types/labRequest';
 import { useMemo } from 'react';
 
 const Index = () => {
-  const { requests, addRequest, deleteRequest, clearAll, bulkInsert, refetch: refetchLabRequests } = useLabRequests();
+  const { requests, addRequest, deleteRequest, clearAll, bulkInsert, updateRequest: updateLabRequest, refetch: refetchLabRequests } = useLabRequests();
   const { 
     requests: deliveryRequests, 
     addRequest: addDeliveryRequest,
@@ -213,6 +213,7 @@ const Index = () => {
                   onDelete={handleDelete}
                   onBulkInsert={bulkInsert}
                   onConvertToDelivery={handleConvertToDelivery}
+                  onUpdate={updateLabRequest}
                 />
               </TabsContent>
 

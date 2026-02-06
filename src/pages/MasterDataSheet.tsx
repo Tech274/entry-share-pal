@@ -339,62 +339,57 @@ const MasterDataSheet = () => {
                 </h2>
               </div>
               <ScrollArea className="w-full h-[calc(100vh-400px)]">
-                <div className="min-w-[1200px]">
-                  <table className="w-full border-collapse text-sm">
-                    <thead>
-                      <tr className="bg-primary text-primary-foreground">
-                        <th className="p-3 text-left font-semibold">#</th>
-                        <th className="p-3 text-left font-semibold">Client</th>
-                        <th className="p-3 text-left font-semibold">Training Name</th>
-                        <th className="p-3 text-left font-semibold">Lab Type</th>
-                        <th className="p-3 text-left font-semibold">Month/Year</th>
-                        <th className="p-3 text-center font-semibold">Users</th>
-                        <th className="p-3 text-right font-semibold">Total Amount</th>
-                        <th className="p-3 text-right font-semibold">Margin</th>
-                        <th className="p-3 text-left font-semibold">Status</th>
-                        <th className="p-3 text-left font-semibold">LOB</th>
+                <table className="w-full table-fixed border-collapse text-sm">
+                  <thead className="sticky top-0 z-10">
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="p-3 text-left font-semibold w-[40px]">#</th>
+                      <th className="p-3 text-left font-semibold">Client</th>
+                      <th className="p-3 text-left font-semibold">Lab Name</th>
+                      <th className="p-3 text-left font-semibold">Lab Type</th>
+                      <th className="p-3 text-left font-semibold">Period</th>
+                      <th className="p-3 text-center font-semibold">Users</th>
+                      <th className="p-3 text-right font-semibold">Total Amount</th>
+                      <th className="p-3 text-right font-semibold">Margin</th>
+                      <th className="p-3 text-left font-semibold">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredLabRequests.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="p-8 text-center text-muted-foreground">
+                          No solutions records found
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {filteredLabRequests.length === 0 ? (
-                        <tr>
-                          <td colSpan={10} className="p-8 text-center text-muted-foreground">
-                            No solutions records found
+                    ) : (
+                      filteredLabRequests.map((request, index) => (
+                        <tr key={request.id} className="border-b hover:bg-muted/50">
+                          <td className="p-3">{index + 1}</td>
+                          <td className="p-3 font-medium truncate">{request.client}</td>
+                          <td className="p-3 truncate">{request.labName || '-'}</td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              {getLabTypeIcon(request.cloud || '')}
+                              <span className="truncate">{request.cloud || '-'}</span>
+                            </div>
+                          </td>
+                          <td className="p-3 truncate">{request.month} {request.year}</td>
+                          <td className="p-3 text-center">{request.userCount || 0}</td>
+                          <td className="p-3 text-right font-medium">
+                            {formatINR(request.totalAmountForTraining || 0)}
+                          </td>
+                          <td className="p-3 text-right">
+                            {formatPercentage(request.margin || 0)}
+                          </td>
+                          <td className="p-3">
+                            <Badge variant={getStatusBadgeVariant(request.status || '')} className="text-xs">
+                              {request.status || '-'}
+                            </Badge>
                           </td>
                         </tr>
-                      ) : (
-                        filteredLabRequests.map((request, index) => (
-                          <tr key={request.id} className="border-b hover:bg-muted/50">
-                            <td className="p-3">{index + 1}</td>
-                            <td className="p-3 font-medium">{request.client}</td>
-                            <td className="p-3">{request.labName || '-'}</td>
-                            <td className="p-3">
-                              <div className="flex items-center gap-2">
-                                {getLabTypeIcon(request.cloud || '')}
-                                {request.cloud || '-'}
-                              </div>
-                            </td>
-                            <td className="p-3">{request.month} {request.year}</td>
-                            <td className="p-3 text-center">{request.userCount || 0}</td>
-                            <td className="p-3 text-right font-medium">
-                              {formatINR(request.totalAmountForTraining || 0)}
-                            </td>
-                            <td className="p-3 text-right">
-                              {formatPercentage(request.margin || 0)}
-                            </td>
-                            <td className="p-3">
-                              <Badge variant={getStatusBadgeVariant(request.status || '')}>
-                                {request.status || '-'}
-                              </Badge>
-                            </td>
-                            <td className="p-3">{request.lineOfBusiness || '-'}</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-                <ScrollBar orientation="horizontal" />
+                      ))
+                    )}
+                  </tbody>
+                </table>
                 <ScrollBar orientation="vertical" />
               </ScrollArea>
             </div>
@@ -416,62 +411,57 @@ const MasterDataSheet = () => {
                 </h2>
               </div>
               <ScrollArea className="w-full h-[calc(100vh-400px)]">
-                <div className="min-w-[1200px]">
-                  <table className="w-full border-collapse text-sm">
-                    <thead>
-                      <tr className="bg-primary text-primary-foreground">
-                        <th className="p-3 text-left font-semibold">#</th>
-                        <th className="p-3 text-left font-semibold">Client</th>
-                        <th className="p-3 text-left font-semibold">Training Name</th>
-                        <th className="p-3 text-left font-semibold">Lab Type</th>
-                        <th className="p-3 text-left font-semibold">Month/Year</th>
-                        <th className="p-3 text-center font-semibold">Users</th>
-                        <th className="p-3 text-left font-semibold">Start Date</th>
-                        <th className="p-3 text-left font-semibold">End Date</th>
-                        <th className="p-3 text-right font-semibold">Total Amount</th>
-                        <th className="p-3 text-left font-semibold">Status</th>
-                        <th className="p-3 text-left font-semibold">LOB</th>
+                <table className="w-full table-fixed border-collapse text-sm">
+                  <thead className="sticky top-0 z-10">
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="p-3 text-left font-semibold w-[40px]">#</th>
+                      <th className="p-3 text-left font-semibold">Client</th>
+                      <th className="p-3 text-left font-semibold">Training Name</th>
+                      <th className="p-3 text-left font-semibold">Lab Type</th>
+                      <th className="p-3 text-left font-semibold">Period</th>
+                      <th className="p-3 text-center font-semibold">Users</th>
+                      <th className="p-3 text-left font-semibold">Start Date</th>
+                      <th className="p-3 text-left font-semibold">End Date</th>
+                      <th className="p-3 text-right font-semibold">Total Amount</th>
+                      <th className="p-3 text-left font-semibold">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredDeliveryRequests.length === 0 ? (
+                      <tr>
+                        <td colSpan={10} className="p-8 text-center text-muted-foreground">
+                          No delivery records found
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {filteredDeliveryRequests.length === 0 ? (
-                        <tr>
-                          <td colSpan={11} className="p-8 text-center text-muted-foreground">
-                            No delivery records found
+                    ) : (
+                      filteredDeliveryRequests.map((request, index) => (
+                        <tr key={request.id} className="border-b hover:bg-muted/50">
+                          <td className="p-3">{index + 1}</td>
+                          <td className="p-3 font-medium truncate">{request.client}</td>
+                          <td className="p-3 truncate">{request.trainingName || '-'}</td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              {getLabTypeIcon(request.cloud || '')}
+                              <span className="truncate">{request.cloud || '-'}</span>
+                            </div>
+                          </td>
+                          <td className="p-3 truncate">{request.month} {request.year}</td>
+                          <td className="p-3 text-center">{request.numberOfUsers || 0}</td>
+                          <td className="p-3 truncate">{request.startDate || '-'}</td>
+                          <td className="p-3 truncate">{request.endDate || '-'}</td>
+                          <td className="p-3 text-right font-medium">
+                            {formatINR(request.totalAmount || 0)}
+                          </td>
+                          <td className="p-3">
+                            <Badge variant={getStatusBadgeVariant(request.labStatus || '')} className="text-xs">
+                              {request.labStatus || '-'}
+                            </Badge>
                           </td>
                         </tr>
-                      ) : (
-                        filteredDeliveryRequests.map((request, index) => (
-                          <tr key={request.id} className="border-b hover:bg-muted/50">
-                            <td className="p-3">{index + 1}</td>
-                            <td className="p-3 font-medium">{request.client}</td>
-                            <td className="p-3">{request.trainingName || '-'}</td>
-                            <td className="p-3">
-                              <div className="flex items-center gap-2">
-                                {getLabTypeIcon(request.cloud || '')}
-                                {request.cloud || '-'}
-                              </div>
-                            </td>
-                            <td className="p-3">{request.month} {request.year}</td>
-                            <td className="p-3 text-center">{request.numberOfUsers || 0}</td>
-                            <td className="p-3">{request.startDate || '-'}</td>
-                            <td className="p-3">{request.endDate || '-'}</td>
-                            <td className="p-3 text-right font-medium">
-                              {formatINR(request.totalAmount || 0)}
-                            </td>
-                            <td className="p-3">
-                              <Badge variant={getStatusBadgeVariant(request.labStatus || '')}>
-                                {request.labStatus || '-'}
-                              </Badge>
-                            </td>
-                            <td className="p-3">{request.lineOfBusiness || '-'}</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-                <ScrollBar orientation="horizontal" />
+                      ))
+                    )}
+                  </tbody>
+                </table>
                 <ScrollBar orientation="vertical" />
               </ScrollArea>
             </div>
