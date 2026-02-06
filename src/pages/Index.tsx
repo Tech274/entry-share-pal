@@ -211,7 +211,6 @@ const Index = () => {
                   requests={requests}
                   onSubmit={handleSubmit}
                   onDelete={handleDelete}
-                  onBulkInsert={bulkInsert}
                   onConvertToDelivery={handleConvertToDelivery}
                   onUpdate={updateLabRequest}
                 />
@@ -222,7 +221,6 @@ const Index = () => {
                   requests={deliveryRequests}
                   onSubmit={handleDeliverySubmit}
                   onDelete={handleDeliveryDelete}
-                  onBulkInsert={bulkInsertDelivery}
                   onStatusChange={handleDeliveryStatusChange}
                   onUpdate={updateDeliveryRequest}
                 />
@@ -233,6 +231,7 @@ const Index = () => {
                   deliveryRequests={deliveryRequests}
                   onDeliveryDelete={handleDeliveryDelete}
                   onUpdate={updateDeliveryRequest}
+                  onBulkInsert={bulkInsertDelivery}
                 />
               </TabsContent>
 
