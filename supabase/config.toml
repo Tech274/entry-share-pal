@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.ai-csv-autocorrect]
 verify_jwt = false
+
+[functions.ai-data-editor]
+verify_jwt = false

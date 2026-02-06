@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Cloud, Server, Building2, Eye, Upload, Download, Sparkles, Loader2 } from 'lucide-react';
 import { DeliveryTable } from '@/components/DeliveryTable';
+import { AIDataEditBar } from '@/components/AIDataEditBar';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -23,6 +24,7 @@ interface ADRTabContentProps {
   onDeliveryDelete: (id: string) => void;
   onUpdate?: (id: string, data: Partial<DeliveryRequest>) => void;
   onBulkInsert?: (data: Omit<DeliveryRequest, 'id' | 'createdAt'>[]) => Promise<boolean>;
+  onRefetch?: () => void;
 }
 
 interface CorrectedRow {
@@ -58,6 +60,7 @@ export const ADRTabContent = ({
   onDeliveryDelete,
   onUpdate,
   onBulkInsert,
+  onRefetch,
 }: ADRTabContentProps) => {
   const { isAdmin, isOpsLead } = useAuth();
   const { toast } = useToast();
@@ -292,6 +295,13 @@ export const ADRTabContent = ({
           </Button>
         </div>
       </div>
+
+      {/* AI Data Edit Bar */}
+      <AIDataEditBar 
+        tableType="delivery" 
+        onEditComplete={onRefetch}
+        recordCount={adrDeliveryRequests.length}
+      />
 
       {/* Cloud Type Sub-tabs */}
       <Tabs defaultValue="overall" className="space-y-6">
