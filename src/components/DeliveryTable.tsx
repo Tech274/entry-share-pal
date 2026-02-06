@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DeliveryRequest, LAB_STATUS_OPTIONS, CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, LINE_OF_BUSINESS_OPTIONS, LAB_TYPE_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS } from '@/types/deliveryRequest';
 import {
   Table,
@@ -9,13 +9,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { getStatusColor, getCloudColor, getCloudTypeColor, getTPLabTypeColor, getLOBColor, getLabTypeColor } from '@/lib/statusColors';
 import { cn } from '@/lib/utils';
 import { QuickStatusActions } from '@/components/delivery/QuickStatusActions';
 import { EditableCell } from '@/components/EditableCell';
+import { UndoRedoToolbar } from '@/components/delivery/UndoRedoToolbar';
+import { useUndoRedo } from '@/hooks/useUndoRedo';
+import { useToast } from '@/hooks/use-toast';
 
 interface DeliveryTableProps {
   requests: DeliveryRequest[];
@@ -26,6 +27,8 @@ interface DeliveryTableProps {
 
 export const DeliveryTable = ({ requests, onDelete, onStatusChange, onUpdate }: DeliveryTableProps) => {
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const { canUndo, canRedo, recordEdit, undo, redo, undoStack, redoStack } = useUndoRedo();
+  const { toast } = useToast();
 
   const toggleRowSelection = (id: string) => {
     setSelectedRows(prev => {
@@ -43,9 +46,53 @@ export const DeliveryTable = ({ requests, onDelete, onStatusChange, onUpdate }: 
 
   const handleCellUpdate = (id: string, field: keyof DeliveryRequest, value: string | number) => {
     if (onUpdate) {
+      // Find the old value
+      const request = requests.find(r => r.id === id);
+      if (request) {
+        const oldValue = request[field] as string | number;
+        recordEdit(id, field, oldValue, value);
+      }
       onUpdate(id, { [field]: value });
     }
   };
+
+  const handleUndo = useCallback(() => {
+    const action = undo();
+    if (action && onUpdate) {
+      onUpdate(action.id, { [action.field]: action.oldValue });
+      toast({
+        title: 'Undone',
+        description: `Reverted ${action.field} change`,
+      });
+    }
+  }, [undo, onUpdate, toast]);
+
+  const handleRedo = useCallback(() => {
+    const action = redo();
+    if (action && onUpdate) {
+      onUpdate(action.id, { [action.field]: action.newValue });
+      toast({
+        title: 'Redone',
+        description: `Reapplied ${action.field} change`,
+      });
+    }
+  }, [redo, onUpdate, toast]);
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
 
   if (requests.length === 0) {
     return (
@@ -57,34 +104,45 @@ export const DeliveryTable = ({ requests, onDelete, onStatusChange, onUpdate }: 
 
   return (
     <div className="form-section p-0 overflow-hidden">
-      <ScrollArea className="w-full h-[calc(100vh-300px)]">
-        <div className="min-w-[2200px]">
-          <Table>
-            <TableHeader className="sticky top-0 z-10 bg-muted">
-              <TableRow className="bg-muted/50">
-                <TableHead className="font-semibold w-[50px] sticky left-0 bg-muted z-20">#</TableHead>
-                <TableHead className="font-semibold min-w-[100px]">LOB</TableHead>
-                <TableHead className="font-semibold min-w-[120px]">Potential ID</TableHead>
-                <TableHead className="font-semibold min-w-[120px]">Ticket #</TableHead>
-                <TableHead className="font-semibold min-w-[180px]">Training Name</TableHead>
-                <TableHead className="font-semibold min-w-[150px]">Client</TableHead>
-                <TableHead className="font-semibold min-w-[120px]">Lab Type</TableHead>
-                <TableHead className="font-semibold min-w-[100px]">Cloud Type</TableHead>
-                <TableHead className="font-semibold min-w-[100px]">TP Lab Type</TableHead>
-                <TableHead className="font-semibold min-w-[80px]">Users</TableHead>
-                <TableHead className="font-semibold min-w-[160px]">Lab Status</TableHead>
-                <TableHead className="font-semibold min-w-[100px]">Category</TableHead>
-                <TableHead className="font-semibold min-w-[110px]">Start Date</TableHead>
-                <TableHead className="font-semibold min-w-[110px]">End Date</TableHead>
-                <TableHead className="font-semibold min-w-[100px]">Month</TableHead>
-                <TableHead className="font-semibold min-w-[80px]">Year</TableHead>
-                <TableHead className="font-semibold min-w-[120px]">Input Cost</TableHead>
-                <TableHead className="font-semibold min-w-[120px]">Selling Cost</TableHead>
-                <TableHead className="font-semibold min-w-[120px]">Total Amount</TableHead>
-                <TableHead className="font-semibold min-w-[150px]">Invoice Details</TableHead>
-                <TableHead className="font-semibold w-[80px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
+      {/* Undo/Redo Toolbar */}
+      <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
+        <span className="text-xs text-muted-foreground">{requests.length} records</span>
+        <UndoRedoToolbar
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          undoCount={undoStack.length}
+          redoCount={redoStack.length}
+        />
+      </div>
+      <ScrollArea className="w-full h-[calc(100vh-350px)]">
+        <Table className="w-full table-fixed">
+          <TableHeader className="sticky top-0 z-10 bg-muted">
+            <TableRow className="bg-muted/50">
+              <TableHead className="font-semibold w-[40px] sticky left-0 bg-muted z-20">#</TableHead>
+              <TableHead className="font-semibold w-[80px]">LOB</TableHead>
+              <TableHead className="font-semibold w-[100px]">Potential ID</TableHead>
+              <TableHead className="font-semibold w-[80px]">Ticket #</TableHead>
+              <TableHead className="font-semibold w-[140px]">Training Name</TableHead>
+              <TableHead className="font-semibold w-[100px]">Client</TableHead>
+              <TableHead className="font-semibold w-[80px]">Lab Type</TableHead>
+              <TableHead className="font-semibold w-[70px]">Cloud Type</TableHead>
+              <TableHead className="font-semibold w-[70px]">TP Lab Type</TableHead>
+              <TableHead className="font-semibold w-[50px]">Users</TableHead>
+              <TableHead className="font-semibold w-[130px]">Lab Status</TableHead>
+              <TableHead className="font-semibold w-[80px]">Category</TableHead>
+              <TableHead className="font-semibold w-[90px]">Start Date</TableHead>
+              <TableHead className="font-semibold w-[90px]">End Date</TableHead>
+              <TableHead className="font-semibold w-[80px]">Month</TableHead>
+              <TableHead className="font-semibold w-[60px]">Year</TableHead>
+              <TableHead className="font-semibold w-[90px]">Input Cost</TableHead>
+              <TableHead className="font-semibold w-[90px]">Selling Cost</TableHead>
+              <TableHead className="font-semibold w-[90px]">Total Amount</TableHead>
+              <TableHead className="font-semibold w-[100px]">Invoice Details</TableHead>
+              <TableHead className="font-semibold w-[50px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
             <TableBody>
               {requests.map((request, index) => (
                 <TableRow 
@@ -278,8 +336,6 @@ export const DeliveryTable = ({ requests, onDelete, onStatusChange, onUpdate }: 
               ))}
             </TableBody>
           </Table>
-        </div>
-        <ScrollBar orientation="horizontal" />
         <ScrollBar orientation="vertical" />
       </ScrollArea>
     </div>

@@ -231,6 +231,7 @@ const Index = () => {
                 <ADRTabContent
                   deliveryRequests={deliveryRequests}
                   onDeliveryDelete={handleDeliveryDelete}
+                  onUpdate={updateDeliveryRequest}
                 />
               </TabsContent>
 

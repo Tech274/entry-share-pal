@@ -9,11 +9,13 @@ import { DeliveryTable } from '@/components/DeliveryTable';
 interface ADRTabContentProps {
   deliveryRequests: DeliveryRequest[];
   onDeliveryDelete: (id: string) => void;
+  onUpdate?: (id: string, data: Partial<DeliveryRequest>) => void;
 }
 
 export const ADRTabContent = ({
   deliveryRequests,
   onDeliveryDelete,
+  onUpdate,
 }: ADRTabContentProps) => {
   const { isAdmin, isOpsLead } = useAuth();
 
@@ -84,6 +86,7 @@ export const ADRTabContent = ({
             <DeliveryTable
               requests={adrDeliveryRequests}
               onDelete={onDeliveryDelete}
+              onUpdate={onUpdate}
             />
           </div>
         </TabsContent>
@@ -92,6 +95,7 @@ export const ADRTabContent = ({
           <DeliveryTable
             requests={publicCloudDeliveryRequests}
             onDelete={onDeliveryDelete}
+            onUpdate={onUpdate}
           />
         </TabsContent>
 
@@ -99,6 +103,7 @@ export const ADRTabContent = ({
           <DeliveryTable
             requests={privateCloudDeliveryRequests}
             onDelete={onDeliveryDelete}
+            onUpdate={onUpdate}
           />
         </TabsContent>
 
@@ -106,6 +111,7 @@ export const ADRTabContent = ({
           <DeliveryTable
             requests={tpLabsDeliveryRequests}
             onDelete={onDeliveryDelete}
+            onUpdate={onUpdate}
           />
         </TabsContent>
       </Tabs>
