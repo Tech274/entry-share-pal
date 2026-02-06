@@ -22,7 +22,8 @@ const Index = () => {
     addRequest: addDeliveryRequest,
     deleteRequest: deleteDeliveryRequest,
     bulkInsert: bulkInsertDelivery,
-    updateRequest: updateDeliveryRequest
+    updateRequest: updateDeliveryRequest,
+    refetch: refetchDeliveryRequests
   } = useDeliveryRequests();
   const { toast } = useToast();
   const { isFinance } = useAuth();
@@ -232,6 +233,7 @@ const Index = () => {
                   onDeliveryDelete={handleDeliveryDelete}
                   onUpdate={updateDeliveryRequest}
                   onBulkInsert={bulkInsertDelivery}
+                  onRefetch={refetchDeliveryRequests}
                 />
               </TabsContent>
 

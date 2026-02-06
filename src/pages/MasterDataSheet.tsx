@@ -14,6 +14,7 @@ import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { supabase } from '@/integrations/supabase/client';
+import { AIDataEditBar } from '@/components/AIDataEditBar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,8 +28,8 @@ import logo from '@/assets/makemylabs-logo.png';
 const ADR_STATUSES = ['Delivered', 'Delivery In-Progress', 'Delivery Completed', 'Completed'];
 
 const MasterDataSheet = () => {
-  const { requests: labRequests, addRequest: addLabRequest } = useLabRequests();
-  const { requests: deliveryRequests, addRequest: addDeliveryRequest } = useDeliveryRequests();
+  const { requests: labRequests, addRequest: addLabRequest, refetch: refetchLabRequests } = useLabRequests();
+  const { requests: deliveryRequests, addRequest: addDeliveryRequest, refetch: refetchDeliveryRequests } = useDeliveryRequests();
   const { toast } = useToast();
   const [activeLabType, setActiveLabType] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<string>('solutions');
@@ -408,6 +409,15 @@ const MasterDataSheet = () => {
 
           {/* Solutions Table */}
           <TabsContent value="solutions">
+            {/* AI Edit Bar for Solutions */}
+            <div className="mb-4">
+              <AIDataEditBar 
+                tableType="lab_requests" 
+                onEditComplete={refetchLabRequests}
+                recordCount={filteredLabRequests.length}
+              />
+            </div>
+            
             <div className="bg-card rounded-lg border overflow-hidden">
               <div className="p-4 border-b bg-muted/30">
                 <h2 className="font-semibold flex items-center gap-2">
@@ -418,7 +428,7 @@ const MasterDataSheet = () => {
                   )}
                 </h2>
               </div>
-              <ScrollArea className="w-full h-[calc(100vh-400px)]">
+              <ScrollArea className="w-full h-[calc(100vh-450px)]">
                 <table className="w-full table-fixed border-collapse text-sm">
                   <thead className="sticky top-0 z-10">
                     <tr className="bg-primary text-primary-foreground">
@@ -477,6 +487,15 @@ const MasterDataSheet = () => {
 
           {/* Delivery Table */}
           <TabsContent value="delivery">
+            {/* AI Edit Bar for Delivery */}
+            <div className="mb-4">
+              <AIDataEditBar 
+                tableType="delivery" 
+                onEditComplete={refetchDeliveryRequests}
+                recordCount={filteredDeliveryRequests.length}
+              />
+            </div>
+            
             <div className="bg-card rounded-lg border overflow-hidden">
               <div className="p-4 border-b bg-muted/30">
                 <h2 className="font-semibold flex items-center gap-2">
@@ -490,7 +509,7 @@ const MasterDataSheet = () => {
                   </Badge>
                 </h2>
               </div>
-              <ScrollArea className="w-full h-[calc(100vh-400px)]">
+              <ScrollArea className="w-full h-[calc(100vh-450px)]">
                 <table className="w-full table-fixed border-collapse text-sm">
                   <thead className="sticky top-0 z-10">
                     <tr className="bg-primary text-primary-foreground">
