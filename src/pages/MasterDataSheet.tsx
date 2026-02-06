@@ -23,7 +23,7 @@ import {
 import logo from '@/assets/makemylabs-logo.png';
 
 // ADR statuses for delivery filtering
-const ADR_STATUSES = ['Delivered', 'Delivery In-Progress', 'Completed'];
+const ADR_STATUSES = ['Delivered', 'Delivery In-Progress', 'Delivery Completed', 'Completed'];
 
 const MasterDataSheet = () => {
   const { requests: labRequests, addRequest: addLabRequest } = useLabRequests();
@@ -406,7 +406,7 @@ const MasterDataSheet = () => {
                     <Badge variant="outline">{activeLabType}</Badge>
                   )}
                   <Badge className="bg-primary/10 text-primary ml-2">
-                    Status: Delivered, Delivery In-Progress, Completed
+                    Status: Delivered, Delivery In-Progress, Delivery Completed
                   </Badge>
                 </h2>
               </div>
