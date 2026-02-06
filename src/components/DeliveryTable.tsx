@@ -15,13 +15,15 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { formatINR } from '@/lib/formatUtils';
 import { getStatusColor, getCloudColor, getCloudTypeColor, getTPLabTypeColor, getLOBColor, getLabTypeColor } from '@/lib/statusColors';
 import { cn } from '@/lib/utils';
+import { QuickStatusActions } from '@/components/delivery/QuickStatusActions';
 
 interface DeliveryTableProps {
   requests: DeliveryRequest[];
   onDelete: (id: string) => void;
+  onStatusChange?: (id: string, newStatus: string) => void;
 }
 
-export const DeliveryTable = ({ requests, onDelete }: DeliveryTableProps) => {
+export const DeliveryTable = ({ requests, onDelete, onStatusChange }: DeliveryTableProps) => {
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
   const toggleRowSelection = (id: string) => {
@@ -129,13 +131,22 @@ export const DeliveryTable = ({ requests, onDelete }: DeliveryTableProps) => {
                   </TableCell>
                   <TableCell>{request.numberOfUsers || 0}</TableCell>
                   <TableCell>
-                    {request.labStatus ? (
-                      <Badge variant="outline" className={cn('text-xs', getStatusColor(request.labStatus))}>
-                        {request.labStatus}
-                      </Badge>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {request.labStatus ? (
+                        <Badge variant="outline" className={cn('text-xs', getStatusColor(request.labStatus))}>
+                          {request.labStatus}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                      {onStatusChange && (
+                        <QuickStatusActions
+                          currentStatus={request.labStatus || 'Pending'}
+                          onStatusChange={(newStatus) => onStatusChange(request.id, newStatus)}
+                          compact
+                        />
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     {request.labType ? (

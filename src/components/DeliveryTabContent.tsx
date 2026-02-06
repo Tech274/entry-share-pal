@@ -7,6 +7,7 @@ import { Truck, FileText, Upload, CheckCircle, Download, PackageCheck, Cloud, Se
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { StatusDistributionChart } from '@/components/delivery/StatusDistributionChart';
 
 const DELIVERY_CSV_HEADERS = [
   'Potential ID', 'FreshDesk Ticket Number', 'Training Name', 'Number of Users',
@@ -21,19 +22,24 @@ interface DeliveryTabContentProps {
   onSubmit: (data: Omit<DeliveryRequest, 'id' | 'createdAt'>) => void;
   onDelete: (id: string) => void;
   onBulkInsert?: (data: Omit<DeliveryRequest, 'id' | 'createdAt'>[]) => Promise<boolean>;
+  onStatusChange?: (id: string, newStatus: string) => void;
 }
 
 // Sub-component for Lab Type filtered view
 const LabTypeSubTabs = ({ 
   requests, 
   onDelete,
+  onStatusChange,
   label,
-  showStatusBreakdown = false
+  showStatusBreakdown = false,
+  showChart = false
 }: { 
   requests: DeliveryRequest[]; 
   onDelete: (id: string) => void;
+  onStatusChange?: (id: string, newStatus: string) => void;
   label: string;
   showStatusBreakdown?: boolean;
+  showChart?: boolean;
 }) => {
   const publicCloudRequests = requests.filter(r => r.cloud === 'Public Cloud');
   const privateCloudRequests = requests.filter(r => r.cloud === 'Private Cloud');
@@ -48,42 +54,50 @@ const LabTypeSubTabs = ({
 
   return (
     <Tabs defaultValue="all" className="space-y-4">
-      <div className="flex flex-col gap-2 p-3 bg-accent/50 border border-accent rounded-lg">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">{label}</span>
-          <Badge variant="secondary" className="ml-auto">
-            {requests.length} total records
-          </Badge>
+      <div className="flex flex-col lg:flex-row gap-4 p-3 bg-accent/50 border border-accent rounded-lg">
+        <div className="flex-1 flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{label}</span>
+            <Badge variant="secondary" className="ml-auto lg:ml-2">
+              {requests.length} total records
+            </Badge>
+          </div>
+          
+          {showStatusBreakdown && (
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-accent/50">
+              <span className="text-xs text-muted-foreground">Status:</span>
+              {pendingCount > 0 && (
+                <Badge variant="outline" className="text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-300">
+                  Pending: {pendingCount}
+                </Badge>
+              )}
+              {wipCount > 0 && (
+                <Badge variant="outline" className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-300">
+                  WIP: {wipCount}
+                </Badge>
+              )}
+              {testCredentialsCount > 0 && (
+                <Badge variant="outline" className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 border-purple-300">
+                  Test Credentials: {testCredentialsCount}
+                </Badge>
+              )}
+              {inProgressCount > 0 && (
+                <Badge variant="outline" className="text-xs bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400 border-cyan-300">
+                  In-Progress: {inProgressCount}
+                </Badge>
+              )}
+              {cancelledCount > 0 && (
+                <Badge variant="outline" className="text-xs bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-300">
+                  Cancelled: {cancelledCount}
+                </Badge>
+              )}
+            </div>
+          )}
         </div>
         
-        {showStatusBreakdown && (
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-accent/50">
-            <span className="text-xs text-muted-foreground">Status:</span>
-            {pendingCount > 0 && (
-              <Badge variant="outline" className="text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-300">
-                Pending: {pendingCount}
-              </Badge>
-            )}
-            {wipCount > 0 && (
-              <Badge variant="outline" className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-300">
-                WIP: {wipCount}
-              </Badge>
-            )}
-            {testCredentialsCount > 0 && (
-              <Badge variant="outline" className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 border-purple-300">
-                Test Credentials: {testCredentialsCount}
-              </Badge>
-            )}
-            {inProgressCount > 0 && (
-              <Badge variant="outline" className="text-xs bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400 border-cyan-300">
-                In-Progress: {inProgressCount}
-              </Badge>
-            )}
-            {cancelledCount > 0 && (
-              <Badge variant="outline" className="text-xs bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-300">
-                Cancelled: {cancelledCount}
-              </Badge>
-            )}
+        {showChart && requests.length > 0 && (
+          <div className="lg:w-64 flex-shrink-0">
+            <StatusDistributionChart requests={requests} />
           </div>
         )}
       </div>
@@ -108,19 +122,19 @@ const LabTypeSubTabs = ({
       </TabsList>
 
       <TabsContent value="all">
-        <DeliveryTable requests={requests} onDelete={onDelete} />
+        <DeliveryTable requests={requests} onDelete={onDelete} onStatusChange={onStatusChange} />
       </TabsContent>
 
       <TabsContent value="public">
-        <DeliveryTable requests={publicCloudRequests} onDelete={onDelete} />
+        <DeliveryTable requests={publicCloudRequests} onDelete={onDelete} onStatusChange={onStatusChange} />
       </TabsContent>
 
       <TabsContent value="private">
-        <DeliveryTable requests={privateCloudRequests} onDelete={onDelete} />
+        <DeliveryTable requests={privateCloudRequests} onDelete={onDelete} onStatusChange={onStatusChange} />
       </TabsContent>
 
       <TabsContent value="tp-labs">
-        <DeliveryTable requests={tpLabsRequests} onDelete={onDelete} />
+        <DeliveryTable requests={tpLabsRequests} onDelete={onDelete} onStatusChange={onStatusChange} />
       </TabsContent>
     </Tabs>
   );
@@ -131,6 +145,7 @@ export const DeliveryTabContent = ({
   onSubmit,
   onDelete,
   onBulkInsert,
+  onStatusChange,
 }: DeliveryTabContentProps) => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -315,16 +330,19 @@ export const DeliveryTabContent = ({
       <TabsContent value="list" className="space-y-4">
         <LabTypeSubTabs 
           requests={activeRequests} 
-          onDelete={onDelete} 
+          onDelete={onDelete}
+          onStatusChange={onStatusChange}
           label="Active Requests"
           showStatusBreakdown={true}
+          showChart={true}
         />
       </TabsContent>
 
       <TabsContent value="delivered" className="space-y-4">
         <LabTypeSubTabs 
           requests={deliveredTabRequests} 
-          onDelete={onDelete} 
+          onDelete={onDelete}
+          onStatusChange={onStatusChange}
           label="Delivered Records" 
         />
       </TabsContent>
@@ -332,7 +350,8 @@ export const DeliveryTabContent = ({
       <TabsContent value="completed" className="space-y-4">
         <LabTypeSubTabs 
           requests={completedRequests} 
-          onDelete={onDelete} 
+          onDelete={onDelete}
+          onStatusChange={onStatusChange}
           label="Completed Deliveries" 
         />
       </TabsContent>

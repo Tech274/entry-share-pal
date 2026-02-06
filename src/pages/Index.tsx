@@ -21,7 +21,8 @@ const Index = () => {
     requests: deliveryRequests, 
     addRequest: addDeliveryRequest,
     deleteRequest: deleteDeliveryRequest,
-    bulkInsert: bulkInsertDelivery
+    bulkInsert: bulkInsertDelivery,
+    updateRequest: updateDeliveryRequest
   } = useDeliveryRequests();
   const { toast } = useToast();
   const { isFinance } = useAuth();
@@ -32,6 +33,14 @@ const Index = () => {
       title: 'Delivery Entry Deleted',
       description: 'The delivery request has been removed.',
       variant: 'destructive',
+    });
+  };
+
+  const handleDeliveryStatusChange = (id: string, newStatus: string) => {
+    updateDeliveryRequest(id, { labStatus: newStatus });
+    toast({
+      title: 'Status Updated',
+      description: `Status changed to "${newStatus}".`,
     });
   };
 
@@ -213,6 +222,7 @@ const Index = () => {
                   onSubmit={handleDeliverySubmit}
                   onDelete={handleDeliveryDelete}
                   onBulkInsert={bulkInsertDelivery}
+                  onStatusChange={handleDeliveryStatusChange}
                 />
               </TabsContent>
 
