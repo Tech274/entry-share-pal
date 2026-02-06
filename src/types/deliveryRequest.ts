@@ -36,7 +36,7 @@ export const MONTH_OPTIONS = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 export const YEAR_OPTIONS = [2025, 2026];
-export const LAB_STATUS_OPTIONS = ['Pending', 'Work-in-Progress', 'Test Credentials Shared', 'Delivered', 'Delivery In-Progress', 'Delivery Completed', 'Cancelled'];
+export const LAB_STATUS_OPTIONS = ['Pending', 'Work-in-Progress', 'Test Credentials Shared', 'Delivery In-Progress', 'Delivery Completed', 'Cancelled'];
 export const LAB_TYPE_OPTIONS = ['Cloud', 'On-Premise', 'Hybrid', 'Virtual'];
 export const CLOUD_OPTIONS = ['Public Cloud', 'Private Cloud', 'TP Labs'];
 export const CLOUD_TYPE_OPTIONS = ['AWS', 'Azure', 'GCP'];

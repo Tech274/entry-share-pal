@@ -145,13 +145,13 @@ export const DeliveryTabContent = ({
   onStatusChange,
   onUpdate,
 }: DeliveryTabContentProps) => {
-  // Filter completed and delivered requests for their respective tabs
+  // Filter completed and delivery in-progress requests for their respective tabs
   const completedRequests = requests.filter(r => r.labStatus === 'Completed' || r.labStatus === 'Delivery Completed');
-  const deliveredTabRequests = requests.filter(r => r.labStatus === 'Delivered');
+  const deliveryInProgressRequests = requests.filter(r => r.labStatus === 'Delivery In-Progress');
   const activeRequests = requests.filter(r => 
     r.labStatus !== 'Completed' && 
     r.labStatus !== 'Delivery Completed' && 
-    r.labStatus !== 'Delivered'
+    r.labStatus !== 'Delivery In-Progress'
   );
 
   return (
@@ -165,9 +165,9 @@ export const DeliveryTabContent = ({
           <Truck className="w-4 h-4" />
           Requests List ({activeRequests.length})
         </TabsTrigger>
-        <TabsTrigger value="delivered" className="gap-2">
+        <TabsTrigger value="in-progress" className="gap-2">
           <PackageCheck className="w-4 h-4" />
-          Delivered ({deliveredTabRequests.length})
+          Delivery In-Progress ({deliveryInProgressRequests.length})
         </TabsTrigger>
         <TabsTrigger value="completed" className="gap-2">
           <CheckCircle className="w-4 h-4" />
@@ -190,13 +190,13 @@ export const DeliveryTabContent = ({
         />
       </TabsContent>
 
-      <TabsContent value="delivered" className="space-y-4">
+      <TabsContent value="in-progress" className="space-y-4">
         <LabTypeSubTabs 
-          requests={deliveredTabRequests} 
+          requests={deliveryInProgressRequests} 
           onDelete={onDelete}
           onStatusChange={onStatusChange}
           onUpdate={onUpdate}
-          label="Delivered Records" 
+          label="Delivery In-Progress Records" 
         />
       </TabsContent>
 
