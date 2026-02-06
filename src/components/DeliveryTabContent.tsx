@@ -54,53 +54,71 @@ const LabTypeSubTabs = ({
 
   return (
     <Tabs defaultValue="all" className="space-y-4">
-      <div className="flex flex-col lg:flex-row gap-4 p-3 bg-accent/50 border border-accent rounded-lg">
-        <div className="flex-1 flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{label}</span>
-            <Badge variant="secondary" className="ml-auto lg:ml-2">
-              {requests.length} total records
-            </Badge>
-          </div>
-          
-          {showStatusBreakdown && (
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-accent/50">
-              <span className="text-xs text-muted-foreground">Status:</span>
+      {showStatusBreakdown && requests.length > 0 && (
+        <div className="flex items-center justify-between gap-6 px-4 py-3 bg-muted/40 border rounded-lg">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground">{label}</span>
+              <Badge variant="secondary" className="text-xs">
+                {requests.length}
+              </Badge>
+            </div>
+            
+            <div className="h-4 w-px bg-border" />
+            
+            <div className="flex items-center gap-3">
               {pendingCount > 0 && (
-                <Badge variant="outline" className="text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-300">
-                  Pending: {pendingCount}
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                  <span className="text-xs text-muted-foreground">Pending</span>
+                  <span className="text-xs font-medium">{pendingCount}</span>
+                </div>
               )}
               {wipCount > 0 && (
-                <Badge variant="outline" className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-300">
-                  WIP: {wipCount}
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <span className="text-xs text-muted-foreground">WIP</span>
+                  <span className="text-xs font-medium">{wipCount}</span>
+                </div>
               )}
               {testCredentialsCount > 0 && (
-                <Badge variant="outline" className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 border-purple-300">
-                  Test Credentials: {testCredentialsCount}
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-purple-500" />
+                  <span className="text-xs text-muted-foreground">Test Creds</span>
+                  <span className="text-xs font-medium">{testCredentialsCount}</span>
+                </div>
               )}
               {inProgressCount > 0 && (
-                <Badge variant="outline" className="text-xs bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400 border-cyan-300">
-                  In-Progress: {inProgressCount}
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-cyan-500" />
+                  <span className="text-xs text-muted-foreground">In-Progress</span>
+                  <span className="text-xs font-medium">{inProgressCount}</span>
+                </div>
               )}
               {cancelledCount > 0 && (
-                <Badge variant="outline" className="text-xs bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-300">
-                  Cancelled: {cancelledCount}
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-red-500" />
+                  <span className="text-xs text-muted-foreground">Cancelled</span>
+                  <span className="text-xs font-medium">{cancelledCount}</span>
+                </div>
               )}
+            </div>
+          </div>
+          
+          {showChart && (
+            <div className="w-48 h-12 flex-shrink-0">
+              <StatusDistributionChart requests={requests} compact />
             </div>
           )}
         </div>
-        
-        {showChart && requests.length > 0 && (
-          <div className="lg:w-64 flex-shrink-0">
-            <StatusDistributionChart requests={requests} />
-          </div>
-        )}
-      </div>
+      )}
+      
+      {!showStatusBreakdown && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-muted/40 border rounded-lg">
+          <span className="text-sm font-medium">{label}</span>
+          <Badge variant="secondary" className="text-xs">{requests.length}</Badge>
+        </div>
+      )}
       
       <TabsList className="grid w-full max-w-2xl grid-cols-4">
         <TabsTrigger value="all" className="gap-2">

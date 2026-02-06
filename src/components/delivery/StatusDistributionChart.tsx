@@ -1,20 +1,21 @@
 import { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 
 interface StatusDistributionChartProps {
   requests: DeliveryRequest[];
+  compact?: boolean;
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  'Pending': '#eab308',           // yellow-500
-  'Work-in-Progress': '#3b82f6', // blue-500
-  'Test Credentials Shared': '#a855f7', // purple-500
-  'Delivery In-Progress': '#06b6d4', // cyan-500
-  'Cancelled': '#ef4444',        // red-500
+  'Pending': '#eab308',
+  'Work-in-Progress': '#3b82f6',
+  'Test Credentials Shared': '#a855f7',
+  'Delivery In-Progress': '#06b6d4',
+  'Cancelled': '#ef4444',
 };
 
-export const StatusDistributionChart = ({ requests }: StatusDistributionChartProps) => {
+export const StatusDistributionChart = ({ requests, compact = false }: StatusDistributionChartProps) => {
   const chartData = useMemo(() => {
     const statusCounts: Record<string, number> = {};
     
@@ -34,6 +35,40 @@ export const StatusDistributionChart = ({ requests }: StatusDistributionChartPro
 
   if (requests.length === 0 || chartData.length === 0) {
     return null;
+  }
+
+  if (compact) {
+    return (
+      <div className="h-12 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="50%"
+              innerRadius={12}
+              outerRadius={22}
+              paddingAngle={2}
+              dataKey="value"
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip 
+              formatter={(value: number, name: string) => [`${value}`, name]}
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--popover))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '6px',
+                fontSize: '12px',
+                padding: '4px 8px',
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    );
   }
 
   return (
@@ -63,14 +98,6 @@ export const StatusDistributionChart = ({ requests }: StatusDistributionChartPro
               borderRadius: '8px',
               color: 'hsl(var(--popover-foreground))'
             }}
-          />
-          <Legend 
-            layout="vertical" 
-            align="right" 
-            verticalAlign="middle"
-            formatter={(value: string) => (
-              <span className="text-xs text-foreground">{value}</span>
-            )}
           />
         </PieChart>
       </ResponsiveContainer>
