@@ -27,23 +27,65 @@ interface DeliveryTabContentProps {
 const LabTypeSubTabs = ({ 
   requests, 
   onDelete,
-  label 
+  label,
+  showStatusBreakdown = false
 }: { 
   requests: DeliveryRequest[]; 
   onDelete: (id: string) => void;
   label: string;
+  showStatusBreakdown?: boolean;
 }) => {
   const publicCloudRequests = requests.filter(r => r.cloud === 'Public Cloud');
   const privateCloudRequests = requests.filter(r => r.cloud === 'Private Cloud');
   const tpLabsRequests = requests.filter(r => r.cloud === 'TP Labs');
 
+  // Status breakdown for active requests
+  const pendingCount = requests.filter(r => r.labStatus === 'Pending').length;
+  const wipCount = requests.filter(r => r.labStatus === 'Work-in-Progress').length;
+  const testCredentialsCount = requests.filter(r => r.labStatus === 'Test Credentials Shared').length;
+  const inProgressCount = requests.filter(r => r.labStatus === 'Delivery In-Progress').length;
+  const cancelledCount = requests.filter(r => r.labStatus === 'Cancelled').length;
+
   return (
     <Tabs defaultValue="all" className="space-y-4">
-      <div className="flex items-center gap-2 p-3 bg-accent/50 border border-accent rounded-lg">
-        <span className="text-sm font-medium">{label}</span>
-        <Badge variant="secondary" className="ml-auto">
-          {requests.length} total records
-        </Badge>
+      <div className="flex flex-col gap-2 p-3 bg-accent/50 border border-accent rounded-lg">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">{label}</span>
+          <Badge variant="secondary" className="ml-auto">
+            {requests.length} total records
+          </Badge>
+        </div>
+        
+        {showStatusBreakdown && (
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-accent/50">
+            <span className="text-xs text-muted-foreground">Status:</span>
+            {pendingCount > 0 && (
+              <Badge variant="outline" className="text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-300">
+                Pending: {pendingCount}
+              </Badge>
+            )}
+            {wipCount > 0 && (
+              <Badge variant="outline" className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-300">
+                WIP: {wipCount}
+              </Badge>
+            )}
+            {testCredentialsCount > 0 && (
+              <Badge variant="outline" className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 border-purple-300">
+                Test Credentials: {testCredentialsCount}
+              </Badge>
+            )}
+            {inProgressCount > 0 && (
+              <Badge variant="outline" className="text-xs bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400 border-cyan-300">
+                In-Progress: {inProgressCount}
+              </Badge>
+            )}
+            {cancelledCount > 0 && (
+              <Badge variant="outline" className="text-xs bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-300">
+                Cancelled: {cancelledCount}
+              </Badge>
+            )}
+          </div>
+        )}
       </div>
       
       <TabsList className="grid w-full max-w-2xl grid-cols-4">
@@ -274,7 +316,8 @@ export const DeliveryTabContent = ({
         <LabTypeSubTabs 
           requests={activeRequests} 
           onDelete={onDelete} 
-          label="Active Requests" 
+          label="Active Requests"
+          showStatusBreakdown={true}
         />
       </TabsContent>
 
