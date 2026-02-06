@@ -55,61 +55,53 @@ const LabTypeSubTabs = ({
   return (
     <Tabs defaultValue="all" className="space-y-4">
       {showStatusBreakdown && requests.length > 0 && (
-        <div className="flex items-center justify-between gap-6 px-4 py-3 bg-muted/40 border rounded-lg">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-foreground">{label}</span>
-              <Badge variant="secondary" className="text-xs">
-                {requests.length}
-              </Badge>
-            </div>
-            
-            <div className="h-4 w-px bg-border" />
-            
-            <div className="flex items-center gap-3">
-              {pendingCount > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                  <span className="text-xs text-muted-foreground">Pending</span>
-                  <span className="text-xs font-medium">{pendingCount}</span>
-                </div>
-              )}
-              {wipCount > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-blue-500" />
-                  <span className="text-xs text-muted-foreground">WIP</span>
-                  <span className="text-xs font-medium">{wipCount}</span>
-                </div>
-              )}
-              {testCredentialsCount > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-purple-500" />
-                  <span className="text-xs text-muted-foreground">Test Creds</span>
-                  <span className="text-xs font-medium">{testCredentialsCount}</span>
-                </div>
-              )}
-              {inProgressCount > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-cyan-500" />
-                  <span className="text-xs text-muted-foreground">In-Progress</span>
-                  <span className="text-xs font-medium">{inProgressCount}</span>
-                </div>
-              )}
-              {cancelledCount > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-red-500" />
-                  <span className="text-xs text-muted-foreground">Cancelled</span>
-                  <span className="text-xs font-medium">{cancelledCount}</span>
-                </div>
-              )}
-            </div>
+        <div className="flex items-center gap-6 px-4 py-3 bg-muted/40 border rounded-lg">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-foreground">{label}</span>
+            <Badge variant="secondary" className="text-xs">
+              {requests.length}
+            </Badge>
           </div>
           
-          {showChart && (
-            <div className="w-48 h-12 flex-shrink-0">
-              <StatusDistributionChart requests={requests} compact />
-            </div>
-          )}
+          <div className="h-4 w-px bg-border" />
+          
+          <div className="flex items-center gap-3">
+            {pendingCount > 0 && (
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                <span className="text-xs text-muted-foreground">Pending</span>
+                <span className="text-xs font-medium">{pendingCount}</span>
+              </div>
+            )}
+            {wipCount > 0 && (
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-blue-500" />
+                <span className="text-xs text-muted-foreground">WIP</span>
+                <span className="text-xs font-medium">{wipCount}</span>
+              </div>
+            )}
+            {testCredentialsCount > 0 && (
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-purple-500" />
+                <span className="text-xs text-muted-foreground">Test Creds</span>
+                <span className="text-xs font-medium">{testCredentialsCount}</span>
+              </div>
+            )}
+            {inProgressCount > 0 && (
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-cyan-500" />
+                <span className="text-xs text-muted-foreground">In-Progress</span>
+                <span className="text-xs font-medium">{inProgressCount}</span>
+              </div>
+            )}
+            {cancelledCount > 0 && (
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-red-500" />
+                <span className="text-xs text-muted-foreground">Cancelled</span>
+                <span className="text-xs font-medium">{cancelledCount}</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
       
