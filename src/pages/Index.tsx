@@ -223,6 +223,7 @@ const Index = () => {
                   onDelete={handleDeliveryDelete}
                   onBulkInsert={bulkInsertDelivery}
                   onStatusChange={handleDeliveryStatusChange}
+                  onUpdate={updateDeliveryRequest}
                 />
               </TabsContent>
 

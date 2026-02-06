@@ -23,6 +23,7 @@ interface DeliveryTabContentProps {
   onDelete: (id: string) => void;
   onBulkInsert?: (data: Omit<DeliveryRequest, 'id' | 'createdAt'>[]) => Promise<boolean>;
   onStatusChange?: (id: string, newStatus: string) => void;
+  onUpdate?: (id: string, data: Partial<DeliveryRequest>) => void;
 }
 
 // Sub-component for Lab Type filtered view
@@ -30,16 +31,16 @@ const LabTypeSubTabs = ({
   requests, 
   onDelete,
   onStatusChange,
+  onUpdate,
   label,
   showStatusBreakdown = false,
-  showChart = false
 }: { 
   requests: DeliveryRequest[]; 
   onDelete: (id: string) => void;
   onStatusChange?: (id: string, newStatus: string) => void;
+  onUpdate?: (id: string, data: Partial<DeliveryRequest>) => void;
   label: string;
   showStatusBreakdown?: boolean;
-  showChart?: boolean;
 }) => {
   const publicCloudRequests = requests.filter(r => r.cloud === 'Public Cloud');
   const privateCloudRequests = requests.filter(r => r.cloud === 'Private Cloud');
@@ -132,19 +133,19 @@ const LabTypeSubTabs = ({
       </TabsList>
 
       <TabsContent value="all">
-        <DeliveryTable requests={requests} onDelete={onDelete} onStatusChange={onStatusChange} />
+        <DeliveryTable requests={requests} onDelete={onDelete} onStatusChange={onStatusChange} onUpdate={onUpdate} />
       </TabsContent>
 
       <TabsContent value="public">
-        <DeliveryTable requests={publicCloudRequests} onDelete={onDelete} onStatusChange={onStatusChange} />
+        <DeliveryTable requests={publicCloudRequests} onDelete={onDelete} onStatusChange={onStatusChange} onUpdate={onUpdate} />
       </TabsContent>
 
       <TabsContent value="private">
-        <DeliveryTable requests={privateCloudRequests} onDelete={onDelete} onStatusChange={onStatusChange} />
+        <DeliveryTable requests={privateCloudRequests} onDelete={onDelete} onStatusChange={onStatusChange} onUpdate={onUpdate} />
       </TabsContent>
 
       <TabsContent value="tp-labs">
-        <DeliveryTable requests={tpLabsRequests} onDelete={onDelete} onStatusChange={onStatusChange} />
+        <DeliveryTable requests={tpLabsRequests} onDelete={onDelete} onStatusChange={onStatusChange} onUpdate={onUpdate} />
       </TabsContent>
     </Tabs>
   );
@@ -156,6 +157,7 @@ export const DeliveryTabContent = ({
   onDelete,
   onBulkInsert,
   onStatusChange,
+  onUpdate,
 }: DeliveryTabContentProps) => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -342,9 +344,9 @@ export const DeliveryTabContent = ({
           requests={activeRequests} 
           onDelete={onDelete}
           onStatusChange={onStatusChange}
+          onUpdate={onUpdate}
           label="Active Requests"
           showStatusBreakdown={true}
-          showChart={true}
         />
       </TabsContent>
 
@@ -353,6 +355,7 @@ export const DeliveryTabContent = ({
           requests={deliveredTabRequests} 
           onDelete={onDelete}
           onStatusChange={onStatusChange}
+          onUpdate={onUpdate}
           label="Delivered Records" 
         />
       </TabsContent>
@@ -362,6 +365,7 @@ export const DeliveryTabContent = ({
           requests={completedRequests} 
           onDelete={onDelete}
           onStatusChange={onStatusChange}
+          onUpdate={onUpdate}
           label="Completed Deliveries" 
         />
       </TabsContent>
