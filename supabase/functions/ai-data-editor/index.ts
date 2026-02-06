@@ -159,10 +159,17 @@ Available fields for ${tableName}:
 - input_cost_per_user, selling_cost_per_user, total_amount, line_of_business (Standalone/VILT/Integrated)
 - invoice_details, tp_lab_type (SAP/Oracle/OEM)
 
-Return ONLY valid JSON in this format:
+IMPORTANT RULES:
+1. Return ONLY valid JSON - no explanations before or after
+2. Filters must use SIMPLE key-value pairs only. NO MongoDB operators like $ne, $gt, $in, etc.
+3. For "empty" or "null" values, use: "field": null
+4. For "not equal" conditions, you cannot express this directly - instead describe what WILL be matched
+5. If the user wants to update records WHERE a field is empty/null, use: "field": null in filters
+
+Return JSON in this format:
 {
   "action": "update" or "delete",
-  "filters": { "field": "value" },  // WHERE conditions to match records
+  "filters": { "field": "value" },  // Simple key-value pairs only. Use null for empty fields.
   "updates": { "field": "new_value" },  // Only for update action
   "description": "Human readable description of what will be done"
 }
@@ -170,7 +177,8 @@ Return ONLY valid JSON in this format:
 Examples:
 - "Change status to Delivered for P-001" → {"action":"update","filters":{"potential_id":"P-001"},"updates":{"lab_status":"Delivered"},"description":"Update status to Delivered for potential ID P-001"}
 - "Set all January 2025 records to Completed" → {"action":"update","filters":{"month":"January","year":2025},"updates":{"lab_status":"Delivery Completed"},"description":"Update all January 2025 records to Delivery Completed"}
-- "Update client to Acme Corp where ticket is FD-12345" → {"action":"update","filters":{"fresh_desk_ticket_number":"FD-12345"},"updates":{"client":"Acme Corp"},"description":"Update client name to Acme Corp for ticket FD-12345"}`;
+- "Update cloud to Private Cloud where cloud is empty" → {"action":"update","filters":{"cloud":null},"updates":{"cloud":"Private Cloud"},"description":"Update cloud to Private Cloud for all records where cloud is empty"}
+- "Change lab type to AWS for records without cloud type" → {"action":"update","filters":{"cloud_type":null},"updates":{"cloud_type":"AWS"},"description":"Set cloud type to AWS for all records with empty cloud type"}`;
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -250,7 +258,16 @@ Examples:
     // First, count how many records will be affected
     let countQuery = supabase.from(tableName).select('id', { count: 'exact', head: true });
     for (const [key, value] of Object.entries(normalizedFilters)) {
-      countQuery = countQuery.eq(key, value);
+      // Handle null filters (for empty/null fields)
+      if (value === null) {
+        countQuery = countQuery.is(key, null);
+      } else if (typeof value === 'object') {
+        // Skip complex filters that Supabase doesn't support directly
+        console.warn(`Skipping unsupported filter operator for ${key}:`, value);
+        continue;
+      } else {
+        countQuery = countQuery.eq(key, value);
+      }
     }
     
     const { count, error: countError } = await countQuery;
@@ -283,7 +300,15 @@ Examples:
     if (parsedEdit.action === 'update') {
       let updateQuery = supabase.from(tableName).update(normalizedUpdates);
       for (const [key, value] of Object.entries(normalizedFilters)) {
-        updateQuery = updateQuery.eq(key, value);
+        // Handle null filters (for empty/null fields)
+        if (value === null) {
+          updateQuery = updateQuery.is(key, null);
+        } else if (typeof value === 'object') {
+          // Skip complex filters
+          continue;
+        } else {
+          updateQuery = updateQuery.eq(key, value);
+        }
       }
       
       const { error: updateError } = await updateQuery;
