@@ -5,33 +5,47 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-// Expected field schema for delivery requests
-const EXPECTED_FIELDS = {
-  potentialId: ['potential id', 'potentialid', 'potential_id', 'pid', 'pot id'],
-  freshDeskTicketNumber: ['freshdesk ticket number', 'freshdesk ticket', 'ticket number', 'ticket', 'ticket #', 'ticket no', 'fd ticket'],
-  trainingName: ['training name', 'trainingname', 'training', 'course name', 'course', 'program name'],
-  numberOfUsers: ['number of users', 'numberofusers', 'user count', 'users', 'no of users', 'num users', 'participants', 'attendees'],
-  client: ['client', 'client name', 'customer', 'company', 'organization', 'org'],
-  month: ['month', 'billing month', 'delivery month'],
-  year: ['year', 'billing year', 'delivery year'],
-  receivedOn: ['received on', 'receivedon', 'received date', 'request date', 'created date', 'date received'],
-  cloud: ['lab type', 'cloud', 'cloud type', 'infrastructure', 'platform type', 'public cloud', 'private cloud', 'tp labs'],
-  cloudType: ['cloud type', 'cloudtype', 'cloud provider', 'provider', 'aws', 'azure', 'gcp'],
-  tpLabType: ['tp lab type', 'tplabtype', 'third party lab', 'tp type', 'sap', 'oracle', 'oem'],
-  labName: ['lab name', 'labname', 'lab', 'lab title'],
-  requester: ['requester', 'requested by', 'requester name', 'requestor'],
-  agentName: ['agent name', 'agentname', 'agent', 'sales agent', 'rep'],
-  accountManager: ['account manager', 'accountmanager', 'am', 'manager'],
-  labStatus: ['lab status', 'labstatus', 'status', 'delivery status', 'current status'],
-  startDate: ['start date', 'startdate', 'lab start date', 'begin date', 'from date'],
-  endDate: ['end date', 'enddate', 'lab end date', 'finish date', 'to date'],
-  labSetupRequirement: ['lab setup requirement', 'setup requirement', 'requirements', 'setup'],
-  inputCostPerUser: ['input cost per user', 'input cost', 'cost per user', 'unit cost', 'base cost'],
-  sellingCostPerUser: ['selling cost per user', 'selling cost', 'sell price', 'unit price', 'price per user'],
-  totalAmount: ['total amount', 'totalamount', 'total', 'amount', 'revenue', 'total cost', 'total value'],
-  lineOfBusiness: ['line of business', 'lineofbusiness', 'lob', 'business line', 'segment'],
-  invoiceDetails: ['invoice details', 'invoicedetails', 'invoice', 'invoice number', 'invoice no', 'billing details'],
-};
+// Expected field schema for delivery requests - Listed in priority order for matching
+// IMPORTANT: Entries at the top have higher priority when there are ambiguous matches
+const EXPECTED_FIELDS: [string, string[]][] = [
+  // Highest priority - specific field names first
+  ['potentialId', ['potential id', 'potentialid', 'potential_id', 'pid', 'pot id']],
+  ['freshDeskTicketNumber', ['freshdesk ticket number', 'freshdesk ticket', 'ticket number', 'ticket #', 'ticket no', 'fd ticket']],
+  ['trainingName', ['training name', 'trainingname', 'training', 'course name', 'course', 'program name']],
+  ['numberOfUsers', ['number of users', 'numberofusers', 'user count', 'users', 'no of users', 'num users', 'participants', 'attendees']],
+  ['client', ['client', 'client name', 'customer', 'company', 'organization', 'org']],
+  ['month', ['month', 'billing month', 'delivery month', 'mon']],
+  ['year', ['year', 'billing year', 'delivery year', 'yr']],
+  ['receivedOn', ['received on', 'receivedon', 'received date', 'request date', 'created date', 'date received']],
+  
+  // Lab-related fields - labName should match "lab" before cloud
+  ['labName', ['lab name', 'labname', 'lab title', 'lab']],
+  ['labStatus', ['lab status', 'labstatus', 'status', 'delivery status', 'current status']],
+  ['labSetupRequirement', ['lab setup requirement', 'setup requirement', 'requirements', 'setup']],
+  
+  // Cloud/infra fields - should only match specific terms
+  ['cloud', ['lab type', 'infra type', 'infrastructure', 'platform type', 'type', 'cloud']],
+  ['cloudType', ['cloud provider', 'provider', 'cloud type', 'cloudtype']],
+  ['tpLabType', ['tp lab type', 'tplabtype', 'third party lab', 'tp type', '3rd party', 'third party']],
+  
+  // Financial fields - put BEFORE people fields to prevent "am" matching "amount"
+  ['totalAmount', ['total amount', 'totalamount', 'amount', 'total', 'revenue', 'total cost', 'total value']],
+  ['inputCostPerUser', ['input cost per user', 'input cost', 'cost per user', 'unit cost', 'base cost', 'cost in']],
+  ['sellingCostPerUser', ['selling cost per user', 'selling cost', 'sell price', 'unit price', 'price per user', 'cost out']],
+  
+  // People fields - removed 'am' from accountManager to prevent false positives
+  ['requester', ['requester', 'requested by', 'requester name', 'requestor', 'person', 'contact']],
+  ['agentName', ['agent name', 'agentname', 'agent', 'sales agent', 'rep']],
+  ['accountManager', ['account manager', 'accountmanager', 'acct manager', 'a.m.']],
+  
+  // Date fields
+  ['startDate', ['start date', 'startdate', 'lab start date', 'begin date', 'from date']],
+  ['endDate', ['end date', 'enddate', 'lab end date', 'finish date', 'to date']],
+  
+  // Other
+  ['lineOfBusiness', ['line of business', 'lineofbusiness', 'lob', 'business line', 'segment']],
+  ['invoiceDetails', ['invoice details', 'invoicedetails', 'invoice', 'invoice number', 'invoice no', 'billing details']],
+];
 
 // Valid status values
 const VALID_STATUSES = {
@@ -164,13 +178,20 @@ function findMatchingField(header: string, fieldAliases: string[]): boolean {
 }
 
 // Create header mapping from CSV headers to expected fields
+// Uses priority order from EXPECTED_FIELDS array - first match wins per header
 function createHeaderMapping(csvHeaders: string[]): Record<string, string> {
   const mapping: Record<string, string> = {};
+  const usedFields = new Set<string>();
   
   for (const header of csvHeaders) {
-    for (const [field, aliases] of Object.entries(EXPECTED_FIELDS)) {
+    // Try each field in priority order
+    for (const [field, aliases] of EXPECTED_FIELDS) {
+      // Skip if this field is already mapped
+      if (usedFields.has(field)) continue;
+      
       if (findMatchingField(header, aliases)) {
         mapping[header.toLowerCase()] = field;
+        usedFields.add(field);
         break;
       }
     }

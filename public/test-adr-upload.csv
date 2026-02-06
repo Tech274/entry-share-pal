@@ -1,0 +1,4 @@
+Pot ID,Ticket #,Course Name,Users,Customer,Mon,Yr,Date Received,Type,Provider,3rd Party,Lab,Person,Status,From Date,To Date,Cost In,Cost Out,Amount,LOB,Invoice
+P-001,FD-12345,Azure Administration,15,Acme Corp,January,2025,2025-01-15,Public Cloud,AWS,,AZ-104 Lab,John Doe,delivered,2025-02-01,2025-02-15,100,150,2250,VILT,INV-001
+P-002,FD-12346,AWS Solutions Architect,20,Test Company,Feb,2025,2025-01-20,cloud,azure,,AWS SAA Lab,Jane Smith,wip,2025-02-10,2025-02-25,120,180,3600,Standalone,INV-002
+P-003,FD-12347,SAP HANA Training,10,Global Inc,March,2025,2025-02-01,TP Labs,,,SAP Lab,Mike Johnson,in progress,2025-03-01,2025-03-10,200,300,3000,Integrated,INV-003
