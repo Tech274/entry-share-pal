@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
       errors.push(`Exception in starting deliveries: ${errorMessage}`);
     }
 
-    // 3. Delivery End Date passed -> Delivery In-Progress to Delivered
+    // 3. Delivery End Date passed -> Delivery In-Progress to Delivery Completed (skipping Delivered status)
     try {
       const { data: endingDeliveries, error: endingError } = await supabase
         .from('delivery_requests')
@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
         
         const { error: updateError } = await supabase
           .from('delivery_requests')
-          .update({ lab_status: 'Delivered' })
+          .update({ lab_status: 'Delivery Completed' })
           .eq('lab_status', 'Delivery In-Progress')
           .lt('end_date', today)
           .not('end_date', 'is', null);
@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
               id: delivery.id,
               type: 'delivery',
               oldStatus: 'Delivery In-Progress',
-              newStatus: 'Delivered',
+              newStatus: 'Delivery Completed',
               assignedTo: delivery.assigned_to,
               client: delivery.client,
             });
@@ -171,7 +171,7 @@ Deno.serve(async (req) => {
               request_type: 'delivery',
               action: 'status_changed',
               old_values: { status: 'Delivery In-Progress' },
-              new_values: { status: 'Delivered' },
+              new_values: { status: 'Delivery Completed' },
               performed_by: null,
             });
           }
