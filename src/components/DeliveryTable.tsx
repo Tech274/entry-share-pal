@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { DeliveryRequest, LAB_STATUS_OPTIONS, CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, LINE_OF_BUSINESS_OPTIONS, LAB_TYPE_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS } from '@/types/deliveryRequest';
+import { DeliveryRequest, LAB_STATUS_OPTIONS, CLOUD_OPTIONS, LINE_OF_BUSINESS_OPTIONS } from '@/types/deliveryRequest';
 import {
   Table,
   TableBody,
@@ -9,7 +9,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Trash2, Settings2 } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { QuickStatusActions } from '@/components/delivery/QuickStatusActions';
@@ -17,6 +18,16 @@ import { EditableCell } from '@/components/EditableCell';
 import { UndoRedoToolbar } from '@/components/delivery/UndoRedoToolbar';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { useToast } from '@/hooks/use-toast';
+import { formatINR } from '@/lib/formatUtils';
+import { getStatusBadgeVariant } from '@/lib/statusColors';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface DeliveryTableProps {
   requests: DeliveryRequest[];
@@ -25,10 +36,69 @@ interface DeliveryTableProps {
   onUpdate?: (id: string, data: Partial<DeliveryRequest>) => void;
 }
 
+type ColumnConfig = {
+  id: string;
+  header: string;
+  priority: 'essential' | 'optional';
+  hidden?: boolean;
+};
+
+const ALL_COLUMNS: ColumnConfig[] = [
+  { id: 'client', header: 'Client', priority: 'essential' },
+  { id: 'trainingName', header: 'Training Name', priority: 'essential' },
+  { id: 'cloud', header: 'Lab Type', priority: 'essential' },
+  { id: 'period', header: 'Period', priority: 'essential' },
+  { id: 'numberOfUsers', header: 'Users', priority: 'essential' },
+  { id: 'labStatus', header: 'Status', priority: 'essential' },
+  { id: 'startDate', header: 'Start Date', priority: 'essential' },
+  { id: 'endDate', header: 'End Date', priority: 'essential' },
+  { id: 'totalAmount', header: 'Total Amount', priority: 'essential' },
+  { id: 'lineOfBusiness', header: 'LOB', priority: 'optional', hidden: true },
+  { id: 'potentialId', header: 'Potential ID', priority: 'optional', hidden: true },
+  { id: 'freshDeskTicketNumber', header: 'Ticket #', priority: 'optional', hidden: true },
+  { id: 'cloudType', header: 'Cloud Type', priority: 'optional', hidden: true },
+  { id: 'tpLabType', header: 'TP Lab Type', priority: 'optional', hidden: true },
+  { id: 'labType', header: 'Category', priority: 'optional', hidden: true },
+  { id: 'inputCostPerUser', header: 'Input Cost', priority: 'optional', hidden: true },
+  { id: 'sellingCostPerUser', header: 'Selling Cost', priority: 'optional', hidden: true },
+  { id: 'invoiceDetails', header: 'Invoice Details', priority: 'optional', hidden: true },
+];
+
+const STORAGE_KEY = 'delivery-table-columns';
+
 export const DeliveryTable = ({ requests, onDelete, onStatusChange, onUpdate }: DeliveryTableProps) => {
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const { canUndo, canRedo, recordEdit, undo, redo, undoStack, redoStack } = useUndoRedo();
   const { toast } = useToast();
+  
+  // Column visibility state with localStorage persistence
+  const [visibleColumns, setVisibleColumns] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        return new Set(JSON.parse(saved));
+      } catch {
+        // Fall through
+      }
+    }
+    return new Set(ALL_COLUMNS.filter(c => !c.hidden).map(c => c.id));
+  });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...visibleColumns]));
+  }, [visibleColumns]);
+
+  const toggleColumnVisibility = (columnId: string) => {
+    setVisibleColumns(prev => {
+      const next = new Set(prev);
+      if (next.has(columnId)) {
+        next.delete(columnId);
+      } else {
+        next.add(columnId);
+      }
+      return next;
+    });
+  };
 
   const toggleRowSelection = (id: string) => {
     setSelectedRows(prev => {
@@ -46,7 +116,6 @@ export const DeliveryTable = ({ requests, onDelete, onStatusChange, onUpdate }: 
 
   const handleCellUpdate = (id: string, field: keyof DeliveryRequest, value: string | number) => {
     if (onUpdate) {
-      // Find the old value
       const request = requests.find(r => r.id === id);
       if (request) {
         const oldValue = request[field] as string | number;
@@ -78,7 +147,6 @@ export const DeliveryTable = ({ requests, onDelete, onStatusChange, onUpdate }: 
     }
   }, [redo, onUpdate, toast]);
 
-  // Keyboard shortcuts for undo/redo
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
@@ -102,240 +170,272 @@ export const DeliveryTable = ({ requests, onDelete, onStatusChange, onUpdate }: 
     );
   }
 
+  const activeColumns = ALL_COLUMNS.filter(c => visibleColumns.has(c.id));
+
+  const renderCell = (request: DeliveryRequest, columnId: string) => {
+    switch (columnId) {
+      case 'client':
+        return (
+          <EditableCell
+            value={request.client || ''}
+            onSave={(v) => handleCellUpdate(request.id, 'client', v)}
+            type="text"
+          />
+        );
+      case 'trainingName':
+        return (
+          <EditableCell
+            value={request.trainingName || ''}
+            onSave={(v) => handleCellUpdate(request.id, 'trainingName', v)}
+            type="text"
+          />
+        );
+      case 'cloud':
+        return (
+          <EditableCell
+            value={request.cloud || ''}
+            onSave={(v) => handleCellUpdate(request.id, 'cloud', v)}
+            type="select"
+            options={CLOUD_OPTIONS}
+          />
+        );
+      case 'period':
+        return (
+          <span className="text-sm">{request.month} {request.year}</span>
+        );
+      case 'numberOfUsers':
+        return (
+          <EditableCell
+            value={request.numberOfUsers || 0}
+            onSave={(v) => handleCellUpdate(request.id, 'numberOfUsers', v)}
+            type="number"
+            align="center"
+          />
+        );
+      case 'labStatus':
+        return (
+          <div className="flex items-center gap-1">
+            <Badge variant={getStatusBadgeVariant(request.labStatus || 'Pending')} className="text-xs whitespace-nowrap">
+              {request.labStatus || 'Pending'}
+            </Badge>
+            {onStatusChange && (
+              <QuickStatusActions
+                currentStatus={request.labStatus || 'Pending'}
+                onStatusChange={(newStatus) => {
+                  handleCellUpdate(request.id, 'labStatus', newStatus);
+                  onStatusChange(request.id, newStatus);
+                }}
+                compact
+              />
+            )}
+          </div>
+        );
+      case 'startDate':
+        return (
+          <EditableCell
+            value={request.startDate || ''}
+            onSave={(v) => handleCellUpdate(request.id, 'startDate', v)}
+            type="date"
+          />
+        );
+      case 'endDate':
+        return (
+          <EditableCell
+            value={request.endDate || ''}
+            onSave={(v) => handleCellUpdate(request.id, 'endDate', v)}
+            type="date"
+          />
+        );
+      case 'totalAmount':
+        return (
+          <EditableCell
+            value={request.totalAmount || 0}
+            onSave={(v) => handleCellUpdate(request.id, 'totalAmount', v)}
+            type="currency"
+            align="right"
+            className="font-semibold"
+          />
+        );
+      case 'lineOfBusiness':
+        return (
+          <EditableCell
+            value={request.lineOfBusiness || ''}
+            onSave={(v) => handleCellUpdate(request.id, 'lineOfBusiness', v)}
+            type="select"
+            options={LINE_OF_BUSINESS_OPTIONS}
+          />
+        );
+      case 'potentialId':
+        return (
+          <EditableCell
+            value={request.potentialId || ''}
+            onSave={(v) => handleCellUpdate(request.id, 'potentialId', v)}
+            type="text"
+          />
+        );
+      case 'freshDeskTicketNumber':
+        return (
+          <EditableCell
+            value={request.freshDeskTicketNumber || ''}
+            onSave={(v) => handleCellUpdate(request.id, 'freshDeskTicketNumber', v)}
+            type="text"
+          />
+        );
+      case 'cloudType':
+        return <span className="text-sm">{request.cloudType || '-'}</span>;
+      case 'tpLabType':
+        return <span className="text-sm">{request.tpLabType || '-'}</span>;
+      case 'labType':
+        return <span className="text-sm">{request.labType || '-'}</span>;
+      case 'inputCostPerUser':
+        return (
+          <EditableCell
+            value={request.inputCostPerUser || 0}
+            onSave={(v) => handleCellUpdate(request.id, 'inputCostPerUser', v)}
+            type="currency"
+            align="right"
+          />
+        );
+      case 'sellingCostPerUser':
+        return (
+          <EditableCell
+            value={request.sellingCostPerUser || 0}
+            onSave={(v) => handleCellUpdate(request.id, 'sellingCostPerUser', v)}
+            type="currency"
+            align="right"
+          />
+        );
+      case 'invoiceDetails':
+        return (
+          <EditableCell
+            value={request.invoiceDetails || ''}
+            onSave={(v) => handleCellUpdate(request.id, 'invoiceDetails', v)}
+            type="text"
+          />
+        );
+      default:
+        return '-';
+    }
+  };
+
   return (
-    <div className="form-section p-0 overflow-hidden">
-      {/* Undo/Redo Toolbar */}
+    <div className="bg-card rounded-lg border overflow-hidden">
+      {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
         <span className="text-xs text-muted-foreground">{requests.length} records</span>
-        <UndoRedoToolbar
-          canUndo={canUndo}
-          canRedo={canRedo}
-          onUndo={handleUndo}
-          onRedo={handleRedo}
-          undoCount={undoStack.length}
-          redoCount={redoStack.length}
-        />
+        <div className="flex items-center gap-2">
+          <UndoRedoToolbar
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            undoCount={undoStack.length}
+            redoCount={redoStack.length}
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-7 gap-1">
+                <Settings2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Columns</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-popover z-50">
+              <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+                Essential
+              </DropdownMenuLabel>
+              {ALL_COLUMNS.filter(c => c.priority === 'essential').map(column => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  checked={visibleColumns.has(column.id)}
+                  onCheckedChange={() => toggleColumnVisibility(column.id)}
+                >
+                  {column.header}
+                </DropdownMenuCheckboxItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+                Optional
+              </DropdownMenuLabel>
+              {ALL_COLUMNS.filter(c => c.priority === 'optional').map(column => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  checked={visibleColumns.has(column.id)}
+                  onCheckedChange={() => toggleColumnVisibility(column.id)}
+                >
+                  {column.header}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
+
       <ScrollArea className="w-full h-[calc(100vh-350px)]">
         <Table className="w-full table-fixed">
-          <TableHeader className="sticky top-0 z-10 bg-muted">
-            <TableRow className="bg-muted/50">
-              <TableHead className="font-semibold w-[40px] sticky left-0 bg-muted z-20">#</TableHead>
-              <TableHead className="font-semibold w-[80px]">LOB</TableHead>
-              <TableHead className="font-semibold w-[100px]">Potential ID</TableHead>
-              <TableHead className="font-semibold w-[80px]">Ticket #</TableHead>
-              <TableHead className="font-semibold w-[140px]">Training Name</TableHead>
-              <TableHead className="font-semibold w-[100px]">Client</TableHead>
-              <TableHead className="font-semibold w-[80px]">Lab Type</TableHead>
-              <TableHead className="font-semibold w-[70px]">Cloud Type</TableHead>
-              <TableHead className="font-semibold w-[70px]">TP Lab Type</TableHead>
-              <TableHead className="font-semibold w-[50px]">Users</TableHead>
-              <TableHead className="font-semibold w-[130px]">Lab Status</TableHead>
-              <TableHead className="font-semibold w-[80px]">Category</TableHead>
-              <TableHead className="font-semibold w-[90px]">Start Date</TableHead>
-              <TableHead className="font-semibold w-[90px]">End Date</TableHead>
-              <TableHead className="font-semibold w-[80px]">Month</TableHead>
-              <TableHead className="font-semibold w-[60px]">Year</TableHead>
-              <TableHead className="font-semibold w-[90px]">Input Cost</TableHead>
-              <TableHead className="font-semibold w-[90px]">Selling Cost</TableHead>
-              <TableHead className="font-semibold w-[90px]">Total Amount</TableHead>
-              <TableHead className="font-semibold w-[100px]">Invoice Details</TableHead>
-              <TableHead className="font-semibold w-[50px]">Actions</TableHead>
+          <TableHeader className="sticky top-0 z-10">
+            <TableRow className="bg-primary hover:bg-primary">
+              <TableHead className="font-semibold w-[40px] text-primary-foreground sticky left-0 bg-primary z-20">
+                #
+              </TableHead>
+              {activeColumns.map(column => (
+                <TableHead
+                  key={column.id}
+                  className="font-semibold text-primary-foreground"
+                >
+                  {column.header}
+                </TableHead>
+              ))}
+              <TableHead className="font-semibold w-[50px] text-primary-foreground text-center">
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
-            <TableBody>
-              {requests.map((request, index) => (
-                <TableRow 
-                  key={request.id} 
+          <TableBody>
+            {requests.map((request, index) => (
+              <TableRow
+                key={request.id}
+                className={cn(
+                  'transition-colors',
+                  isRowSelected(request.id)
+                    ? 'bg-primary/10 hover:bg-primary/15'
+                    : 'hover:bg-muted/30'
+                )}
+              >
+                <TableCell
                   className={cn(
-                    "transition-colors",
-                    isRowSelected(request.id) 
-                      ? "bg-primary/10 hover:bg-primary/15" 
-                      : "hover:bg-muted/30"
+                    'font-medium sticky left-0 z-10 border-r cursor-pointer',
+                    isRowSelected(request.id)
+                      ? 'bg-primary/20 text-primary'
+                      : 'bg-card'
                   )}
+                  onClick={() => toggleRowSelection(request.id)}
                 >
-                  <TableCell 
-                    className={cn(
-                      "font-medium sticky left-0 z-10 border-r cursor-pointer",
-                      isRowSelected(request.id) 
-                        ? "bg-primary/20 text-primary" 
-                        : "bg-card"
-                    )}
-                    onClick={() => toggleRowSelection(request.id)}
+                  {index + 1}
+                </TableCell>
+                {activeColumns.map(column => (
+                  <TableCell key={column.id} className="p-2 truncate">
+                    {renderCell(request, column.id)}
+                  </TableCell>
+                ))}
+                <TableCell className="p-2 text-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(request.id);
+                    }}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 w-7"
                   >
-                    {index + 1}
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.lineOfBusiness || ''}
-                      onSave={(v) => handleCellUpdate(request.id, 'lineOfBusiness', v)}
-                      type="select"
-                      options={LINE_OF_BUSINESS_OPTIONS}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.potentialId || ''}
-                      onSave={(v) => handleCellUpdate(request.id, 'potentialId', v)}
-                      type="text"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.freshDeskTicketNumber || ''}
-                      onSave={(v) => handleCellUpdate(request.id, 'freshDeskTicketNumber', v)}
-                      type="text"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.trainingName || ''}
-                      onSave={(v) => handleCellUpdate(request.id, 'trainingName', v)}
-                      type="text"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.client || ''}
-                      onSave={(v) => handleCellUpdate(request.id, 'client', v)}
-                      type="text"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.cloud || ''}
-                      onSave={(v) => handleCellUpdate(request.id, 'cloud', v)}
-                      type="select"
-                      options={CLOUD_OPTIONS}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.cloudType || ''}
-                      onSave={(v) => handleCellUpdate(request.id, 'cloudType', v)}
-                      type="select"
-                      options={CLOUD_TYPE_OPTIONS}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.tpLabType || ''}
-                      onSave={(v) => handleCellUpdate(request.id, 'tpLabType', v)}
-                      type="select"
-                      options={TP_LAB_TYPE_OPTIONS}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.numberOfUsers || 0}
-                      onSave={(v) => handleCellUpdate(request.id, 'numberOfUsers', v)}
-                      type="number"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <EditableCell
-                        value={request.labStatus || 'Pending'}
-                        onSave={(v) => {
-                          handleCellUpdate(request.id, 'labStatus', v);
-                          if (onStatusChange) onStatusChange(request.id, String(v));
-                        }}
-                        type="select"
-                        options={LAB_STATUS_OPTIONS}
-                      />
-                      {onStatusChange && (
-                        <QuickStatusActions
-                          currentStatus={request.labStatus || 'Pending'}
-                          onStatusChange={(newStatus) => onStatusChange(request.id, newStatus)}
-                          compact
-                        />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.labType || ''}
-                      onSave={(v) => handleCellUpdate(request.id, 'labType', v)}
-                      type="select"
-                      options={LAB_TYPE_OPTIONS}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.startDate || ''}
-                      onSave={(v) => handleCellUpdate(request.id, 'startDate', v)}
-                      type="date"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.endDate || ''}
-                      onSave={(v) => handleCellUpdate(request.id, 'endDate', v)}
-                      type="date"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.month || ''}
-                      onSave={(v) => handleCellUpdate(request.id, 'month', v)}
-                      type="select"
-                      options={MONTH_OPTIONS}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.year || new Date().getFullYear()}
-                      onSave={(v) => handleCellUpdate(request.id, 'year', v)}
-                      type="select"
-                      options={YEAR_OPTIONS.map(String)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.inputCostPerUser || 0}
-                      onSave={(v) => handleCellUpdate(request.id, 'inputCostPerUser', v)}
-                      type="currency"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.sellingCostPerUser || 0}
-                      onSave={(v) => handleCellUpdate(request.id, 'sellingCostPerUser', v)}
-                      type="currency"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.totalAmount || 0}
-                      onSave={(v) => handleCellUpdate(request.id, 'totalAmount', v)}
-                      type="currency"
-                      className="font-semibold"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <EditableCell
-                      value={request.invoiceDetails || ''}
-                      onSave={(v) => handleCellUpdate(request.id, 'invoiceDetails', v)}
-                      type="text"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(request.id);
-                      }}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
         <ScrollBar orientation="vertical" />
       </ScrollArea>
     </div>

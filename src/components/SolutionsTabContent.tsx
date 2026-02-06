@@ -23,6 +23,7 @@ interface SolutionsTabContentProps {
   onDelete: (id: string) => void;
   onBulkInsert?: (data: Omit<LabRequest, 'id' | 'createdAt'>[]) => Promise<boolean>;
   onConvertToDelivery?: (request: LabRequest) => Promise<void>;
+  onUpdate?: (id: string, data: Partial<LabRequest>) => void;
 }
 
 export const SolutionsTabContent = ({
@@ -31,6 +32,7 @@ export const SolutionsTabContent = ({
   onDelete,
   onBulkInsert,
   onConvertToDelivery,
+  onUpdate,
 }: SolutionsTabContentProps) => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -257,6 +259,7 @@ export const SolutionsTabContent = ({
           requests={getFilteredRequests()} 
           onDelete={onDelete}
           onConvertToDelivery={onConvertToDelivery}
+          onUpdate={onUpdate}
         />
       </TabsContent>
     </Tabs>
