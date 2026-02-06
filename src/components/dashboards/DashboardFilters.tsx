@@ -1,0 +1,206 @@
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Filter, X } from 'lucide-react';
+import { CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, LOB_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS } from '@/types/labRequest';
+
+export interface DashboardFiltersState {
+  labType: string;
+  cloudType: string;
+  tpLabType: string;
+  lineOfBusiness: string;
+  month: string;
+  year: string;
+}
+
+export const defaultFilters: DashboardFiltersState = {
+  labType: 'all',
+  cloudType: 'all',
+  tpLabType: 'all',
+  lineOfBusiness: 'all',
+  month: 'all',
+  year: 'all',
+};
+
+interface DashboardFiltersProps {
+  filters: DashboardFiltersState;
+  onFiltersChange: (filters: DashboardFiltersState) => void;
+}
+
+export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersProps) {
+  const activeFilterCount = Object.entries(filters).filter(([_, value]) => value !== 'all').length;
+
+  const handleFilterChange = (key: keyof DashboardFiltersState, value: string) => {
+    const newFilters = { ...filters, [key]: value };
+    
+    // Reset dependent filters when lab type changes
+    if (key === 'labType') {
+      if (value !== 'Public Cloud' && value !== 'Private Cloud') {
+        newFilters.cloudType = 'all';
+      }
+      if (value !== 'TP Labs') {
+        newFilters.tpLabType = 'all';
+      }
+    }
+    
+    onFiltersChange(newFilters);
+  };
+
+  const handleClearFilters = () => {
+    onFiltersChange(defaultFilters);
+  };
+
+  // Show Cloud Type only for Public Cloud or Private Cloud
+  const showCloudType = filters.labType === 'Public Cloud' || filters.labType === 'Private Cloud';
+  // Show TP Lab Type only for TP Labs
+  const showTPLabType = filters.labType === 'TP Labs';
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 p-4 bg-card border rounded-lg">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Filter className="w-4 h-4" />
+        <span className="text-sm font-medium">Filters:</span>
+      </div>
+
+      {/* Lab Type Filter */}
+      <Select
+        value={filters.labType}
+        onValueChange={(v) => handleFilterChange('labType', v)}
+      >
+        <SelectTrigger className="h-8 w-36">
+          <SelectValue placeholder="Lab Type" />
+        </SelectTrigger>
+        <SelectContent className="bg-popover">
+          <SelectItem value="all">All Lab Types</SelectItem>
+          {CLOUD_OPTIONS.map((option) => (
+            <SelectItem key={option} value={option}>
+              {option}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Cloud Type Filter (conditional) */}
+      {showCloudType && (
+        <Select
+          value={filters.cloudType}
+          onValueChange={(v) => handleFilterChange('cloudType', v)}
+        >
+          <SelectTrigger className="h-8 w-32">
+            <SelectValue placeholder="Cloud Type" />
+          </SelectTrigger>
+          <SelectContent className="bg-popover">
+            <SelectItem value="all">All Cloud Types</SelectItem>
+            {CLOUD_TYPE_OPTIONS.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {/* TP Lab Type Filter (conditional) */}
+      {showTPLabType && (
+        <Select
+          value={filters.tpLabType}
+          onValueChange={(v) => handleFilterChange('tpLabType', v)}
+        >
+          <SelectTrigger className="h-8 w-32">
+            <SelectValue placeholder="TP Lab Type" />
+          </SelectTrigger>
+          <SelectContent className="bg-popover">
+            <SelectItem value="all">All TP Labs</SelectItem>
+            {TP_LAB_TYPE_OPTIONS.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {/* Line of Business Filter */}
+      <Select
+        value={filters.lineOfBusiness}
+        onValueChange={(v) => handleFilterChange('lineOfBusiness', v)}
+      >
+        <SelectTrigger className="h-8 w-32">
+          <SelectValue placeholder="LOB" />
+        </SelectTrigger>
+        <SelectContent className="bg-popover">
+          <SelectItem value="all">All LOB</SelectItem>
+          {LOB_OPTIONS.map((option) => (
+            <SelectItem key={option} value={option}>
+              {option}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Month Filter */}
+      <Select
+        value={filters.month}
+        onValueChange={(v) => handleFilterChange('month', v)}
+      >
+        <SelectTrigger className="h-8 w-32">
+          <SelectValue placeholder="Month" />
+        </SelectTrigger>
+        <SelectContent className="bg-popover">
+          <SelectItem value="all">All Months</SelectItem>
+          {MONTH_OPTIONS.map((option) => (
+            <SelectItem key={option} value={option}>
+              {option}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Year Filter */}
+      <Select
+        value={filters.year}
+        onValueChange={(v) => handleFilterChange('year', v)}
+      >
+        <SelectTrigger className="h-8 w-24">
+          <SelectValue placeholder="Year" />
+        </SelectTrigger>
+        <SelectContent className="bg-popover">
+          <SelectItem value="all">All Years</SelectItem>
+          {YEAR_OPTIONS.map((option) => (
+            <SelectItem key={String(option)} value={String(option)}>
+              {option}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Clear Filters Button */}
+      {activeFilterCount > 0 && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleClearFilters}
+          className="gap-1 text-muted-foreground hover:text-foreground"
+        >
+          <X className="w-3 h-3" />
+          Clear ({activeFilterCount})
+        </Button>
+      )}
+    </div>
+  );
+}
+
+// Utility function to apply filters to data
+export function applyDashboardFilters<T extends { cloud?: string; cloudType?: string; tpLabType?: string; lineOfBusiness?: string; month?: string; year?: number }>(
+  data: T[],
+  filters: DashboardFiltersState
+): T[] {
+  return data.filter((item) => {
+    if (filters.labType !== 'all' && item.cloud !== filters.labType) return false;
+    if (filters.cloudType !== 'all' && item.cloudType !== filters.cloudType) return false;
+    if (filters.tpLabType !== 'all' && item.tpLabType !== filters.tpLabType) return false;
+    if (filters.lineOfBusiness !== 'all' && item.lineOfBusiness !== filters.lineOfBusiness) return false;
+    if (filters.month !== 'all' && item.month !== filters.month) return false;
+    if (filters.year !== 'all' && item.year !== Number(filters.year)) return false;
+    return true;
+  });
+}
