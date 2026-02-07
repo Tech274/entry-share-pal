@@ -1,16 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Users, AlertTriangle, TrendingUp, IndianRupee, Activity, UserCog, Layers, ClipboardList, Truck } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Users, AlertTriangle, TrendingUp, IndianRupee, Activity, UserCog, Layers, ClipboardList, Truck, Info, Wallet } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { UserManagement } from '@/components/UserManagement';
 import { LabCatalogManagement } from '@/components/LabCatalogManagement';
 import { QuickActionsPanel } from './QuickActionsPanel';
 import { SLAAlertCard } from './SLAAlertCard';
 import { MiniCalendarWidget } from './MiniCalendarWidget';
+import { LearnersBreakdown } from './LearnersBreakdown';
 
 interface AdminDashboardProps {
   labRequests: LabRequest[];
@@ -223,20 +225,61 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
         />
 
         {/* System-wide KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+          {/* Combined Total Revenue */}
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => onNavigate?.('solutions')}
+          >
+            <CardHeader className="bg-gradient-to-r from-primary to-purple-600 text-white py-2 px-3 rounded-t-lg">
+              <CardTitle className="text-xs font-medium flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <Wallet className="w-3 h-3" />
+                  Total Revenue
+                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Info className="w-3 h-3 opacity-70 hover:opacity-100 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      <p>Combined revenue from Solutions ({formatINR(totalRevenue)}) + Delivery ({formatINR(deliveryRevenue)})</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-3 pb-2">
+              <div className="text-xl font-bold">{formatINR(totalRevenue + deliveryRevenue)}</div>
+              <p className="text-xs text-muted-foreground">Solutions + Delivery</p>
+            </CardContent>
+          </Card>
+
           <Card 
             className="cursor-pointer hover:shadow-md transition-shadow"
             onClick={() => onNavigate?.('solutions')}
           >
             <CardHeader className="bg-primary text-primary-foreground py-2 px-3 rounded-t-lg">
-              <CardTitle className="text-xs font-medium flex items-center gap-1">
-                <IndianRupee className="w-3 h-3" />
-                Solutions Revenue
+              <CardTitle className="text-xs font-medium flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <IndianRupee className="w-3 h-3" />
+                  Solutions Revenue
+                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Info className="w-3 h-3 opacity-70 hover:opacity-100 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      <p>Sum of Total Amount for Training from all solution requests</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-3 pb-2">
               <div className="text-xl font-bold">{formatINR(totalRevenue)}</div>
-              <p className="text-xs text-muted-foreground">From solutions</p>
+              <p className="text-xs text-muted-foreground">From {labRequests.length} solutions</p>
             </CardContent>
           </Card>
 
@@ -245,14 +288,26 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
             onClick={() => onNavigate?.('delivery')}
           >
             <CardHeader className="bg-green-600 text-white py-2 px-3 rounded-t-lg">
-              <CardTitle className="text-xs font-medium flex items-center gap-1">
-                <IndianRupee className="w-3 h-3" />
-                Delivery Revenue
+              <CardTitle className="text-xs font-medium flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <IndianRupee className="w-3 h-3" />
+                  Delivery Revenue
+                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Info className="w-3 h-3 opacity-70 hover:opacity-100 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      <p>Sum of Total Amount from all delivery requests</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-3 pb-2">
               <div className="text-xl font-bold">{formatINR(deliveryRevenue)}</div>
-              <p className="text-xs text-muted-foreground">From deliveries</p>
+              <p className="text-xs text-muted-foreground">From {deliveryRequests.length} deliveries</p>
             </CardContent>
           </Card>
 
@@ -261,9 +316,21 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
             onClick={() => onNavigate?.('delivery')}
           >
             <CardHeader className="bg-purple-500 text-white py-2 px-3 rounded-t-lg">
-              <CardTitle className="text-xs font-medium flex items-center gap-1">
-                <Users className="w-3 h-3" />
-                Total Learners
+              <CardTitle className="text-xs font-medium flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <Users className="w-3 h-3" />
+                  Total Learners
+                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Info className="w-3 h-3 opacity-70 hover:opacity-100 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      <p>Sum of Number of Users from all delivery requests. Click for detailed breakdown.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-3 pb-2">
@@ -277,9 +344,21 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
             onClick={() => onNavigate?.('solutions')}
           >
             <CardHeader className="bg-teal-500 text-white py-2 px-3 rounded-t-lg">
-              <CardTitle className="text-xs font-medium flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                Avg Margin
+              <CardTitle className="text-xs font-medium flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  Avg Margin
+                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Info className="w-3 h-3 opacity-70 hover:opacity-100 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      <p>Average of (Margin ÷ Total Amount × 100) across all solutions with revenue</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-3 pb-2">
@@ -290,9 +369,21 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
 
           <Card className="cursor-default">
             <CardHeader className="bg-yellow-500 text-white py-2 px-3 rounded-t-lg">
-              <CardTitle className="text-xs font-medium flex items-center gap-1">
-                <Activity className="w-3 h-3" />
-                Active Agents
+              <CardTitle className="text-xs font-medium flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <Activity className="w-3 h-3" />
+                  Active Agents
+                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Info className="w-3 h-3 opacity-70 hover:opacity-100 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      <p>Count of unique agent names across all solution requests</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-3 pb-2">
@@ -301,6 +392,9 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
             </CardContent>
           </Card>
         </div>
+
+        {/* Learners Breakdown */}
+        <LearnersBreakdown deliveryRequests={deliveryRequests} />
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -316,7 +410,7 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
                     <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={75} />
-                    <Tooltip formatter={(value: number) => formatINR(value)} />
+                    <RechartsTooltip formatter={(value: number) => formatINR(value)} />
                     <Bar dataKey="revenue" fill="hsl(var(--primary))" name="Revenue" />
                   </BarChart>
                 </ResponsiveContainer>
@@ -340,7 +434,7 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                     <YAxis />
-                    <Tooltip />
+                    <RechartsTooltip />
                     <Legend />
                     <Area type="monotone" dataKey="solutions" stackId="1" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" name="Solutions" />
                     <Area type="monotone" dataKey="deliveries" stackId="1" stroke="#3b82f6" fill="#3b82f6" name="Deliveries" />
