@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Users, AlertTriangle, TrendingUp, IndianRupee, Activity, UserCog, Layers } from 'lucide-react';
+import { Shield, Users, AlertTriangle, TrendingUp, IndianRupee, Activity, UserCog, Layers, ClipboardList, Truck } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
@@ -89,37 +89,77 @@ export const AdminDashboard = ({ labRequests, deliveryRequests }: AdminDashboard
       </div>
       
       <TabsContent value="overview" className="space-y-6">
+        {/* Solutions Overview Section - Moved to Top */}
+        <Card>
+          <CardHeader className="bg-blue-500 text-white py-3 px-4 rounded-t-lg">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ClipboardList className="w-4 h-4" />
+              Solutions Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-3xl font-bold text-blue-600">{labRequests.length}</div>
+                <div className="text-sm text-muted-foreground">Total Solutions</div>
+              </div>
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-3xl font-bold text-amber-600">{pendingSolutions}</div>
+                <div className="text-sm text-muted-foreground">Pending</div>
+              </div>
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-3xl font-bold text-green-600">{labRequests.filter(r => r.status === 'Solution Sent').length}</div>
+                <div className="text-sm text-muted-foreground">Sent</div>
+              </div>
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-xl font-bold text-primary">{formatINR(totalRevenue)}</div>
+                <div className="text-sm text-muted-foreground">Total Value</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Delivery Overview Section - Moved to Top */}
+        <Card>
+          <CardHeader className="bg-green-500 text-white py-3 px-4 rounded-t-lg">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Truck className="w-4 h-4" />
+              Delivery Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-3xl font-bold text-green-600">{deliveryRequests.length}</div>
+                <div className="text-sm text-muted-foreground">Total Deliveries</div>
+              </div>
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-3xl font-bold text-amber-600">{pendingDeliveries}</div>
+                <div className="text-sm text-muted-foreground">Pending</div>
+              </div>
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-3xl font-bold text-blue-600">{inProgressDeliveries}</div>
+                <div className="text-sm text-muted-foreground">In Progress</div>
+              </div>
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-3xl font-bold text-emerald-600">{deliveryRequests.filter(r => r.labStatus === 'Delivery Completed').length}</div>
+                <div className="text-sm text-muted-foreground">Completed</div>
+              </div>
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-3xl font-bold">{totalUsers}</div>
+                <div className="text-sm text-muted-foreground">Total Users</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* System-wide KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="bg-primary text-primary-foreground py-2 px-3 rounded-t-lg">
               <CardTitle className="text-xs font-medium flex items-center gap-1">
-                <Activity className="w-3 h-3" />
-                Solutions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-3 pb-2">
-              <div className="text-2xl font-bold">{labRequests.length}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="bg-blue-500 text-white py-2 px-3 rounded-t-lg">
-              <CardTitle className="text-xs font-medium flex items-center gap-1">
-                <Activity className="w-3 h-3" />
-                Deliveries
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-3 pb-2">
-              <div className="text-2xl font-bold">{deliveryRequests.length}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="bg-green-500 text-white py-2 px-3 rounded-t-lg">
-              <CardTitle className="text-xs font-medium flex items-center gap-1">
                 <IndianRupee className="w-3 h-3" />
-                Revenue
+                Total Revenue
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-3 pb-2">
@@ -131,23 +171,11 @@ export const AdminDashboard = ({ labRequests, deliveryRequests }: AdminDashboard
             <CardHeader className="bg-purple-500 text-white py-2 px-3 rounded-t-lg">
               <CardTitle className="text-xs font-medium flex items-center gap-1">
                 <Users className="w-3 h-3" />
-                Users
+                Total Users
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-3 pb-2">
               <div className="text-2xl font-bold">{totalUsers}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="bg-yellow-500 text-white py-2 px-3 rounded-t-lg">
-              <CardTitle className="text-xs font-medium flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" />
-                Pending
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-3 pb-2">
-              <div className="text-2xl font-bold">{pendingSolutions + pendingDeliveries}</div>
             </CardContent>
           </Card>
 
@@ -162,36 +190,19 @@ export const AdminDashboard = ({ labRequests, deliveryRequests }: AdminDashboard
               <div className="text-2xl font-bold">{formatPercentage(avgMargin)}</div>
             </CardContent>
           </Card>
-        </div>
 
-        {/* Alerts Section */}
-        {alerts.length > 0 && (
           <Card>
-            <CardHeader className="bg-orange-500 text-white py-3 px-4 rounded-t-lg">
-              <CardTitle className="text-base flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" />
-                Alerts & Exceptions
+            <CardHeader className="bg-yellow-500 text-white py-2 px-3 rounded-t-lg">
+              <CardTitle className="text-xs font-medium flex items-center gap-1">
+                <Activity className="w-3 h-3" />
+                Active Agents
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                {alerts.map((alert: any, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`p-3 rounded-md ${
-                      alert.type === 'error' ? 'bg-red-50 text-red-800 border border-red-200' : 'bg-yellow-50 text-yellow-800 border border-yellow-200'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4" />
-                      {alert.message}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <CardContent className="pt-3 pb-2">
+              <div className="text-2xl font-bold">{agentData.length}</div>
             </CardContent>
           </Card>
-        )}
+        </div>
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -246,35 +257,34 @@ export const AdminDashboard = ({ labRequests, deliveryRequests }: AdminDashboard
           </Card>
         </div>
 
-        {/* System Status */}
-        <Card>
-          <CardHeader className="bg-primary text-primary-foreground py-3 px-4 rounded-t-lg">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              System Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-3xl font-bold text-green-600">{labRequests.filter(r => r.status === 'Solution Sent').length}</div>
-                <div className="text-sm text-muted-foreground">Solutions Sent</div>
+        {/* Alerts Section - Moved to Bottom */}
+        {alerts.length > 0 && (
+          <Card>
+            <CardHeader className="bg-orange-500 text-white py-3 px-4 rounded-t-lg">
+              <CardTitle className="text-base flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Alerts & Exceptions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="space-y-2">
+                {alerts.map((alert: any, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`p-3 rounded-md ${
+                      alert.type === 'error' ? 'bg-red-50 text-red-800 border border-red-200' : 'bg-yellow-50 text-yellow-800 border border-yellow-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4" />
+                      {alert.message}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-3xl font-bold text-blue-600">{deliveryRequests.filter(r => r.labStatus === 'Completed').length}</div>
-                <div className="text-sm text-muted-foreground">Completed Deliveries</div>
-              </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-3xl font-bold text-yellow-600">{inProgressDeliveries}</div>
-                <div className="text-sm text-muted-foreground">In Progress</div>
-              </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-3xl font-bold">{agentData.length}</div>
-                <div className="text-sm text-muted-foreground">Active Agents</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </TabsContent>
 
       <TabsContent value="users">
