@@ -15,13 +15,21 @@ interface OpsEngineerDashboardProps {
 export const OpsEngineerDashboard = ({ labRequests, deliveryRequests }: OpsEngineerDashboardProps) => {
   const { user } = useAuth();
   
-  // Filter to show only assigned requests (or all if no assignment system yet)
-  const myLabRequests = labRequests;
-  const myDeliveryRequests = deliveryRequests;
+  // Filter to show only assigned requests to current user
+  // Show all requests if assignedTo is null (unassigned) or matches current user
+  const myLabRequests = labRequests.filter(r => 
+    !r.assignedTo || r.assignedTo === user?.id
+  );
+  const myDeliveryRequests = deliveryRequests.filter(r => 
+    !r.assignedTo || r.assignedTo === user?.id
+  );
+  
+  // Separate assigned vs unassigned counts
+  const assignedLabRequests = labRequests.filter(r => r.assignedTo === user?.id);
+  const unassignedLabRequests = labRequests.filter(r => !r.assignedTo);
   
   const pendingLabs = myLabRequests.filter(r => r.status === 'Solution Pending');
   const readyLabs = myDeliveryRequests.filter(r => r.labStatus === 'Ready');
-  
   // Labs expiring soon (within 7 days)
   const today = new Date();
   const expiringSoon = myDeliveryRequests.filter(r => {
@@ -52,8 +60,10 @@ export const OpsEngineerDashboard = ({ labRequests, deliveryRequests }: OpsEngin
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="text-3xl font-bold">{myLabRequests.length}</div>
-            <p className="text-xs text-muted-foreground">Assigned to me</p>
+            <div className="text-3xl font-bold">{assignedLabRequests.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Assigned to me {unassignedLabRequests.length > 0 && `(+${unassignedLabRequests.length} unassigned)`}
+            </p>
           </CardContent>
         </Card>
 

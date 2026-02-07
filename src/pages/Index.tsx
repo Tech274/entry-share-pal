@@ -14,12 +14,22 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { ClipboardList, Truck, LayoutDashboard, Database, Calendar } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 
 const Index = () => {
-  const { requests, addRequest, deleteRequest, clearAll, bulkInsert, updateRequest: updateLabRequest, refetch: refetchLabRequests } = useLabRequests();
+  const { 
+    requests, 
+    loading: labLoading,
+    addRequest, 
+    deleteRequest, 
+    clearAll, 
+    bulkInsert, 
+    updateRequest: updateLabRequest, 
+    refetch: refetchLabRequests 
+  } = useLabRequests();
   const { 
     requests: deliveryRequests, 
+    loading: deliveryLoading,
     addRequest: addDeliveryRequest,
     deleteRequest: deleteDeliveryRequest,
     bulkInsert: bulkInsertDelivery,
@@ -31,6 +41,11 @@ const Index = () => {
 
   // Enable realtime sync for all data
   useRealtimeSync();
+
+  // Dashboard refresh handler
+  const handleDashboardRefresh = useCallback(async () => {
+    await Promise.all([refetchLabRequests(), refetchDeliveryRequests()]);
+  }, [refetchLabRequests, refetchDeliveryRequests]);
 
   const handleDeliveryDelete = (id: string) => {
     deleteDeliveryRequest(id);
@@ -206,7 +221,12 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
-            <RoleBasedDashboard labRequests={requests} deliveryRequests={deliveryRequests} />
+            <RoleBasedDashboard 
+              labRequests={requests} 
+              deliveryRequests={deliveryRequests}
+              isLoading={labLoading || deliveryLoading}
+              onRefresh={handleDashboardRefresh}
+            />
           </TabsContent>
 
           {showOperationalTabs && (
