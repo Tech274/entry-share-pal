@@ -1,17 +1,29 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { IndianRupee, Calendar, Building2 } from 'lucide-react';
+import { IndianRupee, Calendar, Building2, ArrowRight } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { formatINR } from '@/lib/formatUtils';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 
 interface RevenueBreakdownProps {
   labRequests: LabRequest[];
   deliveryRequests: DeliveryRequest[];
+  onNavigateToTab?: (tab: string, filter?: string) => void;
 }
 
-export const RevenueBreakdown = ({ labRequests, deliveryRequests }: RevenueBreakdownProps) => {
+export const RevenueBreakdown = ({ labRequests, deliveryRequests, onNavigateToTab }: RevenueBreakdownProps) => {
+  const [activeTab, setActiveTab] = useState('month');
+  const [animationKey, setAnimationKey] = useState(0);
+  const [activeBarIndex, setActiveBarIndex] = useState<number | null>(null);
+
+  // Trigger animation on tab change
+  useEffect(() => {
+    setAnimationKey(prev => prev + 1);
+    setActiveBarIndex(null);
+  }, [activeTab]);
+
   const monthOrder = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   
   // Revenue by month (combined from solutions + delivery)
@@ -30,6 +42,7 @@ export const RevenueBreakdown = ({ labRequests, deliveryRequests }: RevenueBreak
     .filter(m => revenueByMonth[m])
     .map(m => ({
       name: m.substring(0, 3),
+      fullName: m,
       solutions: revenueByMonth[m].solutions,
       delivery: revenueByMonth[m].delivery,
       total: revenueByMonth[m].solutions + revenueByMonth[m].delivery
@@ -55,6 +68,7 @@ export const RevenueBreakdown = ({ labRequests, deliveryRequests }: RevenueBreak
     .slice(0, 8)
     .map(c => ({
       name: c.client.length > 12 ? c.client.substring(0, 12) + '...' : c.client,
+      fullName: c.client,
       solutions: c.solutions,
       delivery: c.delivery,
       total: c.solutions + c.delivery
@@ -62,6 +76,19 @@ export const RevenueBreakdown = ({ labRequests, deliveryRequests }: RevenueBreak
 
   const totalRevenue = labRequests.reduce((sum, r) => sum + (r.totalAmountForTraining || 0), 0) + 
                        deliveryRequests.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+
+  const handleBarClick = (data: any, type: 'solutions' | 'delivery' | 'both') => {
+    if (onNavigateToTab && data) {
+      // Navigate based on which segment was clicked
+      if (type === 'solutions') {
+        onNavigateToTab('solutions');
+      } else if (type === 'delivery') {
+        onNavigateToTab('delivery');
+      } else {
+        onNavigateToTab('solutions');
+      }
+    }
+  };
 
   return (
     <Card>
@@ -72,7 +99,7 @@ export const RevenueBreakdown = ({ labRequests, deliveryRequests }: RevenueBreak
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-4">
-        <Tabs defaultValue="month" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="month" className="flex items-center gap-1 text-xs">
               <Calendar className="w-3 h-3" />
@@ -87,7 +114,11 @@ export const RevenueBreakdown = ({ labRequests, deliveryRequests }: RevenueBreak
           <TabsContent value="month">
             {monthlyData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={monthlyData}>
+                <BarChart 
+                  key={`month-${animationKey}`}
+                  data={monthlyData}
+                  className="cursor-pointer"
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `₹${(v/100000).toFixed(0)}L`} />
@@ -96,10 +127,52 @@ export const RevenueBreakdown = ({ labRequests, deliveryRequests }: RevenueBreak
                       formatINR(value),
                       name === 'solutions' ? 'Solutions' : 'Delivery'
                     ]}
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--popover))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px',
+                      fontSize: '12px'
+                    }}
                   />
                   <Legend />
-                  <Bar dataKey="solutions" stackId="a" fill="hsl(var(--primary))" name="Solutions" radius={[0, 0, 0, 0]} />
-                  <Bar dataKey="delivery" stackId="a" fill="#22c55e" name="Delivery" radius={[4, 4, 0, 0]} />
+                  <Bar 
+                    dataKey="solutions" 
+                    stackId="a" 
+                    name="Solutions" 
+                    radius={[0, 0, 0, 0]}
+                    animationBegin={0}
+                    animationDuration={800}
+                    animationEasing="ease-out"
+                    onClick={(data) => handleBarClick(data, 'solutions')}
+                    onMouseEnter={(_, index) => setActiveBarIndex(index)}
+                    onMouseLeave={() => setActiveBarIndex(null)}
+                  >
+                    {monthlyData.map((_, index) => (
+                      <Cell 
+                        key={`cell-solutions-${index}`} 
+                        fill={activeBarIndex === index ? 'hsl(var(--primary) / 0.8)' : 'hsl(var(--primary))'}
+                        className="transition-all duration-200"
+                      />
+                    ))}
+                  </Bar>
+                  <Bar 
+                    dataKey="delivery" 
+                    stackId="a" 
+                    name="Delivery" 
+                    radius={[4, 4, 0, 0]}
+                    animationBegin={0}
+                    animationDuration={800}
+                    animationEasing="ease-out"
+                    onClick={(data) => handleBarClick(data, 'delivery')}
+                  >
+                    {monthlyData.map((_, index) => (
+                      <Cell 
+                        key={`cell-delivery-${index}`} 
+                        fill={activeBarIndex === index ? '#16a34a' : '#22c55e'}
+                        className="transition-all duration-200"
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -107,12 +180,24 @@ export const RevenueBreakdown = ({ labRequests, deliveryRequests }: RevenueBreak
                 No monthly data available
               </div>
             )}
+            {monthlyData.length > 0 && (
+              <div className="mt-2 flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                <span>Click bars to navigate to source</span>
+                <ArrowRight className="w-3 h-3" />
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="client">
             {clientData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={clientData} layout="vertical" margin={{ left: 50 }}>
+                <BarChart 
+                  key={`client-${animationKey}`}
+                  data={clientData} 
+                  layout="vertical" 
+                  margin={{ left: 50 }}
+                  className="cursor-pointer"
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => `₹${(v/100000).toFixed(0)}L`} />
                   <YAxis 
@@ -126,15 +211,62 @@ export const RevenueBreakdown = ({ labRequests, deliveryRequests }: RevenueBreak
                       formatINR(value),
                       name === 'solutions' ? 'Solutions' : 'Delivery'
                     ]}
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--popover))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px',
+                      fontSize: '12px'
+                    }}
                   />
                   <Legend />
-                  <Bar dataKey="solutions" stackId="a" fill="hsl(var(--primary))" name="Solutions" />
-                  <Bar dataKey="delivery" stackId="a" fill="#22c55e" name="Delivery" radius={[0, 4, 4, 0]} />
+                  <Bar 
+                    dataKey="solutions" 
+                    stackId="a" 
+                    name="Solutions"
+                    animationBegin={0}
+                    animationDuration={800}
+                    animationEasing="ease-out"
+                    onClick={(data) => handleBarClick(data, 'solutions')}
+                    onMouseEnter={(_, index) => setActiveBarIndex(index)}
+                    onMouseLeave={() => setActiveBarIndex(null)}
+                  >
+                    {clientData.map((_, index) => (
+                      <Cell 
+                        key={`cell-solutions-${index}`} 
+                        fill={activeBarIndex === index ? 'hsl(var(--primary) / 0.8)' : 'hsl(var(--primary))'}
+                        className="transition-all duration-200"
+                      />
+                    ))}
+                  </Bar>
+                  <Bar 
+                    dataKey="delivery" 
+                    stackId="a" 
+                    name="Delivery" 
+                    radius={[0, 4, 4, 0]}
+                    animationBegin={0}
+                    animationDuration={800}
+                    animationEasing="ease-out"
+                    onClick={(data) => handleBarClick(data, 'delivery')}
+                  >
+                    {clientData.map((_, index) => (
+                      <Cell 
+                        key={`cell-delivery-${index}`} 
+                        fill={activeBarIndex === index ? '#16a34a' : '#22c55e'}
+                        className="transition-all duration-200"
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             ) : (
               <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
                 No client data available
+              </div>
+            )}
+            {clientData.length > 0 && (
+              <div className="mt-2 flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                <span>Click bars to navigate to source</span>
+                <ArrowRight className="w-3 h-3" />
               </div>
             )}
           </TabsContent>

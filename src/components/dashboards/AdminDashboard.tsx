@@ -400,10 +400,10 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
         {/* Breakdown Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Learners Breakdown */}
-          <LearnersBreakdown deliveryRequests={deliveryRequests} />
+          <LearnersBreakdown deliveryRequests={deliveryRequests} onNavigateToTab={onNavigate} />
           
           {/* Revenue Breakdown */}
-          <RevenueBreakdown labRequests={labRequests} deliveryRequests={deliveryRequests} />
+          <RevenueBreakdown labRequests={labRequests} deliveryRequests={deliveryRequests} onNavigateToTab={onNavigate} />
         </div>
 
         {/* Lab Type Breakdown */}
