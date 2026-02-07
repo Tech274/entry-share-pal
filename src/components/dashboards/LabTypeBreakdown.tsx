@@ -91,19 +91,37 @@ export const LabTypeBreakdown = ({ labRequests, deliveryRequests }: LabTypeBreak
   const totalRequests = labRequests.length + deliveryRequests.length;
   const totalRevenue = allRequests.reduce((sum, r) => sum + r.revenue, 0);
 
-  const renderCustomLabel = ({ name, percent }: { name: string; percent: number }) => {
-    return percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : '';
+  const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: any) => {
+    if (percent < 0.05) return null;
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        fill="white" 
+        textAnchor="middle" 
+        dominantBaseline="central"
+        className="text-xs font-semibold"
+        style={{ fontSize: '11px', fontWeight: 600 }}
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
   };
 
   return (
-    <Card>
-      <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-4 rounded-t-lg">
+    <Card className="h-full">
+      <CardHeader className="bg-primary text-primary-foreground py-3 px-4 rounded-t-lg">
         <CardTitle className="text-base flex items-center gap-2">
           <Layers className="w-4 h-4" />
           Lab Type & Revenue Breakdown
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-4">
+      <CardContent className="pt-4 pb-4">
         {/* Summary Stats */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="p-3 rounded-lg bg-muted text-center">
@@ -111,79 +129,104 @@ export const LabTypeBreakdown = ({ labRequests, deliveryRequests }: LabTypeBreak
             <div className="text-xs text-muted-foreground">Total Requests</div>
           </div>
           <div className="p-3 rounded-lg bg-muted text-center">
-            <div className="text-2xl font-bold text-green-600">{formatINR(totalRevenue)}</div>
+            <div className="text-2xl font-bold text-success">{formatINR(totalRevenue)}</div>
             <div className="text-xs text-muted-foreground">Total Revenue</div>
           </div>
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-4">
-            <TabsTrigger value="overview" className="flex items-center gap-1 text-xs">
+          <TabsList className="grid w-full grid-cols-4 mb-3 h-9">
+            <TabsTrigger value="overview" className="flex items-center gap-1 text-xs px-2">
               <Layers className="w-3 h-3" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="public" className="flex items-center gap-1 text-xs">
+            <TabsTrigger value="public" className="flex items-center gap-1 text-xs px-2">
               <Cloud className="w-3 h-3" />
               Public
             </TabsTrigger>
-            <TabsTrigger value="private" className="flex items-center gap-1 text-xs">
+            <TabsTrigger value="private" className="flex items-center gap-1 text-xs px-2">
               <Server className="w-3 h-3" />
               Private
             </TabsTrigger>
-            <TabsTrigger value="tp" className="flex items-center gap-1 text-xs">
+            <TabsTrigger value="tp" className="flex items-center gap-1 text-xs px-2">
               <Building className="w-3 h-3" />
               TP Labs
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="overview">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
+          <TabsContent value="overview" className="mt-0">
+            <div className="flex gap-4 items-start">
+              {/* Chart Section */}
+              <div className="flex-shrink-0 w-[180px]">
                 {labTypePieData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={160}>
+                  <ResponsiveContainer width="100%" height={180}>
                     <PieChart>
                       <Pie
                         data={labTypePieData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={35}
-                        outerRadius={60}
+                        innerRadius={40}
+                        outerRadius={70}
                         dataKey="value"
                         label={renderCustomLabel}
                         labelLine={false}
+                        paddingAngle={2}
                       >
                         {labTypePieData.map((entry) => (
-                          <Cell key={entry.name} fill={COLORS[entry.name as keyof typeof COLORS] || COLORS.Other} />
+                          <Cell 
+                            key={entry.name} 
+                            fill={COLORS[entry.name as keyof typeof COLORS] || COLORS.Other}
+                            stroke="hsl(var(--background))"
+                            strokeWidth={2}
+                          />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value: number, name: string, props: any) => [
-                        `${value} requests (${formatINR(props.payload.revenue)})`,
-                        name
-                      ]} />
-                      <Legend wrapperStyle={{ fontSize: '9px' }} />
+                      <Tooltip 
+                        formatter={(value: number, name: string, props: any) => [
+                          `${value} requests (${formatINR(props.payload.revenue)})`,
+                          name
+                        ]}
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--popover))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '6px',
+                          fontSize: '12px'
+                        }}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-[160px] flex items-center justify-center text-muted-foreground text-sm">
+                  <div className="h-[180px] flex items-center justify-center text-muted-foreground text-sm">
                     No lab type data
                   </div>
                 )}
               </div>
-              <div className="space-y-2">
+              
+              {/* Legend/Stats Section */}
+              <div className="flex-1 space-y-2 min-w-0">
                 {labTypePieData.map((item) => (
-                  <div key={item.name} className="p-2 rounded-lg bg-muted">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-medium">{item.name}</span>
-                      <span className="text-sm font-bold">{item.value}</span>
+                  <div 
+                    key={item.name} 
+                    className="p-2.5 rounded-lg bg-muted/60 border border-border/50"
+                  >
+                    <div className="flex justify-between items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div 
+                          className="w-3 h-3 rounded-full flex-shrink-0" 
+                          style={{ backgroundColor: COLORS[item.name as keyof typeof COLORS] || COLORS.Other }}
+                        />
+                        <span className="text-sm font-medium truncate">{item.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-sm font-bold">{item.value}</span>
+                        <span className="text-xs font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                          {((item.value / totalRequests) * 100).toFixed(0)}%
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <IndianRupee className="w-3 h-3" />
-                        {formatINR(item.revenue)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {((item.value / totalRequests) * 100).toFixed(0)}%
-                      </span>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground pl-5">
+                      <IndianRupee className="w-3 h-3" />
+                      <span>{formatINR(item.revenue)}</span>
                     </div>
                   </div>
                 ))}
@@ -191,110 +234,160 @@ export const LabTypeBreakdown = ({ labRequests, deliveryRequests }: LabTypeBreak
             </div>
           </TabsContent>
           
-          <TabsContent value="public">
+          <TabsContent value="public" className="mt-0">
             {cloudTypePieData.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4">
-                <ResponsiveContainer width="100%" height={160}>
-                  <PieChart>
-                    <Pie
-                      data={cloudTypePieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={35}
-                      outerRadius={60}
-                      dataKey="value"
-                      label={renderCustomLabel}
-                      labelLine={false}
-                    >
-                      {cloudTypePieData.map((entry) => (
-                        <Cell key={entry.name} fill={COLORS[entry.name as keyof typeof COLORS] || COLORS.Other} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number, name: string, props: any) => [
-                      `${value} requests (${formatINR(props.payload.revenue)})`,
-                      name
-                    ]} />
-                    <Legend wrapperStyle={{ fontSize: '9px' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="space-y-2">
-                  <h4 className="text-xs font-semibold text-muted-foreground">Cloud Providers</h4>
+              <div className="flex gap-4 items-start">
+                <div className="flex-shrink-0 w-[180px]">
+                  <ResponsiveContainer width="100%" height={180}>
+                    <PieChart>
+                      <Pie
+                        data={cloudTypePieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={70}
+                        dataKey="value"
+                        label={renderCustomLabel}
+                        labelLine={false}
+                        paddingAngle={2}
+                      >
+                        {cloudTypePieData.map((entry) => (
+                          <Cell 
+                            key={entry.name} 
+                            fill={COLORS[entry.name as keyof typeof COLORS] || COLORS.Other}
+                            stroke="hsl(var(--background))"
+                            strokeWidth={2}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value: number, name: string, props: any) => [
+                          `${value} requests (${formatINR(props.payload.revenue)})`,
+                          name
+                        ]}
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--popover))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '6px',
+                          fontSize: '12px'
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex-1 space-y-2 min-w-0">
+                  <h4 className="text-xs font-semibold text-muted-foreground mb-2">Cloud Providers</h4>
                   {cloudTypePieData.map((item) => (
-                    <div key={item.name} className="flex justify-between items-center p-2 rounded bg-muted">
-                      <div>
-                        <span className="text-xs font-medium">{item.name}</span>
-                        <div className="text-xs text-muted-foreground">{formatINR(item.revenue)}</div>
+                    <div 
+                      key={item.name} 
+                      className="flex justify-between items-center p-2.5 rounded-lg bg-muted/60 border border-border/50"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div 
+                          className="w-3 h-3 rounded-full flex-shrink-0" 
+                          style={{ backgroundColor: COLORS[item.name as keyof typeof COLORS] || COLORS.Other }}
+                        />
+                        <div className="min-w-0">
+                          <span className="text-sm font-medium">{item.name}</span>
+                          <div className="text-xs text-muted-foreground">{formatINR(item.revenue)}</div>
+                        </div>
                       </div>
-                      <span className="font-bold">{item.value}</span>
+                      <span className="font-bold text-lg">{item.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="h-[160px] flex items-center justify-center text-muted-foreground text-sm">
+              <div className="h-[180px] flex items-center justify-center text-muted-foreground text-sm">
                 No Public Cloud data available
               </div>
             )}
           </TabsContent>
           
-          <TabsContent value="private">
-            <div className="h-[160px] flex flex-col items-center justify-center text-center">
-              <Server className="w-10 h-10 text-purple-500 mb-2" />
-              <div className="text-2xl font-bold">{labTypeData['Private Cloud']?.value || 0}</div>
-              <div className="text-sm text-muted-foreground">Private Cloud Requests</div>
-              <div className="text-lg font-semibold text-green-600 mt-1">
+          <TabsContent value="private" className="mt-0">
+            <div className="h-[180px] flex flex-col items-center justify-center text-center p-4">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                <Server className="w-8 h-8 text-primary" />
+              </div>
+              <div className="text-3xl font-bold text-foreground">{labTypeData['Private Cloud']?.value || 0}</div>
+              <div className="text-sm text-muted-foreground mb-2">Private Cloud Requests</div>
+              <div className="text-xl font-semibold text-success">
                 {formatINR(labTypeData['Private Cloud']?.revenue || 0)}
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-muted-foreground mt-1">
                 {labTypeData['Private Cloud']?.value ? 
-                  `${((labTypeData['Private Cloud'].value / totalRequests) * 100).toFixed(1)}% of total` : 
+                  `${((labTypeData['Private Cloud'].value / totalRequests) * 100).toFixed(1)}% of total requests` : 
                   'No private cloud data'
                 }
               </div>
             </div>
           </TabsContent>
           
-          <TabsContent value="tp">
+          <TabsContent value="tp" className="mt-0">
             {tpLabTypePieData.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4">
-                <ResponsiveContainer width="100%" height={160}>
-                  <PieChart>
-                    <Pie
-                      data={tpLabTypePieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={35}
-                      outerRadius={60}
-                      dataKey="value"
-                      label={renderCustomLabel}
-                      labelLine={false}
-                    >
-                      {tpLabTypePieData.map((entry) => (
-                        <Cell key={entry.name} fill={COLORS[entry.name as keyof typeof COLORS] || COLORS.Other} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number, name: string, props: any) => [
-                      `${value} requests (${formatINR(props.payload.revenue)})`,
-                      name
-                    ]} />
-                    <Legend wrapperStyle={{ fontSize: '9px' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="space-y-2">
-                  <h4 className="text-xs font-semibold text-muted-foreground">TP Lab Types</h4>
+              <div className="flex gap-4 items-start">
+                <div className="flex-shrink-0 w-[180px]">
+                  <ResponsiveContainer width="100%" height={180}>
+                    <PieChart>
+                      <Pie
+                        data={tpLabTypePieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={70}
+                        dataKey="value"
+                        label={renderCustomLabel}
+                        labelLine={false}
+                        paddingAngle={2}
+                      >
+                        {tpLabTypePieData.map((entry) => (
+                          <Cell 
+                            key={entry.name} 
+                            fill={COLORS[entry.name as keyof typeof COLORS] || COLORS.Other}
+                            stroke="hsl(var(--background))"
+                            strokeWidth={2}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value: number, name: string, props: any) => [
+                          `${value} requests (${formatINR(props.payload.revenue)})`,
+                          name
+                        ]}
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--popover))', 
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '6px',
+                          fontSize: '12px'
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex-1 space-y-2 min-w-0">
+                  <h4 className="text-xs font-semibold text-muted-foreground mb-2">TP Lab Types</h4>
                   {tpLabTypePieData.map((item) => (
-                    <div key={item.name} className="flex justify-between items-center p-2 rounded bg-muted">
-                      <div>
-                        <span className="text-xs font-medium">{item.name}</span>
-                        <div className="text-xs text-muted-foreground">{formatINR(item.revenue)}</div>
+                    <div 
+                      key={item.name} 
+                      className="flex justify-between items-center p-2.5 rounded-lg bg-muted/60 border border-border/50"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div 
+                          className="w-3 h-3 rounded-full flex-shrink-0" 
+                          style={{ backgroundColor: COLORS[item.name as keyof typeof COLORS] || COLORS.Other }}
+                        />
+                        <div className="min-w-0">
+                          <span className="text-sm font-medium">{item.name}</span>
+                          <div className="text-xs text-muted-foreground">{formatINR(item.revenue)}</div>
+                        </div>
                       </div>
-                      <span className="font-bold">{item.value}</span>
+                      <span className="font-bold text-lg">{item.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="h-[160px] flex items-center justify-center text-muted-foreground text-sm">
+              <div className="h-[180px] flex items-center justify-center text-muted-foreground text-sm">
                 No TP Labs data available
               </div>
             )}
