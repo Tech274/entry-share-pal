@@ -28,14 +28,21 @@ interface DateRangePickerFilterProps {
   className?: string;
 }
 
-type PresetKey = 'today' | 'last-7-days' | 'last-30-days' | 'this-week' | 'last-week' | 'this-month' | 'last-month' | 'this-quarter' | 'last-quarter' | 'this-year' | 'custom';
+type PresetKey = 'all-time' | 'today' | 'last-7-days' | 'last-30-days' | 'this-week' | 'last-week' | 'this-month' | 'last-month' | 'this-quarter' | 'last-quarter' | 'this-year' | 'custom';
 
 interface Preset {
   label: string;
-  getRange: () => { from: Date; to: Date };
+  getRange: () => { from: Date | undefined; to: Date | undefined };
 }
 
 const presets: Record<Exclude<PresetKey, 'custom'>, Preset> = {
+  'all-time': {
+    label: 'All Time',
+    getRange: () => ({
+      from: undefined,
+      to: undefined,
+    }),
+  },
   'today': {
     label: 'Today',
     getRange: () => {
