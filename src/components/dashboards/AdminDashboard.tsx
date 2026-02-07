@@ -250,7 +250,8 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
                       <Info className="w-3 h-3 opacity-70 hover:opacity-100 cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs text-xs">
-                      <p>Combined revenue from Solutions ({formatINR(totalRevenue)}) + Delivery ({formatINR(deliveryRevenue)})</p>
+                      <p>Combined: Solutions ({formatINR(totalRevenue)}) + Delivery Margin ({formatINR(deliveryRevenue)})</p>
+                      <p className="mt-1 text-muted-foreground">Delivery = (Selling Cost × Users) - (Input Cost × Users)</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -306,7 +307,8 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
                       <Info className="w-3 h-3 opacity-70 hover:opacity-100 cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs text-xs">
-                      <p>Sum of Total Amount from all delivery requests</p>
+                      <p>Delivery Margin = (Selling Cost Per User × Users) - (Input Cost Per User × Users)</p>
+                      <p className="mt-1 text-muted-foreground">Sum across all delivery requests</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
