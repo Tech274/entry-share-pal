@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info, LucideIcon } from 'lucide-react';
+import { Info, LucideIcon, ArrowRight } from 'lucide-react';
 import { ReactNode } from 'react';
 
 interface KPICardProps {
@@ -12,6 +12,7 @@ interface KPICardProps {
   tooltip?: string;
   onClick?: () => void;
   children?: ReactNode;
+  showArrow?: boolean;
 }
 
 export const KPICard = ({
@@ -22,11 +23,14 @@ export const KPICard = ({
   headerColor,
   tooltip,
   onClick,
-  children
+  children,
+  showArrow = true,
 }: KPICardProps) => {
+  const isClickable = !!onClick;
+  
   return (
     <Card 
-      className={`${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : 'cursor-default'}`}
+      className={`${isClickable ? 'cursor-pointer hover:shadow-md transition-shadow group' : 'cursor-default'}`}
       onClick={onClick}
     >
       <CardHeader className={`${headerColor} text-white py-2 px-3 rounded-t-lg`}>
@@ -35,18 +39,23 @@ export const KPICard = ({
             <Icon className="w-3 h-3" />
             {title}
           </span>
-          {tooltip && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <Info className="w-3 h-3 opacity-70 hover:opacity-100 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-xs text-xs">
-                  <p>{tooltip}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+          <div className="flex items-center gap-1">
+            {tooltip && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <Info className="w-3 h-3 opacity-70 hover:opacity-100 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs text-xs">
+                    <p>{tooltip}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            {isClickable && showArrow && (
+              <ArrowRight className="w-3 h-3 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-3 pb-2">

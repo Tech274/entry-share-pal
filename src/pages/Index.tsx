@@ -169,16 +169,37 @@ const Index = () => {
 
   // Tab navigation state
   const [activeTab, setActiveTab] = useState('dashboard');
+  
+  // Filter persistence for navigation from KPI cards
+  const [solutionsFilter, setSolutionsFilter] = useState<string | undefined>(undefined);
+  const [deliveryFilter, setDeliveryFilter] = useState<string | undefined>(undefined);
 
-  // Handle navigation from dashboard quick actions
+  // Handle navigation from dashboard quick actions with filter persistence
   const handleNavigateToTab = useCallback((tab: string, filter?: string) => {
     setActiveTab(tab);
-    // Filter parameter can be used to set filters in the destination tab
-    console.log(`Navigating to ${tab} with filter: ${filter}`);
+    
+    // Set the appropriate filter based on destination tab
+    if (tab === 'solutions') {
+      setSolutionsFilter(filter);
+    } else if (tab === 'delivery') {
+      setDeliveryFilter(filter);
+    }
   }, []);
 
   const handleNavigateToCalendar = useCallback(() => {
     setActiveTab('calendar');
+  }, []);
+  
+  // Clear filters when manually changing tabs
+  const handleTabChange = useCallback((tab: string) => {
+    setActiveTab(tab);
+    // Only clear filters if navigating away from the filtered tab
+    if (tab !== 'solutions') {
+      setSolutionsFilter(undefined);
+    }
+    if (tab !== 'delivery') {
+      setDeliveryFilter(undefined);
+    }
   }, []);
 
   // AI Assistant context
@@ -200,7 +221,7 @@ const Index = () => {
       />
 
       <main className="container mx-auto px-4 py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className={`grid w-full ${isFinance ? 'max-w-md grid-cols-2' : 'max-w-3xl grid-cols-5'}`}>
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="w-4 h-4" />
@@ -254,6 +275,8 @@ const Index = () => {
                   onDelete={handleDelete}
                   onConvertToDelivery={handleConvertToDelivery}
                   onUpdate={updateLabRequest}
+                  initialFilter={solutionsFilter}
+                  onFilterChange={setSolutionsFilter}
                 />
               </TabsContent>
 
@@ -264,6 +287,8 @@ const Index = () => {
                   onDelete={handleDeliveryDelete}
                   onStatusChange={handleDeliveryStatusChange}
                   onUpdate={updateDeliveryRequest}
+                  initialFilter={deliveryFilter}
+                  onFilterChange={setDeliveryFilter}
                 />
               </TabsContent>
 

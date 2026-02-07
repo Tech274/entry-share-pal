@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LabRequestForm } from '@/components/LabRequestForm';
 import { RequestsTable } from '@/components/RequestsTable';
@@ -13,6 +13,8 @@ interface SolutionsTabContentProps {
   onDelete: (id: string) => void;
   onConvertToDelivery?: (request: LabRequest) => Promise<void>;
   onUpdate?: (id: string, data: Partial<LabRequest>) => void;
+  initialFilter?: string;
+  onFilterChange?: (filter: string | undefined) => void;
 }
 
 export const SolutionsTabContent = ({
@@ -21,8 +23,26 @@ export const SolutionsTabContent = ({
   onDelete,
   onConvertToDelivery,
   onUpdate,
+  initialFilter,
+  onFilterChange,
 }: SolutionsTabContentProps) => {
   const [listSubTab, setListSubTab] = useState<string>('all');
+  const [mainTab, setMainTab] = useState<string>('form');
+
+  // Handle initial filter from dashboard navigation
+  useEffect(() => {
+    if (initialFilter) {
+      // Switch to list tab and set appropriate filter
+      setMainTab('list');
+      if (initialFilter === 'Solution Pending') {
+        setListSubTab('pending');
+      } else if (initialFilter === 'Solution Sent') {
+        setListSubTab('sent');
+      } else {
+        setListSubTab('all');
+      }
+    }
+  }, [initialFilter]);
 
   // Filter requests by status
   const pendingRequests = requests.filter(r => r.status === 'Solution Pending');
@@ -38,9 +58,19 @@ export const SolutionsTabContent = ({
         return requests;
     }
   };
+  
+  // Handle filter change and notify parent
+  const handleSubTabChange = (tab: string) => {
+    setListSubTab(tab);
+    if (onFilterChange) {
+      const filterValue = tab === 'pending' ? 'Solution Pending' : 
+                         tab === 'sent' ? 'Solution Sent' : undefined;
+      onFilterChange(filterValue);
+    }
+  };
 
   return (
-    <Tabs defaultValue="form" className="space-y-6">
+    <Tabs value={mainTab} onValueChange={setMainTab} className="space-y-6">
       <TabsList className="grid w-full max-w-md grid-cols-2">
         <TabsTrigger value="form" className="gap-2">
           <FileText className="w-4 h-4" />
@@ -66,7 +96,7 @@ export const SolutionsTabContent = ({
           <Button
             variant={listSubTab === 'all' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setListSubTab('all')}
+            onClick={() => handleSubTabChange('all')}
             className="gap-2"
           >
             All
@@ -77,7 +107,7 @@ export const SolutionsTabContent = ({
           <Button
             variant={listSubTab === 'pending' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setListSubTab('pending')}
+            onClick={() => handleSubTabChange('pending')}
             className="gap-2"
           >
             <Clock className="w-4 h-4" />
@@ -89,7 +119,7 @@ export const SolutionsTabContent = ({
           <Button
             variant={listSubTab === 'sent' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setListSubTab('sent')}
+            onClick={() => handleSubTabChange('sent')}
             className="gap-2"
           >
             <CheckCircle className="w-4 h-4" />

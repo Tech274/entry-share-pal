@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DeliveryRequestForm } from '@/components/DeliveryRequestForm';
 import { DeliveryTable } from '@/components/DeliveryTable';
@@ -11,6 +12,8 @@ interface DeliveryTabContentProps {
   onDelete: (id: string) => void;
   onStatusChange?: (id: string, newStatus: string) => void;
   onUpdate?: (id: string, data: Partial<DeliveryRequest>) => void;
+  initialFilter?: string;
+  onFilterChange?: (filter: string | undefined) => void;
 }
 
 // Sub-component for Lab Type filtered view
@@ -144,7 +147,26 @@ export const DeliveryTabContent = ({
   onDelete,
   onStatusChange,
   onUpdate,
+  initialFilter,
+  onFilterChange,
 }: DeliveryTabContentProps) => {
+  const [mainTab, setMainTab] = useState<string>('form');
+
+  // Handle initial filter from dashboard navigation
+  useEffect(() => {
+    if (initialFilter) {
+      // Map filter to appropriate tab
+      if (initialFilter === 'Delivery In-Progress') {
+        setMainTab('in-progress');
+      } else if (initialFilter === 'Delivery Completed' || initialFilter === 'Completed') {
+        setMainTab('completed');
+      } else {
+        // For Pending, Ready, etc. - show in list tab
+        setMainTab('list');
+      }
+    }
+  }, [initialFilter]);
+
   // Filter completed and delivery in-progress requests for their respective tabs
   const completedRequests = requests.filter(r => r.labStatus === 'Completed' || r.labStatus === 'Delivery Completed');
   const deliveryInProgressRequests = requests.filter(r => r.labStatus === 'Delivery In-Progress');
@@ -155,7 +177,7 @@ export const DeliveryTabContent = ({
   );
 
   return (
-    <Tabs defaultValue="form" className="space-y-6">
+    <Tabs value={mainTab} onValueChange={setMainTab} className="space-y-6">
       <TabsList className="grid w-full max-w-2xl grid-cols-4">
         <TabsTrigger value="form" className="gap-2">
           <FileText className="w-4 h-4" />
