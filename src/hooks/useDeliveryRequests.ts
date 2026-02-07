@@ -68,9 +68,31 @@ export const useDeliveryRequests = () => {
   const [requests, setRequests] = useState<DeliveryRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all requests on mount
+  // Fetch all requests on mount and subscribe to realtime changes
   useEffect(() => {
     fetchRequests();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('delivery-requests-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'delivery_requests',
+        },
+        (payload) => {
+          console.log('Delivery requests realtime update:', payload.eventType);
+          // Refetch to get latest data
+          fetchRequests();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchRequests = async () => {
