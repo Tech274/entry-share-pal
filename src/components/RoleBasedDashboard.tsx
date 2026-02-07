@@ -5,6 +5,7 @@ import { OpsLeadDashboard } from './dashboards/OpsLeadDashboard';
 import { FinanceDashboard } from './dashboards/FinanceDashboard';
 import { AdminDashboard } from './dashboards/AdminDashboard';
 import { DashboardFilters, DashboardFiltersState, defaultFilters, applyDashboardFilters } from './dashboards/DashboardFilters';
+import { FullDashboardSkeleton } from './dashboards/DashboardSkeleton';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { useToast } from '@/hooks/use-toast';
@@ -12,12 +13,20 @@ import { useToast } from '@/hooks/use-toast';
 interface RoleBasedDashboardProps {
   labRequests: LabRequest[];
   deliveryRequests: DeliveryRequest[];
+  isLoading?: boolean;
+  onRefresh?: () => Promise<void>;
 }
 
-export const RoleBasedDashboard = ({ labRequests, deliveryRequests }: RoleBasedDashboardProps) => {
+export const RoleBasedDashboard = ({ 
+  labRequests, 
+  deliveryRequests, 
+  isLoading = false,
+  onRefresh 
+}: RoleBasedDashboardProps) => {
   const { role } = useAuth();
   const { toast } = useToast();
   const [filters, setFilters] = useState<DashboardFiltersState>(defaultFilters);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Get unique clients from both request types
   const clients = useMemo(() => {
@@ -85,6 +94,27 @@ export const RoleBasedDashboard = ({ labRequests, deliveryRequests }: RoleBasedD
       description: `Exported ${filteredLabRequests.length + filteredDeliveryRequests.length} records to CSV`,
     });
   }, [filteredLabRequests, filteredDeliveryRequests, toast]);
+
+  const handleRefresh = useCallback(async () => {
+    if (!onRefresh) return;
+    
+    setIsRefreshing(true);
+    try {
+      await onRefresh();
+      toast({
+        title: 'Dashboard Refreshed',
+        description: 'Data has been updated',
+      });
+    } catch (error) {
+      toast({
+        title: 'Refresh Failed',
+        description: 'Could not refresh data. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [onRefresh, toast]);
 
   const handleExportPDF = useCallback(() => {
     // Create a simple printable HTML view
@@ -166,6 +196,11 @@ export const RoleBasedDashboard = ({ labRequests, deliveryRequests }: RoleBasedD
     }
   };
 
+  // Show skeleton during initial load
+  if (isLoading) {
+    return <FullDashboardSkeleton />;
+  }
+
   return (
     <div className="space-y-4">
       <DashboardFilters 
@@ -176,6 +211,8 @@ export const RoleBasedDashboard = ({ labRequests, deliveryRequests }: RoleBasedD
         accountManagers={accountManagers}
         onExportCSV={handleExportCSV}
         onExportPDF={handleExportPDF}
+        onRefresh={onRefresh ? handleRefresh : undefined}
+        isRefreshing={isRefreshing}
       />
       {renderDashboard()}
     </div>

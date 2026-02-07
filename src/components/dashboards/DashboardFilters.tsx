@@ -1,9 +1,14 @@
+import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Filter, X, Download } from 'lucide-react';
+import { Filter, X, Download, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, LOB_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, STATUS_OPTIONS } from '@/types/labRequest';
 import { LAB_STATUS_OPTIONS } from '@/types/deliveryRequest';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DateRangePickerFilter, DateRange, isDateInRange } from './DateRangePickerFilter';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 export interface DashboardFiltersState {
   labType: string;
@@ -16,6 +21,7 @@ export interface DashboardFiltersState {
   agentName: string;
   accountManager: string;
   status: string;
+  dateRange: DateRange;
 }
 
 export const defaultFilters: DashboardFiltersState = {
@@ -29,6 +35,7 @@ export const defaultFilters: DashboardFiltersState = {
   agentName: 'all',
   accountManager: 'all',
   status: 'all',
+  dateRange: { from: undefined, to: undefined },
 };
 
 interface DashboardFiltersProps {
@@ -39,10 +46,30 @@ interface DashboardFiltersProps {
   accountManagers?: string[];
   onExportCSV?: () => void;
   onExportPDF?: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
-export function DashboardFilters({ filters, onFiltersChange, clients = [], agentNames = [], accountManagers = [], onExportCSV, onExportPDF }: DashboardFiltersProps) {
-  const activeFilterCount = Object.entries(filters).filter(([_, value]) => value !== 'all').length;
+export function DashboardFilters({ 
+  filters, 
+  onFiltersChange, 
+  clients = [], 
+  agentNames = [], 
+  accountManagers = [], 
+  onExportCSV, 
+  onExportPDF,
+  onRefresh,
+  isRefreshing = false,
+}: DashboardFiltersProps) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  
+  const activeFilterCount = Object.entries(filters).filter(([key, value]) => {
+    if (key === 'dateRange') {
+      const range = value as DateRange;
+      return range.from || range.to;
+    }
+    return value !== 'all';
+  }).length;
   
   // Combine status options from both Solutions and Delivery
   const allStatusOptions = [...new Set([...STATUS_OPTIONS, ...LAB_STATUS_OPTIONS])];
@@ -63,6 +90,10 @@ export function DashboardFilters({ filters, onFiltersChange, clients = [], agent
     onFiltersChange(newFilters);
   };
 
+  const handleDateRangeChange = (dateRange: DateRange) => {
+    onFiltersChange({ ...filters, dateRange });
+  };
+
   const handleClearFilters = () => {
     onFiltersChange(defaultFilters);
   };
@@ -73,12 +104,79 @@ export function DashboardFilters({ filters, onFiltersChange, clients = [], agent
   const showTPLabType = filters.labType === 'TP Labs';
 
   return (
-    <div className="flex flex-wrap items-center gap-3 p-4 bg-card border rounded-lg">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Filter className="w-4 h-4" />
-        <span className="text-sm font-medium">Filters:</span>
-      </div>
-
+    <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+      <div className="bg-card border rounded-lg">
+        {/* Header row - always visible */}
+        <div className="flex items-center justify-between p-3 border-b">
+          <div className="flex items-center gap-3">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Filter className="w-4 h-4" />
+                <span className="text-sm font-medium">Filters</span>
+                {activeFilterCount > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+                    {activeFilterCount}
+                  </Badge>
+                )}
+                {isExpanded ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+            
+            {/* Date Range Picker - always visible */}
+            <DateRangePickerFilter 
+              dateRange={filters.dateRange} 
+              onDateRangeChange={handleDateRangeChange} 
+            />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {/* Refresh Button */}
+            {onRefresh && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onRefresh}
+                disabled={isRefreshing}
+                className="gap-2"
+              >
+                <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+                {isRefreshing ? 'Refreshing...' : 'Refresh'}
+              </Button>
+            )}
+            
+            {/* Export Dropdown */}
+            {(onExportCSV || onExportPDF) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Download className="w-4 h-4" />
+                    Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover">
+                  {onExportCSV && (
+                    <DropdownMenuItem onClick={onExportCSV}>
+                      Export as CSV
+                    </DropdownMenuItem>
+                  )}
+                  {onExportPDF && (
+                    <DropdownMenuItem onClick={onExportPDF}>
+                      Export as PDF
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        </div>
+        
+        {/* Collapsible filters row */}
+        <CollapsibleContent>
+          <div className="flex flex-wrap items-center gap-3 p-4">
       {/* Lab Type Filter */}
       <Select
         value={filters.labType}
@@ -275,38 +373,28 @@ export function DashboardFilters({ filters, onFiltersChange, clients = [], agent
           Clear ({activeFilterCount})
         </Button>
       )}
-
-      {/* Export Dropdown */}
-      {(onExportCSV || onExportPDF) && (
-        <div className="ml-auto">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Download className="w-4 h-4" />
-                Export
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-popover">
-              {onExportCSV && (
-                <DropdownMenuItem onClick={onExportCSV}>
-                  Export as CSV
-                </DropdownMenuItem>
-              )}
-              {onExportPDF && (
-                <DropdownMenuItem onClick={onExportPDF}>
-                  Export as PDF
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
-    </div>
+          </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
   );
 }
 
 // Utility function to apply filters to data
-export function applyDashboardFilters<T extends { cloud?: string; cloudType?: string; tpLabType?: string; lineOfBusiness?: string; month?: string; year?: number; client?: string; agentName?: string; accountManager?: string; status?: string; labStatus?: string }>(
+export function applyDashboardFilters<T extends { 
+  cloud?: string; 
+  cloudType?: string; 
+  tpLabType?: string; 
+  lineOfBusiness?: string; 
+  month?: string; 
+  year?: number; 
+  client?: string; 
+  agentName?: string; 
+  accountManager?: string; 
+  status?: string; 
+  labStatus?: string;
+  receivedOn?: string;
+}>(
   data: T[],
   filters: DashboardFiltersState
 ): T[] {
@@ -324,6 +412,10 @@ export function applyDashboardFilters<T extends { cloud?: string; cloudType?: st
     if (filters.status !== 'all') {
       const itemStatus = item.status || item.labStatus;
       if (itemStatus !== filters.status) return false;
+    }
+    // Date range filter on receivedOn
+    if (filters.dateRange.from || filters.dateRange.to) {
+      if (!isDateInRange(item.receivedOn, filters.dateRange)) return false;
     }
     return true;
   });
