@@ -1,7 +1,8 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, Download } from 'lucide-react';
 import { CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, LOB_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS } from '@/types/labRequest';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export interface DashboardFiltersState {
   labType: string;
@@ -10,6 +11,7 @@ export interface DashboardFiltersState {
   lineOfBusiness: string;
   month: string;
   year: string;
+  client: string;
 }
 
 export const defaultFilters: DashboardFiltersState = {
@@ -19,14 +21,18 @@ export const defaultFilters: DashboardFiltersState = {
   lineOfBusiness: 'all',
   month: 'all',
   year: 'all',
+  client: 'all',
 };
 
 interface DashboardFiltersProps {
   filters: DashboardFiltersState;
   onFiltersChange: (filters: DashboardFiltersState) => void;
+  clients?: string[];
+  onExportCSV?: () => void;
+  onExportPDF?: () => void;
 }
 
-export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersProps) {
+export function DashboardFilters({ filters, onFiltersChange, clients = [], onExportCSV, onExportPDF }: DashboardFiltersProps) {
   const activeFilterCount = Object.entries(filters).filter(([_, value]) => value !== 'all').length;
 
   const handleFilterChange = (key: keyof DashboardFiltersState, value: string) => {
@@ -119,6 +125,24 @@ export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersP
         </Select>
       )}
 
+      {/* Client Filter */}
+      <Select
+        value={filters.client}
+        onValueChange={(v) => handleFilterChange('client', v)}
+      >
+        <SelectTrigger className="h-8 w-36">
+          <SelectValue placeholder="Client" />
+        </SelectTrigger>
+        <SelectContent className="bg-popover max-h-60">
+          <SelectItem value="all">All Clients</SelectItem>
+          {clients.map((client) => (
+            <SelectItem key={client} value={client}>
+              {client}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
       {/* Line of Business Filter */}
       <Select
         value={filters.lineOfBusiness}
@@ -185,12 +209,38 @@ export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersP
           Clear ({activeFilterCount})
         </Button>
       )}
+
+      {/* Export Dropdown */}
+      {(onExportCSV || onExportPDF) && (
+        <div className="ml-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Download className="w-4 h-4" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-popover">
+              {onExportCSV && (
+                <DropdownMenuItem onClick={onExportCSV}>
+                  Export as CSV
+                </DropdownMenuItem>
+              )}
+              {onExportPDF && (
+                <DropdownMenuItem onClick={onExportPDF}>
+                  Export as PDF
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
     </div>
   );
 }
 
 // Utility function to apply filters to data
-export function applyDashboardFilters<T extends { cloud?: string; cloudType?: string; tpLabType?: string; lineOfBusiness?: string; month?: string; year?: number }>(
+export function applyDashboardFilters<T extends { cloud?: string; cloudType?: string; tpLabType?: string; lineOfBusiness?: string; month?: string; year?: number; client?: string }>(
   data: T[],
   filters: DashboardFiltersState
 ): T[] {
@@ -201,6 +251,7 @@ export function applyDashboardFilters<T extends { cloud?: string; cloudType?: st
     if (filters.lineOfBusiness !== 'all' && item.lineOfBusiness !== filters.lineOfBusiness) return false;
     if (filters.month !== 'all' && item.month !== filters.month) return false;
     if (filters.year !== 'all' && item.year !== Number(filters.year)) return false;
+    if (filters.client !== 'all' && item.client !== filters.client) return false;
     return true;
   });
 }

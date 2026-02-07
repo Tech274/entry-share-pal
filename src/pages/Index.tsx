@@ -8,6 +8,7 @@ import { Header } from '@/components/Header';
 import { AIAssistant } from '@/components/AIAssistant';
 import { useLabRequests } from '@/hooks/useLabRequests';
 import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,6 +28,9 @@ const Index = () => {
   } = useDeliveryRequests();
   const { toast } = useToast();
   const { isFinance } = useAuth();
+
+  // Enable realtime sync for all data
+  useRealtimeSync();
 
   const handleDeliveryDelete = (id: string) => {
     deleteDeliveryRequest(id);
