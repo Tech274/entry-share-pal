@@ -26,8 +26,15 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
   const solutionLearners = labRequests.reduce((sum, r) => sum + (r.userCount || 0), 0);
   const deliveryLearners = deliveryRequests.reduce((sum, r) => sum + (r.numberOfUsers || 0), 0);
   const totalLearners = deliveryLearners; // Use delivery learners as they represent actual trained users
-  const avgMargin = labRequests.length > 0 
-    ? labRequests.reduce((sum, r) => sum + r.margin, 0) / labRequests.length 
+  
+  // Calculate average margin percentage (margin amount / total amount × 100)
+  const avgMarginPercentage = labRequests.length > 0 
+    ? labRequests.reduce((sum, r) => {
+        if (r.totalAmountForTraining > 0) {
+          return sum + (r.margin / r.totalAmountForTraining) * 100;
+        }
+        return sum;
+      }, 0) / labRequests.filter(r => r.totalAmountForTraining > 0).length
     : 0;
 
   // Status breakdown
@@ -70,7 +77,7 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
   const alerts = [
     pendingSolutions > 5 && { type: 'warning', message: `${pendingSolutions} solutions pending review` },
     pendingDeliveries > 3 && { type: 'warning', message: `${pendingDeliveries} deliveries pending` },
-    avgMargin < 20 && { type: 'error', message: `Average margin below 20% (${formatPercentage(avgMargin)})` },
+    avgMarginPercentage < 20 && { type: 'error', message: `Average margin below 20% (${formatPercentage(avgMarginPercentage)})` },
   ].filter(Boolean);
 
   return (
@@ -215,7 +222,7 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-3 pb-2">
-              <div className="text-2xl font-bold">{formatPercentage(avgMargin)}</div>
+              <div className="text-2xl font-bold">{formatPercentage(avgMarginPercentage)}</div>
             </CardContent>
           </Card>
 
