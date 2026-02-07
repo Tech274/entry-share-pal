@@ -4,11 +4,12 @@ import { DeliveryRequest } from '@/types/deliveryRequest';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Cloud, Server, Building2, Eye, Upload, Download, Sparkles, Loader2, ChevronRight, LayoutDashboard, X } from 'lucide-react';
+import { Cloud, Server, Building2, Eye, Upload, Download, Sparkles, Loader2, ChevronRight, LayoutDashboard, X, PackageCheck, CheckCircle, Database } from 'lucide-react';
 import { DeliveryTable } from '@/components/DeliveryTable';
 import { AIDataEditBar } from '@/components/AIDataEditBar';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Badge } from '@/components/ui/badge';
 
 // CSV Headers for bulk upload template
 const ADR_CSV_HEADERS = [
@@ -58,6 +59,76 @@ interface CorrectedRow {
   invoiceDetails: string;
 }
 
+// Sub-component for Lab Type filtered view within each main tab
+const LabTypeSubTabs = ({ 
+  requests, 
+  onDelete,
+  onUpdate,
+  showMasterSheetButton = false,
+  canPreview = false,
+}: { 
+  requests: DeliveryRequest[]; 
+  onDelete: (id: string) => void;
+  onUpdate?: (id: string, data: Partial<DeliveryRequest>) => void;
+  showMasterSheetButton?: boolean;
+  canPreview?: boolean;
+}) => {
+  const publicCloudRequests = requests.filter(r => r.cloud === 'Public Cloud');
+  const privateCloudRequests = requests.filter(r => r.cloud === 'Private Cloud');
+  const tpLabsRequests = requests.filter(r => r.cloud === 'TP Labs');
+
+  return (
+    <Tabs defaultValue="all" className="space-y-4">
+      <TabsList className="grid w-full max-w-2xl grid-cols-4">
+        <TabsTrigger value="all" className="gap-2">
+          <Building2 className="w-4 h-4" />
+          All ({requests.length})
+        </TabsTrigger>
+        <TabsTrigger value="public" className="gap-2">
+          <Cloud className="w-4 h-4" />
+          Public Cloud ({publicCloudRequests.length})
+        </TabsTrigger>
+        <TabsTrigger value="private" className="gap-2">
+          <Server className="w-4 h-4" />
+          Private Cloud ({privateCloudRequests.length})
+        </TabsTrigger>
+        <TabsTrigger value="tp-labs" className="gap-2">
+          <Building2 className="w-4 h-4" />
+          TP Labs ({tpLabsRequests.length})
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="all">
+        <div className="space-y-4">
+          {showMasterSheetButton && canPreview && (
+            <div className="flex justify-end">
+              <Link to="/master-data-sheet">
+                <Button variant="secondary" className="gap-2">
+                  <Eye className="w-4 h-4" />
+                  Preview Master Data Sheet
+                </Button>
+              </Link>
+            </div>
+          )}
+          <DeliveryTable requests={requests} onDelete={onDelete} onUpdate={onUpdate} />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="public">
+        <DeliveryTable requests={publicCloudRequests} onDelete={onDelete} onUpdate={onUpdate} />
+      </TabsContent>
+
+      <TabsContent value="private">
+        <DeliveryTable requests={privateCloudRequests} onDelete={onDelete} onUpdate={onUpdate} />
+      </TabsContent>
+
+      <TabsContent value="tp-labs">
+        <DeliveryTable requests={tpLabsRequests} onDelete={onDelete} onUpdate={onUpdate} />
+      </TabsContent>
+    </Tabs>
+  );
+};
+
 export const ADRTabContent = ({
   deliveryRequests,
   onDeliveryDelete,
@@ -72,7 +143,7 @@ export const ADRTabContent = ({
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState('overall');
+  const [mainTab, setMainTab] = useState('in-progress');
   const [activeFilter, setActiveFilter] = useState<string | undefined>(undefined);
 
   const canPreview = isAdmin || isOpsLead;
@@ -81,37 +152,39 @@ export const ADRTabContent = ({
   useEffect(() => {
     if (initialFilter) {
       setActiveFilter(initialFilter);
-      // Map lab type to appropriate sub-tab
-      if (initialFilter === 'Public Cloud') {
-        setActiveSubTab('public-cloud');
-      } else if (initialFilter === 'Private Cloud') {
-        setActiveSubTab('private-cloud');
-      } else if (initialFilter === 'TP Labs') {
-        setActiveSubTab('tp-labs');
+      // Map filter to appropriate main tab
+      if (initialFilter === 'Delivery Completed' || initialFilter === 'Completed') {
+        setMainTab('completed');
+      } else if (initialFilter === 'Delivery In-Progress') {
+        setMainTab('in-progress');
       } else {
-        setActiveSubTab('overall');
+        // For lab type filters, stay on current tab
+        setMainTab('all-records');
       }
     }
   }, [initialFilter]);
 
   const clearFilter = () => {
     setActiveFilter(undefined);
-    setActiveSubTab('overall');
     onFilterChange?.(undefined);
   };
 
-  // ADR Status filter - only show Delivery records with specific statuses
-  const adrStatuses = ['Delivered', 'Delivery In-Progress', 'Delivery Completed', 'Completed'];
+  // Filter delivery requests by status categories
+  const deliveryInProgressRequests = deliveryRequests.filter(r => 
+    r.labStatus === 'Delivery In-Progress'
+  );
   
-  // Filter delivery requests by ADR statuses - NO Solutions/labRequests included
-  const adrDeliveryRequests = deliveryRequests.filter(r => 
-    r.labStatus && adrStatuses.includes(r.labStatus)
+  const completedRequests = deliveryRequests.filter(r => 
+    r.labStatus === 'Completed' || r.labStatus === 'Delivery Completed'
   );
 
-  // Filter by cloud type
-  const publicCloudDeliveryRequests = adrDeliveryRequests.filter(r => r.cloud === 'Public Cloud');
-  const privateCloudDeliveryRequests = adrDeliveryRequests.filter(r => r.cloud === 'Private Cloud');
-  const tpLabsDeliveryRequests = adrDeliveryRequests.filter(r => r.cloud === 'TP Labs');
+  // All ADR records (Delivery In-Progress + Completed)
+  const allAdrRequests = deliveryRequests.filter(r => 
+    r.labStatus === 'Delivery In-Progress' || 
+    r.labStatus === 'Completed' || 
+    r.labStatus === 'Delivery Completed' ||
+    r.labStatus === 'Delivered'
+  );
 
   const handleDownloadTemplate = () => {
     const csvContent = ADR_CSV_HEADERS.join(',') + '\n';
@@ -311,11 +384,16 @@ export const ADRTabContent = ({
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">All Delivery Records (ADR)</span>
           <span className="text-xs text-muted-foreground">
-            ({adrDeliveryRequests.length} Delivery Records)
+            ({allAdrRequests.length} Total Records)
           </span>
-          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
-            Status: Delivered, Delivery In-Progress, Delivery Completed
-          </span>
+          <Badge variant="outline" className="text-xs gap-1 bg-cyan-500/10 text-cyan-700 border-cyan-200">
+            <PackageCheck className="w-3 h-3" />
+            In-Progress: {deliveryInProgressRequests.length}
+          </Badge>
+          <Badge variant="outline" className="text-xs gap-1 bg-emerald-500/10 text-emerald-700 border-emerald-200">
+            <CheckCircle className="w-3 h-3" />
+            Completed: {completedRequests.length}
+          </Badge>
         </div>
 
         <div className="flex items-center gap-2">
@@ -357,72 +435,49 @@ export const ADRTabContent = ({
       <AIDataEditBar 
         tableType="delivery" 
         onEditComplete={onRefetch}
-        recordCount={adrDeliveryRequests.length}
+        recordCount={allAdrRequests.length}
       />
 
-      {/* Cloud Type Sub-tabs */}
-      <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="space-y-6">
-        <TabsList className="grid w-full max-w-3xl grid-cols-4">
-          <TabsTrigger value="overall" className="gap-2">
-            <Building2 className="w-4 h-4" />
-            Overall ({adrDeliveryRequests.length})
+      {/* Main Status Tabs */}
+      <Tabs value={mainTab} onValueChange={setMainTab} className="space-y-6">
+        <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <TabsTrigger value="in-progress" className="gap-2">
+            <PackageCheck className="w-4 h-4" />
+            Delivery In-Progress ({deliveryInProgressRequests.length})
           </TabsTrigger>
-          <TabsTrigger value="public-cloud" className="gap-2">
-            <Cloud className="w-4 h-4" />
-            Public Cloud ({publicCloudDeliveryRequests.length})
+          <TabsTrigger value="completed" className="gap-2">
+            <CheckCircle className="w-4 h-4" />
+            Completed ({completedRequests.length})
           </TabsTrigger>
-          <TabsTrigger value="private-cloud" className="gap-2">
-            <Server className="w-4 h-4" />
-            Private Cloud ({privateCloudDeliveryRequests.length})
-          </TabsTrigger>
-          <TabsTrigger value="tp-labs" className="gap-2">
-            <Building2 className="w-4 h-4" />
-            Third-Party Labs ({tpLabsDeliveryRequests.length})
+          <TabsTrigger value="all-records" className="gap-2">
+            <Database className="w-4 h-4" />
+            All Records ({allAdrRequests.length})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overall">
-          <div className="space-y-4">
-            {/* Preview Master Sheet Button - Only in Overall tab */}
-            {canPreview && (
-              <div className="flex justify-end">
-                <Link to="/master-data-sheet">
-                  <Button variant="secondary" className="gap-2">
-                    <Eye className="w-4 h-4" />
-                    Preview Master Data Sheet
-                  </Button>
-                </Link>
-              </div>
-            )}
-            <DeliveryTable
-              requests={adrDeliveryRequests}
-              onDelete={onDeliveryDelete}
-              onUpdate={onUpdate}
-            />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="public-cloud">
-          <DeliveryTable
-            requests={publicCloudDeliveryRequests}
+        <TabsContent value="in-progress" className="space-y-4">
+          <LabTypeSubTabs 
+            requests={deliveryInProgressRequests} 
             onDelete={onDeliveryDelete}
             onUpdate={onUpdate}
           />
         </TabsContent>
 
-        <TabsContent value="private-cloud">
-          <DeliveryTable
-            requests={privateCloudDeliveryRequests}
+        <TabsContent value="completed" className="space-y-4">
+          <LabTypeSubTabs 
+            requests={completedRequests} 
             onDelete={onDeliveryDelete}
             onUpdate={onUpdate}
           />
         </TabsContent>
 
-        <TabsContent value="tp-labs">
-          <DeliveryTable
-            requests={tpLabsDeliveryRequests}
+        <TabsContent value="all-records" className="space-y-4">
+          <LabTypeSubTabs 
+            requests={allAdrRequests} 
             onDelete={onDeliveryDelete}
             onUpdate={onUpdate}
+            showMasterSheetButton={true}
+            canPreview={canPreview}
           />
         </TabsContent>
       </Tabs>
