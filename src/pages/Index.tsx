@@ -173,6 +173,7 @@ const Index = () => {
   // Filter persistence for navigation from KPI cards
   const [solutionsFilter, setSolutionsFilter] = useState<string | undefined>(undefined);
   const [deliveryFilter, setDeliveryFilter] = useState<string | undefined>(undefined);
+  const [adrFilter, setAdrFilter] = useState<string | undefined>(undefined);
 
   // Handle navigation from dashboard quick actions with filter persistence
   const handleNavigateToTab = useCallback((tab: string, filter?: string) => {
@@ -183,11 +184,21 @@ const Index = () => {
       setSolutionsFilter(filter);
     } else if (tab === 'delivery') {
       setDeliveryFilter(filter);
+    } else if (tab === 'adr') {
+      setAdrFilter(filter);
     }
   }, []);
 
   const handleNavigateToCalendar = useCallback(() => {
     setActiveTab('calendar');
+  }, []);
+  
+  // Navigate back to dashboard
+  const handleNavigateToDashboard = useCallback(() => {
+    setActiveTab('dashboard');
+    setSolutionsFilter(undefined);
+    setDeliveryFilter(undefined);
+    setAdrFilter(undefined);
   }, []);
   
   // Clear filters when manually changing tabs
@@ -199,6 +210,9 @@ const Index = () => {
     }
     if (tab !== 'delivery') {
       setDeliveryFilter(undefined);
+    }
+    if (tab !== 'adr') {
+      setAdrFilter(undefined);
     }
   }, []);
 
@@ -299,6 +313,9 @@ const Index = () => {
                   onUpdate={updateDeliveryRequest}
                   onBulkInsert={bulkInsertDelivery}
                   onRefetch={refetchDeliveryRequests}
+                  initialFilter={adrFilter}
+                  onFilterChange={setAdrFilter}
+                  onNavigateToDashboard={handleNavigateToDashboard}
                 />
               </TabsContent>
 

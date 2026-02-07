@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Cloud, Server, Building2, Eye, Upload, Download, Sparkles, Loader2 } from 'lucide-react';
+import { Cloud, Server, Building2, Eye, Upload, Download, Sparkles, Loader2, ChevronRight, LayoutDashboard, X } from 'lucide-react';
 import { DeliveryTable } from '@/components/DeliveryTable';
 import { AIDataEditBar } from '@/components/AIDataEditBar';
 import { useToast } from '@/hooks/use-toast';
@@ -25,6 +25,9 @@ interface ADRTabContentProps {
   onUpdate?: (id: string, data: Partial<DeliveryRequest>) => void;
   onBulkInsert?: (data: Omit<DeliveryRequest, 'id' | 'createdAt'>[]) => Promise<boolean>;
   onRefetch?: () => void;
+  initialFilter?: string;
+  onFilterChange?: (filter: string | undefined) => void;
+  onNavigateToDashboard?: () => void;
 }
 
 interface CorrectedRow {
@@ -61,13 +64,41 @@ export const ADRTabContent = ({
   onUpdate,
   onBulkInsert,
   onRefetch,
+  initialFilter,
+  onFilterChange,
+  onNavigateToDashboard,
 }: ADRTabContentProps) => {
   const { isAdmin, isOpsLead } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [activeSubTab, setActiveSubTab] = useState('overall');
+  const [activeFilter, setActiveFilter] = useState<string | undefined>(undefined);
 
   const canPreview = isAdmin || isOpsLead;
+
+  // Handle initial filter from dashboard navigation
+  useEffect(() => {
+    if (initialFilter) {
+      setActiveFilter(initialFilter);
+      // Map lab type to appropriate sub-tab
+      if (initialFilter === 'Public Cloud') {
+        setActiveSubTab('public-cloud');
+      } else if (initialFilter === 'Private Cloud') {
+        setActiveSubTab('private-cloud');
+      } else if (initialFilter === 'TP Labs') {
+        setActiveSubTab('tp-labs');
+      } else {
+        setActiveSubTab('overall');
+      }
+    }
+  }, [initialFilter]);
+
+  const clearFilter = () => {
+    setActiveFilter(undefined);
+    setActiveSubTab('overall');
+    onFilterChange?.(undefined);
+  };
 
   // ADR Status filter - only show Delivery records with specific statuses
   const adrStatuses = ['Delivered', 'Delivery In-Progress', 'Delivery Completed', 'Completed'];
@@ -249,6 +280,32 @@ export const ADRTabContent = ({
 
   return (
     <div className="space-y-6">
+      {/* Breadcrumb Navigation - shown when navigated from dashboard */}
+      {activeFilter && (
+        <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/20 animate-fade-in">
+          <button 
+            onClick={onNavigateToDashboard}
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            Dashboard
+          </button>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm font-medium">ADR</span>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm font-medium text-primary">{activeFilter}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearFilter}
+            className="ml-auto h-7 px-2 text-xs"
+          >
+            <X className="w-3 h-3 mr-1" />
+            Clear Filter
+          </Button>
+        </div>
+      )}
+
       {/* ADR Info Header with Bulk Upload */}
       <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
         <div className="flex items-center gap-2">
@@ -304,7 +361,7 @@ export const ADRTabContent = ({
       />
 
       {/* Cloud Type Sub-tabs */}
-      <Tabs defaultValue="overall" className="space-y-6">
+      <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="space-y-6">
         <TabsList className="grid w-full max-w-3xl grid-cols-4">
           <TabsTrigger value="overall" className="gap-2">
             <Building2 className="w-4 h-4" />
