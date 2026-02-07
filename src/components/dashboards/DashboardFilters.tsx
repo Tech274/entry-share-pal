@@ -1,7 +1,8 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Filter, X, Download } from 'lucide-react';
-import { CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, LOB_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS } from '@/types/labRequest';
+import { CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, LOB_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, STATUS_OPTIONS } from '@/types/labRequest';
+import { LAB_STATUS_OPTIONS } from '@/types/deliveryRequest';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export interface DashboardFiltersState {
@@ -12,6 +13,8 @@ export interface DashboardFiltersState {
   month: string;
   year: string;
   client: string;
+  agentName: string;
+  status: string;
 }
 
 export const defaultFilters: DashboardFiltersState = {
@@ -22,18 +25,24 @@ export const defaultFilters: DashboardFiltersState = {
   month: 'all',
   year: 'all',
   client: 'all',
+  agentName: 'all',
+  status: 'all',
 };
 
 interface DashboardFiltersProps {
   filters: DashboardFiltersState;
   onFiltersChange: (filters: DashboardFiltersState) => void;
   clients?: string[];
+  agentNames?: string[];
   onExportCSV?: () => void;
   onExportPDF?: () => void;
 }
 
-export function DashboardFilters({ filters, onFiltersChange, clients = [], onExportCSV, onExportPDF }: DashboardFiltersProps) {
+export function DashboardFilters({ filters, onFiltersChange, clients = [], agentNames = [], onExportCSV, onExportPDF }: DashboardFiltersProps) {
   const activeFilterCount = Object.entries(filters).filter(([_, value]) => value !== 'all').length;
+  
+  // Combine status options from both Solutions and Delivery
+  const allStatusOptions = [...new Set([...STATUS_OPTIONS, ...LAB_STATUS_OPTIONS])];
 
   const handleFilterChange = (key: keyof DashboardFiltersState, value: string) => {
     const newFilters = { ...filters, [key]: value };
@@ -197,6 +206,42 @@ export function DashboardFilters({ filters, onFiltersChange, clients = [], onExp
         </SelectContent>
       </Select>
 
+      {/* Agent Name Filter */}
+      <Select
+        value={filters.agentName}
+        onValueChange={(v) => handleFilterChange('agentName', v)}
+      >
+        <SelectTrigger className="h-8 w-32">
+          <SelectValue placeholder="Agent" />
+        </SelectTrigger>
+        <SelectContent className="bg-popover max-h-60">
+          <SelectItem value="all">All Agents</SelectItem>
+          {agentNames.map((agent) => (
+            <SelectItem key={agent} value={agent}>
+              {agent}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Status Filter */}
+      <Select
+        value={filters.status}
+        onValueChange={(v) => handleFilterChange('status', v)}
+      >
+        <SelectTrigger className="h-8 w-36">
+          <SelectValue placeholder="Status" />
+        </SelectTrigger>
+        <SelectContent className="bg-popover max-h-60">
+          <SelectItem value="all">All Statuses</SelectItem>
+          {allStatusOptions.map((status) => (
+            <SelectItem key={status} value={status}>
+              {status}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
       {/* Clear Filters Button */}
       {activeFilterCount > 0 && (
         <Button
@@ -240,7 +285,7 @@ export function DashboardFilters({ filters, onFiltersChange, clients = [], onExp
 }
 
 // Utility function to apply filters to data
-export function applyDashboardFilters<T extends { cloud?: string; cloudType?: string; tpLabType?: string; lineOfBusiness?: string; month?: string; year?: number; client?: string }>(
+export function applyDashboardFilters<T extends { cloud?: string; cloudType?: string; tpLabType?: string; lineOfBusiness?: string; month?: string; year?: number; client?: string; agentName?: string; status?: string; labStatus?: string }>(
   data: T[],
   filters: DashboardFiltersState
 ): T[] {
@@ -252,6 +297,12 @@ export function applyDashboardFilters<T extends { cloud?: string; cloudType?: st
     if (filters.month !== 'all' && item.month !== filters.month) return false;
     if (filters.year !== 'all' && item.year !== Number(filters.year)) return false;
     if (filters.client !== 'all' && item.client !== filters.client) return false;
+    if (filters.agentName !== 'all' && item.agentName !== filters.agentName) return false;
+    // Handle status for both Solutions (status) and Delivery (labStatus)
+    if (filters.status !== 'all') {
+      const itemStatus = item.status || item.labStatus;
+      if (itemStatus !== filters.status) return false;
+    }
     return true;
   });
 }
