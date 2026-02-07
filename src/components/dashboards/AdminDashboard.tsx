@@ -13,6 +13,9 @@ import { QuickActionsPanel } from './QuickActionsPanel';
 import { SLAAlertCard } from './SLAAlertCard';
 import { MiniCalendarWidget } from './MiniCalendarWidget';
 import { LearnersBreakdown } from './LearnersBreakdown';
+import { RevenueBreakdown } from './RevenueBreakdown';
+import { LabTypeBreakdown } from './LabTypeBreakdown';
+import { DashboardExport } from './DashboardExport';
 
 interface AdminDashboardProps {
   labRequests: LabRequest[];
@@ -88,6 +91,7 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Admin Dashboard</h2>
         <div className="flex items-center gap-4">
+          <DashboardExport labRequests={labRequests} deliveryRequests={deliveryRequests} />
           <TabsList>
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Activity className="w-4 h-4" />
@@ -393,8 +397,17 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
           </Card>
         </div>
 
-        {/* Learners Breakdown */}
-        <LearnersBreakdown deliveryRequests={deliveryRequests} />
+        {/* Breakdown Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Learners Breakdown */}
+          <LearnersBreakdown deliveryRequests={deliveryRequests} />
+          
+          {/* Revenue Breakdown */}
+          <RevenueBreakdown labRequests={labRequests} deliveryRequests={deliveryRequests} />
+        </div>
+
+        {/* Lab Type Breakdown */}
+        <LabTypeBreakdown labRequests={labRequests} deliveryRequests={deliveryRequests} />
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
