@@ -20,7 +20,10 @@ export const FinanceDashboard = ({ labRequests, deliveryRequests, onNavigate }: 
     ? labRequests.reduce((sum, r) => sum + r.margin, 0) / labRequests.length 
     : 0;
 
-  const deliveryRevenue = deliveryRequests.reduce((sum, r) => sum + r.totalAmount, 0);
+  const deliveryRevenue = deliveryRequests.reduce((sum, r) => {
+    const users = r.numberOfUsers || 0;
+    return sum + ((r.sellingCostPerUser || 0) * users) - ((r.inputCostPerUser || 0) * users);
+  }, 0);
   const combinedRevenue = totalRevenue + deliveryRevenue;
 
   // Cost by client

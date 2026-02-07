@@ -74,8 +74,11 @@ export const RevenueBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
       total: c.solutions + c.delivery
     }));
 
-  const totalRevenue = labRequests.reduce((sum, r) => sum + (r.totalAmountForTraining || 0), 0) + 
-                       deliveryRequests.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+  const deliveryMargin = deliveryRequests.reduce((sum, r) => {
+    const users = r.numberOfUsers || 0;
+    return sum + ((r.sellingCostPerUser || 0) * users) - ((r.inputCostPerUser || 0) * users);
+  }, 0);
+  const totalRevenue = labRequests.reduce((sum, r) => sum + (r.totalAmountForTraining || 0), 0) + deliveryMargin;
 
   const handleBarClick = (data: any, type: 'solutions' | 'delivery' | 'both') => {
     if (onNavigateToTab && data) {

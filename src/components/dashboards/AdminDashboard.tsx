@@ -30,7 +30,10 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
   // Total learners from Solutions (userCount) + Deliveries (numberOfUsers)
   const solutionLearners = labRequests.reduce((sum, r) => sum + (r.userCount || 0), 0);
   const deliveryLearners = deliveryRequests.reduce((sum, r) => sum + (r.numberOfUsers || 0), 0);
-  const deliveryRevenue = deliveryRequests.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+  const deliveryRevenue = deliveryRequests.reduce((sum, r) => {
+    const users = r.numberOfUsers || 0;
+    return sum + ((r.sellingCostPerUser || 0) * users) - ((r.inputCostPerUser || 0) * users);
+  }, 0);
   const totalLearners = deliveryLearners; // Use delivery learners as they represent actual trained users
   
   // Calculate average margin percentage (margin amount / total amount × 100)
