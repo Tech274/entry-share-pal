@@ -9,9 +9,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 interface FinanceDashboardProps {
   labRequests: LabRequest[];
   deliveryRequests: DeliveryRequest[];
+  onNavigate?: (tab: string, filter?: string) => void;
 }
 
-export const FinanceDashboard = ({ labRequests, deliveryRequests }: FinanceDashboardProps) => {
+export const FinanceDashboard = ({ labRequests, deliveryRequests, onNavigate }: FinanceDashboardProps) => {
   // Calculate total financial metrics
   const totalRevenue = labRequests.reduce((sum, r) => sum + r.totalAmountForTraining, 0);
   const totalInputCost = labRequests.reduce((sum, r) => sum + (r.inputCostPerUser * r.userCount * r.durationInDays), 0);
@@ -68,7 +69,10 @@ export const FinanceDashboard = ({ labRequests, deliveryRequests }: FinanceDashb
       
       {/* Financial KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onNavigate?.('solutions')}
+        >
           <CardHeader className="bg-green-600 text-white py-2 px-4 rounded-t-lg">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <IndianRupee className="w-4 h-4" />
@@ -81,7 +85,10 @@ export const FinanceDashboard = ({ labRequests, deliveryRequests }: FinanceDashb
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onNavigate?.('solutions')}
+        >
           <CardHeader className="bg-red-500 text-white py-2 px-4 rounded-t-lg">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
@@ -94,7 +101,10 @@ export const FinanceDashboard = ({ labRequests, deliveryRequests }: FinanceDashb
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onNavigate?.('solutions')}
+        >
           <CardHeader className="bg-blue-500 text-white py-2 px-4 rounded-t-lg">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
@@ -107,7 +117,10 @@ export const FinanceDashboard = ({ labRequests, deliveryRequests }: FinanceDashb
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onNavigate?.('solutions')}
+        >
           <CardHeader className="bg-purple-500 text-white py-2 px-4 rounded-t-lg">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <PieChartIcon className="w-4 h-4" />

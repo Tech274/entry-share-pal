@@ -10,9 +10,11 @@ import { differenceInDays, parseISO } from 'date-fns';
 interface OpsEngineerDashboardProps {
   labRequests: LabRequest[];
   deliveryRequests: DeliveryRequest[];
+  onNavigate?: (tab: string, filter?: string) => void;
+  onNavigateToCalendar?: () => void;
 }
 
-export const OpsEngineerDashboard = ({ labRequests, deliveryRequests }: OpsEngineerDashboardProps) => {
+export const OpsEngineerDashboard = ({ labRequests, deliveryRequests, onNavigate, onNavigateToCalendar }: OpsEngineerDashboardProps) => {
   const { user } = useAuth();
   
   // Filter to show only assigned requests to current user
@@ -52,7 +54,10 @@ export const OpsEngineerDashboard = ({ labRequests, deliveryRequests }: OpsEngin
       
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onNavigate?.('solutions')}
+        >
           <CardHeader className="bg-primary text-primary-foreground py-2 px-4 rounded-t-lg">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <ClipboardList className="w-4 h-4" />
@@ -67,7 +72,10 @@ export const OpsEngineerDashboard = ({ labRequests, deliveryRequests }: OpsEngin
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onNavigate?.('solutions', 'Solution Pending')}
+        >
           <CardHeader className="bg-yellow-500 text-white py-2 px-4 rounded-t-lg">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Clock className="w-4 h-4" />
@@ -80,7 +88,10 @@ export const OpsEngineerDashboard = ({ labRequests, deliveryRequests }: OpsEngin
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onNavigate?.('delivery', 'Ready')}
+        >
           <CardHeader className="bg-green-500 text-white py-2 px-4 rounded-t-lg">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
@@ -93,7 +104,10 @@ export const OpsEngineerDashboard = ({ labRequests, deliveryRequests }: OpsEngin
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onNavigateToCalendar?.()}
+        >
           <CardHeader className="bg-orange-500 text-white py-2 px-4 rounded-t-lg">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <AlertTriangle className="w-4 h-4" />
