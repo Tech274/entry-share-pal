@@ -22,7 +22,10 @@ interface AdminDashboardProps {
 export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNavigateToCalendar }: AdminDashboardProps) => {
   // Overall metrics
   const totalRevenue = labRequests.reduce((sum, r) => sum + r.totalAmountForTraining, 0);
-  const totalUsers = labRequests.reduce((sum, r) => sum + r.userCount, 0);
+  // Total learners from Solutions (userCount) + Deliveries (numberOfUsers)
+  const solutionLearners = labRequests.reduce((sum, r) => sum + (r.userCount || 0), 0);
+  const deliveryLearners = deliveryRequests.reduce((sum, r) => sum + (r.numberOfUsers || 0), 0);
+  const totalLearners = deliveryLearners; // Use delivery learners as they represent actual trained users
   const avgMargin = labRequests.length > 0 
     ? labRequests.reduce((sum, r) => sum + r.margin, 0) / labRequests.length 
     : 0;
@@ -151,8 +154,8 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
                 <div className="text-sm text-muted-foreground">Completed</div>
               </div>
               <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-3xl font-bold">{totalUsers}</div>
-                <div className="text-sm text-muted-foreground">Total Users</div>
+                <div className="text-3xl font-bold text-purple-600">{totalLearners.toLocaleString()}</div>
+                <div className="text-sm text-muted-foreground">Total Learners</div>
               </div>
             </div>
           </CardContent>
@@ -195,11 +198,12 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
             <CardHeader className="bg-purple-500 text-white py-2 px-3 rounded-t-lg">
               <CardTitle className="text-xs font-medium flex items-center gap-1">
                 <Users className="w-3 h-3" />
-                Total Users
+                Total Learners
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-3 pb-2">
-              <div className="text-2xl font-bold">{totalUsers}</div>
+              <div className="text-2xl font-bold">{totalLearners.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">From deliveries</p>
             </CardContent>
           </Card>
 
