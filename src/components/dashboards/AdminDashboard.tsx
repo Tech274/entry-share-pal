@@ -33,7 +33,7 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
   // Status breakdown
   const pendingSolutions = labRequests.filter(r => r.status === 'Solution Pending').length;
   const pendingDeliveries = deliveryRequests.filter(r => r.labStatus === 'Pending').length;
-  const inProgressDeliveries = deliveryRequests.filter(r => r.labStatus === 'In Progress').length;
+  const inProgressDeliveries = deliveryRequests.filter(r => r.labStatus === 'Delivery In-Progress').length;
   
   // Agent performance
   const agentPerformance = labRequests.reduce((acc, req) => {
