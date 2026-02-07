@@ -14,6 +14,7 @@ export interface DashboardFiltersState {
   year: string;
   client: string;
   agentName: string;
+  accountManager: string;
   status: string;
 }
 
@@ -26,6 +27,7 @@ export const defaultFilters: DashboardFiltersState = {
   year: 'all',
   client: 'all',
   agentName: 'all',
+  accountManager: 'all',
   status: 'all',
 };
 
@@ -34,11 +36,12 @@ interface DashboardFiltersProps {
   onFiltersChange: (filters: DashboardFiltersState) => void;
   clients?: string[];
   agentNames?: string[];
+  accountManagers?: string[];
   onExportCSV?: () => void;
   onExportPDF?: () => void;
 }
 
-export function DashboardFilters({ filters, onFiltersChange, clients = [], agentNames = [], onExportCSV, onExportPDF }: DashboardFiltersProps) {
+export function DashboardFilters({ filters, onFiltersChange, clients = [], agentNames = [], accountManagers = [], onExportCSV, onExportPDF }: DashboardFiltersProps) {
   const activeFilterCount = Object.entries(filters).filter(([_, value]) => value !== 'all').length;
   
   // Combine status options from both Solutions and Delivery
@@ -224,6 +227,24 @@ export function DashboardFilters({ filters, onFiltersChange, clients = [], agent
         </SelectContent>
       </Select>
 
+      {/* Account Manager Filter */}
+      <Select
+        value={filters.accountManager}
+        onValueChange={(v) => handleFilterChange('accountManager', v)}
+      >
+        <SelectTrigger className="h-8 w-36">
+          <SelectValue placeholder="Account Mgr" />
+        </SelectTrigger>
+        <SelectContent className="bg-popover max-h-60">
+          <SelectItem value="all">All Account Mgrs</SelectItem>
+          {accountManagers.map((am) => (
+            <SelectItem key={am} value={am}>
+              {am}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
       {/* Status Filter */}
       <Select
         value={filters.status}
@@ -285,7 +306,7 @@ export function DashboardFilters({ filters, onFiltersChange, clients = [], agent
 }
 
 // Utility function to apply filters to data
-export function applyDashboardFilters<T extends { cloud?: string; cloudType?: string; tpLabType?: string; lineOfBusiness?: string; month?: string; year?: number; client?: string; agentName?: string; status?: string; labStatus?: string }>(
+export function applyDashboardFilters<T extends { cloud?: string; cloudType?: string; tpLabType?: string; lineOfBusiness?: string; month?: string; year?: number; client?: string; agentName?: string; accountManager?: string; status?: string; labStatus?: string }>(
   data: T[],
   filters: DashboardFiltersState
 ): T[] {
@@ -298,6 +319,7 @@ export function applyDashboardFilters<T extends { cloud?: string; cloudType?: st
     if (filters.year !== 'all' && item.year !== Number(filters.year)) return false;
     if (filters.client !== 'all' && item.client !== filters.client) return false;
     if (filters.agentName !== 'all' && item.agentName !== filters.agentName) return false;
+    if (filters.accountManager !== 'all' && item.accountManager !== filters.accountManager) return false;
     // Handle status for both Solutions (status) and Delivery (labStatus)
     if (filters.status !== 'all') {
       const itemStatus = item.status || item.labStatus;

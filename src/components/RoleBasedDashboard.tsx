@@ -35,6 +35,14 @@ export const RoleBasedDashboard = ({ labRequests, deliveryRequests }: RoleBasedD
     return Array.from(agentSet).sort();
   }, [labRequests, deliveryRequests]);
 
+  // Get unique account managers from both request types
+  const accountManagers = useMemo(() => {
+    const amSet = new Set<string>();
+    labRequests.forEach(r => r.accountManager && amSet.add(r.accountManager));
+    deliveryRequests.forEach(r => r.accountManager && amSet.add(r.accountManager));
+    return Array.from(amSet).sort();
+  }, [labRequests, deliveryRequests]);
+
   // Apply filters to both request types
   const filteredLabRequests = useMemo(
     () => applyDashboardFilters(labRequests, filters),
@@ -165,6 +173,7 @@ export const RoleBasedDashboard = ({ labRequests, deliveryRequests }: RoleBasedD
         onFiltersChange={setFilters}
         clients={clients}
         agentNames={agentNames}
+        accountManagers={accountManagers}
         onExportCSV={handleExportCSV}
         onExportPDF={handleExportPDF}
       />
