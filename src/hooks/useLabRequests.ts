@@ -68,9 +68,31 @@ export const useLabRequests = () => {
   const [requests, setRequests] = useState<LabRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all requests on mount
+  // Fetch all requests on mount and subscribe to realtime changes
   useEffect(() => {
     fetchRequests();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('lab-requests-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'lab_requests',
+        },
+        (payload) => {
+          console.log('Lab requests realtime update:', payload.eventType);
+          // Refetch to get latest data
+          fetchRequests();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchRequests = async () => {
