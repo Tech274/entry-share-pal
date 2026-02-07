@@ -155,30 +155,22 @@ export const DeliveryTabContent = ({
   // Handle initial filter from dashboard navigation
   useEffect(() => {
     if (initialFilter) {
-      // Map filter to appropriate tab
-      if (initialFilter === 'Delivery In-Progress') {
-        setMainTab('in-progress');
-      } else if (initialFilter === 'Delivery Completed' || initialFilter === 'Completed') {
-        setMainTab('completed');
-      } else {
-        // For Pending, Ready, etc. - show in list tab
-        setMainTab('list');
-      }
+      // For any filter, show the list tab
+      setMainTab('list');
     }
   }, [initialFilter]);
 
-  // Filter completed and delivery in-progress requests for their respective tabs
-  const completedRequests = requests.filter(r => r.labStatus === 'Completed' || r.labStatus === 'Delivery Completed');
-  const deliveryInProgressRequests = requests.filter(r => r.labStatus === 'Delivery In-Progress');
+  // Active requests only (not in-progress or completed - those are now in ADR tab)
   const activeRequests = requests.filter(r => 
     r.labStatus !== 'Completed' && 
     r.labStatus !== 'Delivery Completed' && 
-    r.labStatus !== 'Delivery In-Progress'
+    r.labStatus !== 'Delivery In-Progress' &&
+    r.labStatus !== 'Delivered'
   );
 
   return (
     <Tabs value={mainTab} onValueChange={setMainTab} className="space-y-6">
-      <TabsList className="grid w-full max-w-2xl grid-cols-4">
+      <TabsList className="grid w-full max-w-md grid-cols-2">
         <TabsTrigger value="form" className="gap-2">
           <FileText className="w-4 h-4" />
           Entry Form
@@ -186,14 +178,6 @@ export const DeliveryTabContent = ({
         <TabsTrigger value="list" className="gap-2">
           <Truck className="w-4 h-4" />
           Requests List ({activeRequests.length})
-        </TabsTrigger>
-        <TabsTrigger value="in-progress" className="gap-2">
-          <PackageCheck className="w-4 h-4" />
-          Delivery In-Progress ({deliveryInProgressRequests.length})
-        </TabsTrigger>
-        <TabsTrigger value="completed" className="gap-2">
-          <CheckCircle className="w-4 h-4" />
-          Completed ({completedRequests.length})
         </TabsTrigger>
       </TabsList>
 
@@ -209,26 +193,6 @@ export const DeliveryTabContent = ({
           onUpdate={onUpdate}
           label="Active Requests"
           showStatusBreakdown={true}
-        />
-      </TabsContent>
-
-      <TabsContent value="in-progress" className="space-y-4">
-        <LabTypeSubTabs 
-          requests={deliveryInProgressRequests} 
-          onDelete={onDelete}
-          onStatusChange={onStatusChange}
-          onUpdate={onUpdate}
-          label="Delivery In-Progress Records" 
-        />
-      </TabsContent>
-
-      <TabsContent value="completed" className="space-y-4">
-        <LabTypeSubTabs 
-          requests={completedRequests} 
-          onDelete={onDelete}
-          onStatusChange={onStatusChange}
-          onUpdate={onUpdate}
-          label="Completed Deliveries" 
         />
       </TabsContent>
     </Tabs>
