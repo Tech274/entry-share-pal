@@ -19,7 +19,10 @@ interface DashboardExportProps {
 export const DashboardExport = ({ labRequests, deliveryRequests }: DashboardExportProps) => {
   const generateKPIData = () => {
     const totalSolutionsRevenue = labRequests.reduce((sum, r) => sum + r.totalAmountForTraining, 0);
-    const totalDeliveryRevenue = deliveryRequests.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+    const totalDeliveryRevenue = deliveryRequests.reduce((sum, r) => {
+      const users = r.numberOfUsers || 0;
+      return sum + ((r.sellingCostPerUser || 0) * users) - ((r.inputCostPerUser || 0) * users);
+    }, 0);
     const totalLearners = deliveryRequests.reduce((sum, r) => sum + (r.numberOfUsers || 0), 0);
     
     const avgMarginPercentage = labRequests.length > 0 
