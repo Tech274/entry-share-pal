@@ -407,7 +407,7 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
         </div>
 
         {/* Lab Type Breakdown */}
-        <LabTypeBreakdown labRequests={labRequests} deliveryRequests={deliveryRequests} />
+        <LabTypeBreakdown labRequests={labRequests} deliveryRequests={deliveryRequests} onNavigateToTab={onNavigate} />
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
