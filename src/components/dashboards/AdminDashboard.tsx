@@ -25,6 +25,7 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
   // Total learners from Solutions (userCount) + Deliveries (numberOfUsers)
   const solutionLearners = labRequests.reduce((sum, r) => sum + (r.userCount || 0), 0);
   const deliveryLearners = deliveryRequests.reduce((sum, r) => sum + (r.numberOfUsers || 0), 0);
+  const deliveryRevenue = deliveryRequests.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
   const totalLearners = deliveryLearners; // Use delivery learners as they represent actual trained users
   
   // Calculate average margin percentage (margin amount / total amount × 100)
@@ -114,19 +115,31 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
           </CardHeader>
           <CardContent className="pt-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-muted rounded-lg">
+              <div 
+                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => onNavigate?.('solutions')}
+              >
                 <div className="text-3xl font-bold text-blue-600">{labRequests.length}</div>
                 <div className="text-sm text-muted-foreground">Total Solutions</div>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
+              <div 
+                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => onNavigate?.('solutions', 'Solution Pending')}
+              >
                 <div className="text-3xl font-bold text-amber-600">{pendingSolutions}</div>
                 <div className="text-sm text-muted-foreground">Pending</div>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
+              <div 
+                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => onNavigate?.('solutions', 'Solution Sent')}
+              >
                 <div className="text-3xl font-bold text-green-600">{labRequests.filter(r => r.status === 'Solution Sent').length}</div>
                 <div className="text-sm text-muted-foreground">Sent</div>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
+              <div 
+                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => onNavigate?.('solutions')}
+              >
                 <div className="text-xl font-bold text-primary">{formatINR(totalRevenue)}</div>
                 <div className="text-sm text-muted-foreground">Total Value</div>
               </div>
@@ -143,26 +156,48 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="text-center p-4 bg-muted rounded-lg">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+              <div 
+                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => onNavigate?.('delivery')}
+              >
                 <div className="text-3xl font-bold text-green-600">{deliveryRequests.length}</div>
                 <div className="text-sm text-muted-foreground">Total Deliveries</div>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
+              <div 
+                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => onNavigate?.('delivery', 'Pending')}
+              >
                 <div className="text-3xl font-bold text-amber-600">{pendingDeliveries}</div>
                 <div className="text-sm text-muted-foreground">Pending</div>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
+              <div 
+                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => onNavigate?.('delivery', 'Delivery In-Progress')}
+              >
                 <div className="text-3xl font-bold text-blue-600">{inProgressDeliveries}</div>
                 <div className="text-sm text-muted-foreground">In Progress</div>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
+              <div 
+                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => onNavigate?.('delivery', 'Delivery Completed')}
+              >
                 <div className="text-3xl font-bold text-emerald-600">{deliveryRequests.filter(r => r.labStatus === 'Delivery Completed').length}</div>
                 <div className="text-sm text-muted-foreground">Completed</div>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
+              <div 
+                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => onNavigate?.('delivery')}
+              >
                 <div className="text-3xl font-bold text-purple-600">{totalLearners.toLocaleString()}</div>
                 <div className="text-sm text-muted-foreground">Total Learners</div>
+              </div>
+              <div 
+                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => onNavigate?.('delivery')}
+              >
+                <div className="text-xl font-bold text-primary">{formatINR(deliveryRevenue)}</div>
+                <div className="text-sm text-muted-foreground">Total Revenue</div>
               </div>
             </div>
           </CardContent>
@@ -188,20 +223,43 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
         />
 
         {/* System-wide KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => onNavigate?.('solutions')}
+          >
             <CardHeader className="bg-primary text-primary-foreground py-2 px-3 rounded-t-lg">
               <CardTitle className="text-xs font-medium flex items-center gap-1">
                 <IndianRupee className="w-3 h-3" />
-                Total Revenue
+                Solutions Revenue
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-3 pb-2">
               <div className="text-xl font-bold">{formatINR(totalRevenue)}</div>
+              <p className="text-xs text-muted-foreground">From solutions</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => onNavigate?.('delivery')}
+          >
+            <CardHeader className="bg-green-600 text-white py-2 px-3 rounded-t-lg">
+              <CardTitle className="text-xs font-medium flex items-center gap-1">
+                <IndianRupee className="w-3 h-3" />
+                Delivery Revenue
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-3 pb-2">
+              <div className="text-xl font-bold">{formatINR(deliveryRevenue)}</div>
+              <p className="text-xs text-muted-foreground">From deliveries</p>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => onNavigate?.('delivery')}
+          >
             <CardHeader className="bg-purple-500 text-white py-2 px-3 rounded-t-lg">
               <CardTitle className="text-xs font-medium flex items-center gap-1">
                 <Users className="w-3 h-3" />
@@ -214,7 +272,10 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
             </CardContent>
           </Card>
 
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => onNavigate?.('solutions')}
+          >
             <CardHeader className="bg-teal-500 text-white py-2 px-3 rounded-t-lg">
               <CardTitle className="text-xs font-medium flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" />
@@ -223,10 +284,11 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
             </CardHeader>
             <CardContent className="pt-3 pb-2">
               <div className="text-2xl font-bold">{formatPercentage(avgMarginPercentage)}</div>
+              <p className="text-xs text-muted-foreground">From solutions</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="cursor-default">
             <CardHeader className="bg-yellow-500 text-white py-2 px-3 rounded-t-lg">
               <CardTitle className="text-xs font-medium flex items-center gap-1">
                 <Activity className="w-3 h-3" />
@@ -235,6 +297,7 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
             </CardHeader>
             <CardContent className="pt-3 pb-2">
               <div className="text-2xl font-bold">{agentData.length}</div>
+              <p className="text-xs text-muted-foreground">Unique agents</p>
             </CardContent>
           </Card>
         </div>
