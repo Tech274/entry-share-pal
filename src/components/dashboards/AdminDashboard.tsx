@@ -8,13 +8,18 @@ import { formatINR, formatPercentage } from '@/lib/formatUtils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { UserManagement } from '@/components/UserManagement';
 import { LabCatalogManagement } from '@/components/LabCatalogManagement';
+import { QuickActionsPanel } from './QuickActionsPanel';
+import { SLAAlertCard } from './SLAAlertCard';
+import { MiniCalendarWidget } from './MiniCalendarWidget';
 
 interface AdminDashboardProps {
   labRequests: LabRequest[];
   deliveryRequests: DeliveryRequest[];
+  onNavigate?: (tab: string, filter?: string) => void;
+  onNavigateToCalendar?: () => void;
 }
 
-export const AdminDashboard = ({ labRequests, deliveryRequests }: AdminDashboardProps) => {
+export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNavigateToCalendar }: AdminDashboardProps) => {
   // Overall metrics
   const totalRevenue = labRequests.reduce((sum, r) => sum + r.totalAmountForTraining, 0);
   const totalUsers = labRequests.reduce((sum, r) => sum + r.userCount, 0);
@@ -152,6 +157,25 @@ export const AdminDashboard = ({ labRequests, deliveryRequests }: AdminDashboard
             </div>
           </CardContent>
         </Card>
+
+        {/* Quick Actions Panel */}
+        {onNavigate && (
+          <QuickActionsPanel 
+            labRequests={labRequests} 
+            deliveryRequests={deliveryRequests} 
+            onNavigate={onNavigate} 
+          />
+        )}
+
+        {/* SLA Alerts and MoM Comparison */}
+        <SLAAlertCard labRequests={labRequests} deliveryRequests={deliveryRequests} />
+
+        {/* Mini Calendar Widget */}
+        <MiniCalendarWidget 
+          labRequests={labRequests} 
+          deliveryRequests={deliveryRequests}
+          onNavigateToCalendar={onNavigateToCalendar}
+        />
 
         {/* System-wide KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

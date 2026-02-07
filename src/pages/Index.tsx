@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { ClipboardList, Truck, LayoutDashboard, Database, Calendar } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState, useRef } from 'react';
 
 const Index = () => {
   const { 
@@ -167,6 +167,20 @@ const Index = () => {
   // Finance users have limited tabs
   const showOperationalTabs = !isFinance;
 
+  // Tab navigation state
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  // Handle navigation from dashboard quick actions
+  const handleNavigateToTab = useCallback((tab: string, filter?: string) => {
+    setActiveTab(tab);
+    // Filter parameter can be used to set filters in the destination tab
+    console.log(`Navigating to ${tab} with filter: ${filter}`);
+  }, []);
+
+  const handleNavigateToCalendar = useCallback(() => {
+    setActiveTab('calendar');
+  }, []);
+
   // AI Assistant context
   const aiContext = useMemo(() => ({
     solutionsCount: requests.length,
@@ -186,7 +200,7 @@ const Index = () => {
       />
 
       <main className="container mx-auto px-4 py-6">
-        <Tabs defaultValue="dashboard" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className={`grid w-full ${isFinance ? 'max-w-md grid-cols-2' : 'max-w-3xl grid-cols-5'}`}>
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="w-4 h-4" />
@@ -226,6 +240,8 @@ const Index = () => {
               deliveryRequests={deliveryRequests}
               isLoading={labLoading || deliveryLoading}
               onRefresh={handleDashboardRefresh}
+              onNavigateToTab={handleNavigateToTab}
+              onNavigateToCalendar={handleNavigateToCalendar}
             />
           </TabsContent>
 

@@ -15,13 +15,17 @@ interface RoleBasedDashboardProps {
   deliveryRequests: DeliveryRequest[];
   isLoading?: boolean;
   onRefresh?: () => Promise<void>;
+  onNavigateToTab?: (tab: string, filter?: string) => void;
+  onNavigateToCalendar?: () => void;
 }
 
 export const RoleBasedDashboard = ({ 
   labRequests, 
   deliveryRequests, 
   isLoading = false,
-  onRefresh 
+  onRefresh,
+  onNavigateToTab,
+  onNavigateToCalendar 
 }: RoleBasedDashboardProps) => {
   const { role } = useAuth();
   const { toast } = useToast();
@@ -185,7 +189,14 @@ export const RoleBasedDashboard = ({
   const renderDashboard = () => {
     switch (role) {
       case 'admin':
-        return <AdminDashboard labRequests={filteredLabRequests} deliveryRequests={filteredDeliveryRequests} />;
+        return (
+          <AdminDashboard 
+            labRequests={filteredLabRequests} 
+            deliveryRequests={filteredDeliveryRequests}
+            onNavigate={onNavigateToTab}
+            onNavigateToCalendar={onNavigateToCalendar}
+          />
+        );
       case 'ops_lead':
         return <OpsLeadDashboard labRequests={filteredLabRequests} deliveryRequests={filteredDeliveryRequests} />;
       case 'finance':
