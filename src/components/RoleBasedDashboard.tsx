@@ -198,12 +198,32 @@ export const RoleBasedDashboard = ({
           />
         );
       case 'ops_lead':
-        return <OpsLeadDashboard labRequests={filteredLabRequests} deliveryRequests={filteredDeliveryRequests} />;
+        return (
+          <OpsLeadDashboard 
+            labRequests={filteredLabRequests} 
+            deliveryRequests={filteredDeliveryRequests}
+            onNavigate={onNavigateToTab}
+            onNavigateToCalendar={onNavigateToCalendar}
+          />
+        );
       case 'finance':
-        return <FinanceDashboard labRequests={filteredLabRequests} deliveryRequests={filteredDeliveryRequests} />;
+        return (
+          <FinanceDashboard 
+            labRequests={filteredLabRequests} 
+            deliveryRequests={filteredDeliveryRequests}
+            onNavigate={onNavigateToTab}
+          />
+        );
       case 'ops_engineer':
       default:
-        return <OpsEngineerDashboard labRequests={filteredLabRequests} deliveryRequests={filteredDeliveryRequests} />;
+        return (
+          <OpsEngineerDashboard 
+            labRequests={filteredLabRequests} 
+            deliveryRequests={filteredDeliveryRequests}
+            onNavigate={onNavigateToTab}
+            onNavigateToCalendar={onNavigateToCalendar}
+          />
+        );
     }
   };
 

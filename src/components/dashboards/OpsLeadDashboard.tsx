@@ -11,9 +11,11 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 interface OpsLeadDashboardProps {
   labRequests: LabRequest[];
   deliveryRequests: DeliveryRequest[];
+  onNavigate?: (tab: string, filter?: string) => void;
+  onNavigateToCalendar?: () => void;
 }
 
-export const OpsLeadDashboard = ({ labRequests, deliveryRequests }: OpsLeadDashboardProps) => {
+export const OpsLeadDashboard = ({ labRequests, deliveryRequests, onNavigate, onNavigateToCalendar }: OpsLeadDashboardProps) => {
   // Team workload by agent
   const agentWorkload = labRequests.reduce((acc, req) => {
     const agent = req.agentName || 'Unassigned';
@@ -50,7 +52,10 @@ export const OpsLeadDashboard = ({ labRequests, deliveryRequests }: OpsLeadDashb
       
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onNavigate?.('solutions')}
+        >
           <CardHeader className="bg-primary text-primary-foreground py-2 px-4 rounded-t-lg">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Users className="w-4 h-4" />
@@ -63,7 +68,10 @@ export const OpsLeadDashboard = ({ labRequests, deliveryRequests }: OpsLeadDashb
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onNavigate?.('solutions', 'Solution Pending')}
+        >
           <CardHeader className="bg-yellow-500 text-white py-2 px-4 rounded-t-lg">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Clock className="w-4 h-4" />
@@ -76,7 +84,10 @@ export const OpsLeadDashboard = ({ labRequests, deliveryRequests }: OpsLeadDashb
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onNavigate?.('solutions')}
+        >
           <CardHeader className="bg-green-500 text-white py-2 px-4 rounded-t-lg">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
@@ -89,7 +100,10 @@ export const OpsLeadDashboard = ({ labRequests, deliveryRequests }: OpsLeadDashb
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => onNavigate?.('delivery')}
+        >
           <CardHeader className="bg-blue-500 text-white py-2 px-4 rounded-t-lg">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
