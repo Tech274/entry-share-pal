@@ -2,6 +2,54 @@
 # Technical Audit & Remediation Plan
 ## MakeMyLabs Operations Platform
 
+**Last Updated:** 2026-02-08
+
+---
+
+## 🚀 Implementation Progress
+
+### ✅ Week 1-2: Security Sprint
+
+| Task | Status | Date Completed |
+|------|--------|----------------|
+| Add JWT authentication to AI edge functions | ✅ DONE | 2026-02-08 |
+| Create global ErrorBoundary component | ✅ DONE | 2026-02-08 |
+| Fix RLS policy for profiles table | ✅ DONE | 2026-02-08 |
+| Implement rate limiting on submit-request | 🔲 PENDING | - |
+| Add input validation with Zod to all endpoints | 🔲 PENDING | - |
+
+### Changes Implemented
+
+#### 1. JWT Authentication Added to AI Edge Functions
+Files modified:
+- `supabase/functions/ai-assistant/index.ts`
+- `supabase/functions/ai-data-editor/index.ts`
+- `supabase/functions/ai-csv-autocorrect/index.ts`
+
+All AI functions now:
+- Require valid Authorization header with Bearer token
+- Validate JWT using `supabase.auth.getClaims()`
+- Return 401 Unauthorized for invalid/missing tokens
+- Log authenticated user ID for audit trail
+
+#### 2. Global ErrorBoundary Component
+Files created/modified:
+- `src/components/ErrorBoundary.tsx` (new)
+- `src/App.tsx` (updated)
+
+Features:
+- Wrapped entire app with global ErrorBoundary
+- Added route-level ErrorBoundary for protected routes
+- User-friendly error UI with reload/home buttons
+- Stack trace shown in development mode
+
+#### 3. RLS Policy Fix for Profiles Table
+Migration applied:
+- Removed overly permissive "Users can view all profiles" policy
+- Added "Users can view own profile or admin can view all" policy
+- Users can now only see their own profile
+- Admins retain full visibility via `has_role()` check
+
 ---
 
 ## Executive Summary (CTO-Readable)
@@ -9,18 +57,19 @@
 This audit reveals a functional application with **moderate security vulnerabilities**, **no automated quality gates**, and **zero observability infrastructure**. The codebase is production-deployed but lacks the hardening expected for enterprise software handling financial and customer data.
 
 ### Critical Findings
-| Category | Severity | Risk |
-|----------|----------|------|
-| All Edge Functions bypass JWT verification | HIGH | Unauthenticated access to data modification endpoints |
-| No rate limiting on public endpoints | HIGH | DoS/abuse vectors on AI and email functions |
-| TypeScript strict mode disabled | MEDIUM | Runtime errors, null pointer exceptions |
-| Zero test coverage | MEDIUM | Regression risk, deployment anxiety |
-| No CI/CD pipeline | MEDIUM | Manual deployments, no quality gates |
-| No error boundaries | LOW | White screen crashes for users |
-| No observability | MEDIUM | Blind to production issues |
+| Category | Severity | Risk | Status |
+|----------|----------|------|--------|
+| All Edge Functions bypass JWT verification | HIGH | Unauthenticated access to data modification endpoints | ✅ FIXED (AI functions) |
+| No rate limiting on public endpoints | HIGH | DoS/abuse vectors on AI and email functions | 🔲 PENDING |
+| Overly permissive RLS on profiles | MEDIUM | All users can see all profiles | ✅ FIXED |
+| TypeScript strict mode disabled | MEDIUM | Runtime errors, null pointer exceptions | 🔲 PENDING |
+| Zero test coverage | MEDIUM | Regression risk, deployment anxiety | 🔲 PENDING |
+| No CI/CD pipeline | MEDIUM | Manual deployments, no quality gates | 🔲 PENDING |
+| No error boundaries | LOW | White screen crashes for users | ✅ FIXED |
+| No observability | MEDIUM | Blind to production issues | 🔲 PENDING |
 
 ### Production Readiness Verdict: **CONDITIONAL GO**
-The application can continue operating but requires immediate remediation of security issues within 2 weeks, followed by infrastructure hardening over 90 days.
+The application can continue operating. Critical JWT auth security issues have been addressed for AI functions.
 
 ---
 
