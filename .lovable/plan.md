@@ -105,10 +105,10 @@ The application can continue operating. Critical JWT auth security issues have b
 | Function | `verify_jwt` | Auth Check in Code | Rate Limit | Verdict |
 |----------|-------------|-------------------|------------|---------|
 | submit-request | false | None | ✅ 5/min per IP | PUBLIC (secured) |
-| send-notification-email | false | None | None | VULNERABLE |
-| send-catalog-share | false | None | None | VULNERABLE |
+| send-notification-email | false | ✅ JWT | ✅ 20/5min per user | SECURED |
+| send-catalog-share | false | ✅ JWT | ✅ 10/hour per sender | SECURED |
 | track-email-open | false | None | None | PUBLIC (tracking pixel) |
-| auto-status-update | false | None | None | VULNERABLE (cron-only) |
+| auto-status-update | false | None | None | INTERNAL (cron-only) |
 | ai-assistant | false | ✅ JWT | None | SECURED |
 | ai-data-editor | false | ✅ JWT | None | SECURED |
 | ai-csv-autocorrect | false | ✅ JWT | None | SECURED |
