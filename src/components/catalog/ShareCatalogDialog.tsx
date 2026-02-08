@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Loader2, Share2, CheckCircle2, Copy, Package } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/external-supabase/client';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
 

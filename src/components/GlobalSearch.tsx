@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/external-supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface GlobalSearchProps {

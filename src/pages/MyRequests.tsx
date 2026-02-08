@@ -13,7 +13,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/external-supabase/client';
 import logo from '@/assets/makemylabs-logo.png';
 
 interface RequestSummary {

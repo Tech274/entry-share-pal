@@ -7,7 +7,7 @@ import { Eye, Upload, Download, Sparkles, Loader2, ChevronRight, LayoutDashboard
 import { DeliveryTable } from '@/components/DeliveryTable';
 import { AIDataEditBar } from '@/components/AIDataEditBar';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/external-supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { StatusFilterBar, FilterOption } from '@/components/shared/StatusFilterBar';
 import { LabTypeFilterBar } from '@/components/shared/LabTypeFilterBar';

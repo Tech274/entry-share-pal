@@ -20,7 +20,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/external-supabase/client';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { FileUpload } from '@/components/FileUpload';
 import logo from '@/assets/makemylabs-logo.png';
