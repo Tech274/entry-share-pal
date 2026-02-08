@@ -26,13 +26,17 @@ import type { Database } from '../supabase/types';
 const SUPABASE_URL = import.meta.env.VITE_EXTERNAL_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_EXTERNAL_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-export const externalSupabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+// Export as 'supabase' for seamless import switching
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
   }
 });
+
+// Legacy export for backwards compatibility
+export const externalSupabase = supabase;
 
 // Check if using external Supabase
 export const isUsingExternalSupabase = () => !!import.meta.env.VITE_EXTERNAL_SUPABASE_URL;

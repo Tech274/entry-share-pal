@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/external-supabase/client';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 
 // Helper to convert snake_case DB row to camelCase DeliveryRequest

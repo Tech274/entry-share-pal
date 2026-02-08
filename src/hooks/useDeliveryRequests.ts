@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/external-supabase/client';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { sampleDeliveryRequests } from '@/lib/sampleData';
 

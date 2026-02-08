@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useLabLabels } from '@/hooks/useLabLabels';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/external-supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Tags, Plus, Minus } from 'lucide-react';

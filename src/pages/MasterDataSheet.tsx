@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
 import { getStatusBadgeVariant } from '@/lib/statusColors';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/external-supabase/client';
 import { AIDataEditBar } from '@/components/AIDataEditBar';
 import {
   DropdownMenu,
