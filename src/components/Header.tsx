@@ -1,3 +1,4 @@
+// GitHub Sync Test - 2026-02-08
 import { Button } from '@/components/ui/button';
 import { Trash2, LogOut, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
