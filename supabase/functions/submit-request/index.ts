@@ -80,8 +80,9 @@ function getClientIP(req: Request): string {
 }
 
 // Check rate limit and log request
+// deno-lint-ignore no-explicit-any
 async function checkRateLimit(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   ip: string,
   endpoint: string
 ): Promise<{ allowed: boolean; remaining: number }> {
@@ -97,7 +98,6 @@ async function checkRateLimit(
 
   if (countError) {
     console.error("Error checking rate limit:", countError);
-    // Fail open if we can't check - but log the error
     return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS };
   }
 
@@ -109,21 +109,13 @@ async function checkRateLimit(
   }
 
   // Log this request
-  const { error: insertError } = await supabase
+  await supabase
     .from("rate_limit_log")
     .insert({ ip_address: ip, endpoint });
 
-  if (insertError) {
-    console.error("Error logging rate limit:", insertError);
-  }
-
   // Periodically cleanup old records (1% chance per request)
   if (Math.random() < 0.01) {
-    supabase.rpc("cleanup_old_rate_limits").then(() => {
-      console.log("Cleaned up old rate limit records");
-    }).catch((err) => {
-      console.error("Error cleaning up rate limits:", err);
-    });
+    supabase.rpc("cleanup_old_rate_limits");
   }
 
   return { allowed: true, remaining };
