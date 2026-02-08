@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Env (Supabase keys, etc. – set in Lovable / CI)
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

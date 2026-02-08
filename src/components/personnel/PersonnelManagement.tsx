@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Users, UserCheck, Building2, ClipboardList, Truck } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Plus, Pencil, Trash2, Users, UserCheck, Building2, ClipboardList, Truck, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   useAgents,
@@ -64,9 +65,14 @@ function SimplePersonnelCRUD<T extends { id: string; name: string; email?: strin
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      toast.error('Name is required');
+      return;
+    }
     if (editing) {
       mutations.update.mutate(
-        { id: editing.id, data: { name, email: email || null, is_active: isActive } },
+        { id: editing.id, data: { name: trimmedName, email: email?.trim() || null, is_active: isActive } },
         {
           onSuccess: () => {
             toast.success('Updated successfully');
@@ -77,7 +83,7 @@ function SimplePersonnelCRUD<T extends { id: string; name: string; email?: strin
       );
     } else {
       mutations.create.mutate(
-        { name, email: email || undefined },
+        { name: trimmedName, email: email?.trim() || undefined },
         {
           onSuccess: () => {
             toast.success('Added successfully');
@@ -227,10 +233,15 @@ function ClientsCRUD() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      toast.error('Name is required');
+      return;
+    }
     const amId = accountManagerId || null;
     if (editing) {
       mutations.update.mutate(
-        { id: editing.id, data: { name, account_manager_id: amId, is_active: isActive } },
+        { id: editing.id, data: { name: trimmedName, account_manager_id: amId, is_active: isActive } },
         {
           onSuccess: () => {
             toast.success('Client updated');
@@ -241,7 +252,7 @@ function ClientsCRUD() {
       );
     } else {
       mutations.create.mutate(
-        { name, account_manager_id: amId },
+        { name: trimmedName, account_manager_id: amId },
         {
           onSuccess: () => {
             toast.success('Client added');
@@ -373,13 +384,38 @@ function ClientsCRUD() {
 }
 
 export const PersonnelManagement = () => {
-  const { data: agents = [], isLoading: agentsLoading } = useAgents();
+  const { data: agents = [], isLoading: agentsLoading, isError: agentsError, error: agentsErrorDetail } = useAgents();
   const { data: accountManagers = [] } = useAccountManagers();
   const { data: solutionManagers = [] } = useSolutionManagers();
   const { data: deliveryManagers = [] } = useDeliveryManagers();
 
+  const errMsg =
+    agentsErrorDetail && typeof (agentsErrorDetail as { message?: string }).message === 'string'
+      ? (agentsErrorDetail as { message: string }).message
+      : '';
+  const missingTablesHint =
+    agentsError &&
+    errMsg &&
+    (errMsg.includes('does not exist') ||
+      errMsg.includes('relation') ||
+      /schema/i.test(errMsg));
+
   return (
-    <Tabs defaultValue="agents" className="space-y-4">
+    <div className="space-y-4">
+      {missingTablesHint && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Database schema not set up</AlertTitle>
+          <AlertDescription>
+            Supabase needs the database tables first. In <strong>Supabase Dashboard → SQL Editor</strong>, run the
+            script <code className="text-xs bg-muted px-1 rounded">supabase/RUN_PERSONNEL_MIGRATIONS.sql</code> from
+            this project. That creates the personnel tables (agents, account managers, clients, etc.). If your project
+            has no tables yet, run all migration files in <code className="text-xs bg-muted px-1 rounded">supabase/migrations/</code> in
+            date order, then run <code className="text-xs bg-muted px-1 rounded">RUN_PERSONNEL_MIGRATIONS.sql</code>.
+          </AlertDescription>
+        </Alert>
+      )}
+      <Tabs defaultValue="agents" className="space-y-4">
       <TabsList>
         <TabsTrigger value="agents" className="flex items-center gap-2">
           <Users className="w-4 h-4" />
@@ -451,5 +487,6 @@ export const PersonnelManagement = () => {
         />
       </TabsContent>
     </Tabs>
+    </div>
   );
 };
