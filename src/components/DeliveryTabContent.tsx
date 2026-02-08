@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DeliveryRequestForm } from '@/components/DeliveryRequestForm';
 import { DeliveryTable } from '@/components/DeliveryTable';
 import { DeliveryRequest } from '@/types/deliveryRequest';
-import { Truck, FileText, CheckCircle, PackageCheck, Cloud, Server, Building2 } from 'lucide-react';
+import { Truck, FileText, Cloud, Server, Building2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface DeliveryTabContentProps {
@@ -148,7 +148,6 @@ export const DeliveryTabContent = ({
   onStatusChange,
   onUpdate,
   initialFilter,
-  onFilterChange,
 }: DeliveryTabContentProps) => {
   const [mainTab, setMainTab] = useState<string>('form');
 

@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, ChevronRight, ClipboardList, Truck } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
-import { format, addDays, parseISO, isWithinInterval, isSameDay, startOfDay } from 'date-fns';
+import { format, addDays, parseISO, isSameDay, startOfDay } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 

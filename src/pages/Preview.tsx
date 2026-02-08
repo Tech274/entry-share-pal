@@ -15,7 +15,7 @@ import { SortableHeader } from '@/components/SortableHeader';
 import { BulkActionsBar } from '@/components/BulkActionsBar';
 import { BulkUploadDialog } from '@/components/BulkUploadDialog';
 import { AssigneeDropdown } from '@/components/assignment/AssigneeDropdown';
-import { LabRequest, CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, LOB_OPTIONS, YEAR_OPTIONS } from '@/types/labRequest';
+import { LabRequest, CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, LOB_OPTIONS } from '@/types/labRequest';
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Loader2, Share2, CheckCircle2, Copy, Package, X } from 'lucide-react';
+import { Send, Loader2, Share2, CheckCircle2, Copy, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
@@ -116,7 +116,7 @@ const ShareCatalogDialog = ({
     setIsSending(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('send-catalog-share', {
+      const { error } = await supabase.functions.invoke('send-catalog-share', {
         body: {
           recipientEmail: recipientEmail.trim(),
           recipientName: recipientName.trim() || undefined,

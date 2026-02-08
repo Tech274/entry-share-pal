@@ -13,7 +13,7 @@ import {
 import { DeliveryRequest, LAB_STATUS_OPTIONS, CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LINE_OF_BUSINESS_OPTIONS } from '@/types/deliveryRequest';
 import { CurrencyInput } from '@/components/CurrencyInput';
 import { IntegerInput } from '@/components/IntegerInput';
-import { formatINR } from '@/lib/formatUtils';
+
 import { Send, RotateCcw } from 'lucide-react';
 
 interface DeliveryRequestFormProps {

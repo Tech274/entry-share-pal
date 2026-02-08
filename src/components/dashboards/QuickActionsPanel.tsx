@@ -6,8 +6,7 @@ import {
   FileText, 
   ArrowRight,
   ClipboardList,
-  Truck,
-  CheckCircle
+  Truck
 } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';

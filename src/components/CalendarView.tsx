@@ -2,10 +2,10 @@ import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, ClipboardList, Truck, TrendingUp, DollarSign, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ClipboardList, Truck, TrendingUp, Users } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO, isWithinInterval, isAfter, isBefore, endOfDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO, isWithinInterval, isAfter } from 'date-fns';
 import { formatINR } from '@/lib/formatUtils';
 
 interface CalendarViewProps {

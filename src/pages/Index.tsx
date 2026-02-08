@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { ClipboardList, Truck, LayoutDashboard, Database, Calendar } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
-import { useMemo, useCallback, useState, useRef } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 
 const Index = () => {
   const { 
@@ -23,7 +23,7 @@ const Index = () => {
     addRequest, 
     deleteRequest, 
     clearAll, 
-    bulkInsert, 
+    bulkInsert: _bulkInsert, 
     updateRequest: updateLabRequest, 
     refetch: refetchLabRequests 
   } = useLabRequests();

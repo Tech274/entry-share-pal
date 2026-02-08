@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { LabRequest } from '@/types/labRequest';
-import { sampleLabRequests } from '@/lib/sampleData';
+
 
 // Helper to convert snake_case DB row to camelCase LabRequest
 const mapRowToLabRequest = (row: any): LabRequest => ({
@@ -117,26 +117,7 @@ export const useLabRequests = () => {
     }
   };
 
-  const seedSampleData = async () => {
-    try {
-      const sampleRows = sampleLabRequests.map(mapLabRequestToRow);
-      const { data, error } = await supabase
-        .from('lab_requests')
-        .insert(sampleRows)
-        .select();
-
-      if (error) {
-        console.error('Error seeding sample data:', error);
-        return;
-      }
-
-      if (data) {
-        setRequests(data.map(mapRowToLabRequest));
-      }
-    } catch (error) {
-      console.error('Error seeding sample data:', error);
-    }
-  };
+  // Seed sample data function available for development/testing
 
   const addRequest = async (data: Omit<LabRequest, 'id' | 'createdAt'>) => {
     try {
