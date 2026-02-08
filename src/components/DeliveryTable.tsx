@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { DeliveryRequest, LAB_STATUS_OPTIONS, CLOUD_OPTIONS, LINE_OF_BUSINESS_OPTIONS } from '@/types/deliveryRequest';
+import { DeliveryRequest, CLOUD_OPTIONS, LINE_OF_BUSINESS_OPTIONS } from '@/types/deliveryRequest';
 import {
   Table,
   TableBody,
@@ -18,7 +18,7 @@ import { EditableCell } from '@/components/EditableCell';
 import { UndoRedoToolbar } from '@/components/delivery/UndoRedoToolbar';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { useToast } from '@/hooks/use-toast';
-import { formatINR } from '@/lib/formatUtils';
+
 import { getStatusBadgeVariant } from '@/lib/statusColors';
 import {
   DropdownMenu,

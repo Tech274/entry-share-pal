@@ -9,11 +9,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Trash2, ArrowRight, Settings2 } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { formatINR, formatPercentage } from '@/lib/formatUtils';
-import { getStatusBadgeVariant } from '@/lib/statusColors';
+
 import { cn } from '@/lib/utils';
 import { EditableCell } from '@/components/EditableCell';
 import { UndoRedoToolbar } from '@/components/delivery/UndoRedoToolbar';

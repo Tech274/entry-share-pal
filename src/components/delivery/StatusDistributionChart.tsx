@@ -83,7 +83,7 @@ export const StatusDistributionChart = ({ requests, compact = false }: StatusDis
             outerRadius={60}
             paddingAngle={2}
             dataKey="value"
-            label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+            label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
             labelLine={false}
           >
             {chartData.map((entry, index) => (

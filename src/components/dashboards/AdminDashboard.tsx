@@ -28,7 +28,7 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
   // Overall metrics
   const totalRevenue = labRequests.reduce((sum, r) => sum + r.totalAmountForTraining, 0);
   // Total learners from Solutions (userCount) + Deliveries (numberOfUsers)
-  const solutionLearners = labRequests.reduce((sum, r) => sum + (r.userCount || 0), 0);
+  // Total learners from Solutions (userCount) - kept for potential future use
   const deliveryLearners = deliveryRequests.reduce((sum, r) => sum + (r.numberOfUsers || 0), 0);
   const deliveryRevenue = deliveryRequests.reduce((sum, r) => {
     const users = r.numberOfUsers || 0;

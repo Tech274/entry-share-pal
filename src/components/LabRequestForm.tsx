@@ -64,7 +64,7 @@ const initialFormState = {
 export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
   const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [touched, setTouched] = useState<Set<string>>(new Set());
+  const [_touched, setTouched] = useState<Set<string>>(new Set());
 
   const handleChange = (field: string, value: string | number) => {
     setFormData(prev => {

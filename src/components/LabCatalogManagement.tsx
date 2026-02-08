@@ -71,7 +71,7 @@ export const LabCatalogManagement = () => {
   const { data: entryLabels = [] } = useEntryLabels(editingEntry?.id || null);
   const { data: allEntryLabels = [] } = useAllEntryLabels();
   const { updateEntryLabels } = useManageEntryLabels();
-  const { labels: allLabels } = useLabLabels();
+  const { labels: _allLabels } = useLabLabels();
 
   // Update form labelIds when entry labels load
   useEffect(() => {

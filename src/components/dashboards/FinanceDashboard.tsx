@@ -183,7 +183,7 @@ export const FinanceDashboard = ({ labRequests, deliveryRequests, onNavigate }: 
                     dataKey="revenue"
                     label={({ name, value }) => `${name}: ₹${(value/1000).toFixed(0)}k`}
                   >
-                    {lobData.map((entry, index) => (
+                    {lobData.map((_entry, index) => (
                       <Cell key={`cell-${index}`} fill={lobColors[index % lobColors.length]} />
                     ))}
                   </Pie>

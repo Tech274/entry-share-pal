@@ -4,7 +4,6 @@ import { ClipboardList, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatINR } from '@/lib/formatUtils';
 import { differenceInDays, parseISO } from 'date-fns';
 
 interface OpsEngineerDashboardProps {

@@ -10,8 +10,6 @@ import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
 import { getStatusBadgeVariant } from '@/lib/statusColors';
-import { LabRequest } from '@/types/labRequest';
-import { DeliveryRequest } from '@/types/deliveryRequest';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { AIDataEditBar } from '@/components/AIDataEditBar';
@@ -229,7 +227,7 @@ const MasterDataSheet = () => {
       } else {
         // Solutions import (standard processing)
         let importedCount = 0;
-        const headersLower = headers.map(h => h.toLowerCase());
+        // Headers already processed, use lowercase row keys
 
         for (const row of rows) {
           const rowLower: Record<string, string> = {};

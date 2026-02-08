@@ -5,7 +5,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Badge } from '@/components/ui/badge';
 import { Check, ChevronsUpDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useLabLabels, LabLabel } from '@/hooks/useLabLabels';
+import { useLabLabels } from '@/hooks/useLabLabels';
 
 interface LabelMultiSelectProps {
   selectedLabelIds: string[];

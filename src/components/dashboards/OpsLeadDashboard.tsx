@@ -15,7 +15,7 @@ interface OpsLeadDashboardProps {
   onNavigateToCalendar?: () => void;
 }
 
-export const OpsLeadDashboard = ({ labRequests, deliveryRequests, onNavigate, onNavigateToCalendar }: OpsLeadDashboardProps) => {
+export const OpsLeadDashboard = ({ labRequests, deliveryRequests, onNavigate }: OpsLeadDashboardProps) => {
   // Team workload by agent
   const agentWorkload = labRequests.reduce((acc, req) => {
     const agent = req.agentName || 'Unassigned';
@@ -31,10 +31,7 @@ export const OpsLeadDashboard = ({ labRequests, deliveryRequests, onNavigate, on
   const pendingRequests = labRequests.filter(r => r.status === 'Solution Pending');
   
   // Status distribution
-  const statusData = [
-    { name: 'Pending', value: labRequests.filter(r => r.status === 'Solution Pending').length, color: '#f59e0b' },
-    { name: 'Sent', value: labRequests.filter(r => r.status === 'Solution Sent').length, color: '#22c55e' },
-  ];
+  // Status distribution data for potential future visualization
 
   const deliveryStatusData = [
     { name: 'Pending', value: deliveryRequests.filter(r => r.labStatus === 'Pending').length, color: '#f59e0b' },
