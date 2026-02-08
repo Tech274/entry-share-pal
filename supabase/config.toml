@@ -1,0 +1,25 @@
+project_id = "ijamrxxgsokhtxgzrhpm"
+
+[functions.send-notification-email]
+verify_jwt = false
+
+[functions.submit-request]
+verify_jwt = false
+
+[functions.auto-status-update]
+verify_jwt = false
+
+[functions.send-catalog-share]
+verify_jwt = false
+
+[functions.track-email-open]
+verify_jwt = false
+
+[functions.ai-assistant]
+verify_jwt = false
+
+[functions.ai-csv-autocorrect]
+verify_jwt = false
+
+[functions.ai-data-editor]
+verify_jwt = false
