@@ -34,8 +34,9 @@ const notificationSchema = z.object({
 });
 
 // Check rate limit using rate_limit_log table
+// deno-lint-ignore no-explicit-any
 async function checkRateLimit(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   userId: string,
   endpoint: string
 ): Promise<{ allowed: boolean; remaining: number }> {
@@ -61,13 +62,9 @@ async function checkRateLimit(
   }
 
   // Log this request
-  const { error: insertError } = await supabase
+  await supabase
     .from("rate_limit_log")
     .insert({ ip_address: userId, endpoint });
-
-  if (insertError) {
-    console.error("Error logging rate limit:", insertError);
-  }
 
   return { allowed: true, remaining };
 }

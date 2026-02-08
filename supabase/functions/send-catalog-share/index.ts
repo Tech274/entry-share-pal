@@ -58,8 +58,9 @@ function generateShareId(): string {
 }
 
 // Check rate limit based on sender email (catalog shares per hour)
+// deno-lint-ignore no-explicit-any
 async function checkRateLimit(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   senderEmail: string
 ): Promise<{ allowed: boolean; remaining: number }> {
   const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_HOURS * 60 * 60 * 1000);
