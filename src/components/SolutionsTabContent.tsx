@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LabRequestForm } from '@/components/LabRequestForm';
 import { RequestsTable } from '@/components/RequestsTable';
 import { LabRequest } from '@/types/labRequest';
-import { ClipboardList, FileText, CheckCircle, Clock, ListFilter } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { ClipboardList, FileText, CheckCircle, Clock } from 'lucide-react';
+import { StatusFilterBar, FilterOption } from '@/components/shared/StatusFilterBar';
 
 interface SolutionsTabContentProps {
   requests: LabRequest[];
@@ -26,30 +25,37 @@ export const SolutionsTabContent = ({
   initialFilter,
   onFilterChange,
 }: SolutionsTabContentProps) => {
-  const [listSubTab, setListSubTab] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [mainTab, setMainTab] = useState<string>('form');
 
   // Handle initial filter from dashboard navigation
   useEffect(() => {
     if (initialFilter) {
-      // Switch to list tab and set appropriate filter
       setMainTab('list');
       if (initialFilter === 'Solution Pending') {
-        setListSubTab('pending');
+        setStatusFilter('pending');
       } else if (initialFilter === 'Solution Sent') {
-        setListSubTab('sent');
+        setStatusFilter('sent');
       } else {
-        setListSubTab('all');
+        setStatusFilter('all');
       }
     }
   }, [initialFilter]);
 
-  // Filter requests by status
-  const pendingRequests = requests.filter(r => r.status === 'Solution Pending');
-  const sentRequests = requests.filter(r => r.status === 'Solution Sent');
+  // Filter counts
+  const pendingRequests = useMemo(() => 
+    requests.filter(r => r.status === 'Solution Pending'), [requests]);
+  const sentRequests = useMemo(() => 
+    requests.filter(r => r.status === 'Solution Sent'), [requests]);
+
+  const filterOptions: FilterOption[] = [
+    { key: 'all', label: 'All', count: requests.length },
+    { key: 'pending', label: 'Pending', count: pendingRequests.length, icon: <Clock className="w-4 h-4" /> },
+    { key: 'sent', label: 'Sent', count: sentRequests.length, icon: <CheckCircle className="w-4 h-4" /> },
+  ];
 
   const getFilteredRequests = () => {
-    switch (listSubTab) {
+    switch (statusFilter) {
       case 'pending':
         return pendingRequests;
       case 'sent':
@@ -59,12 +65,11 @@ export const SolutionsTabContent = ({
     }
   };
   
-  // Handle filter change and notify parent
-  const handleSubTabChange = (tab: string) => {
-    setListSubTab(tab);
+  const handleFilterChange = (key: string) => {
+    setStatusFilter(key);
     if (onFilterChange) {
-      const filterValue = tab === 'pending' ? 'Solution Pending' : 
-                         tab === 'sent' ? 'Solution Sent' : undefined;
+      const filterValue = key === 'pending' ? 'Solution Pending' : 
+                         key === 'sent' ? 'Solution Sent' : undefined;
       onFilterChange(filterValue);
     }
   };
@@ -87,48 +92,11 @@ export const SolutionsTabContent = ({
       </TabsContent>
 
       <TabsContent value="list" className="space-y-4">
-        {/* Sub-tabs for filtering by status */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-muted-foreground mr-2">
-            <ListFilter className="w-4 h-4 inline mr-1" />
-            Filter:
-          </span>
-          <Button
-            variant={listSubTab === 'all' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => handleSubTabChange('all')}
-            className="gap-2"
-          >
-            All
-            <Badge variant="secondary" className="ml-1">
-              {requests.length}
-            </Badge>
-          </Button>
-          <Button
-            variant={listSubTab === 'pending' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => handleSubTabChange('pending')}
-            className="gap-2"
-          >
-            <Clock className="w-4 h-4" />
-            Pending
-            <Badge variant="secondary" className="ml-1">
-              {pendingRequests.length}
-            </Badge>
-          </Button>
-          <Button
-            variant={listSubTab === 'sent' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => handleSubTabChange('sent')}
-            className="gap-2"
-          >
-            <CheckCircle className="w-4 h-4" />
-            Sent
-            <Badge variant="secondary" className="ml-1">
-              {sentRequests.length}
-            </Badge>
-          </Button>
-        </div>
+        <StatusFilterBar
+          options={filterOptions}
+          activeFilter={statusFilter}
+          onFilterChange={handleFilterChange}
+        />
 
         <RequestsTable 
           requests={getFilteredRequests()} 

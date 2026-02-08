@@ -1,4 +1,3 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RoleBasedDashboard } from '@/components/RoleBasedDashboard';
 import { SolutionsTabContent } from '@/components/SolutionsTabContent';
 import { DeliveryTabContent } from '@/components/DeliveryTabContent';
@@ -6,8 +5,8 @@ import { ADRTabContent } from '@/components/ADRTabContent';
 import { CalendarView } from '@/components/CalendarView';
 import { Header } from '@/components/Header';
 import { AIAssistant } from '@/components/AIAssistant';
-import { useLabRequests } from '@/hooks/useLabRequests';
-import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
+import { useLabRequestsQuery } from '@/hooks/useLabRequestsQuery';
+import { useDeliveryRequestsQuery } from '@/hooks/useDeliveryRequestsQuery';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { useToast } from '@/hooks/use-toast';
@@ -15,18 +14,20 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ClipboardList, Truck, LayoutDashboard, Database, Calendar } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { useMemo, useCallback, useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useQueryClient } from '@tanstack/react-query';
 
 const Index = () => {
+  const queryClient = useQueryClient();
   const { 
     requests, 
     loading: labLoading,
     addRequest, 
     deleteRequest, 
     clearAll, 
-    bulkInsert: _bulkInsert, 
     updateRequest: updateLabRequest, 
     refetch: refetchLabRequests 
-  } = useLabRequests();
+  } = useLabRequestsQuery();
   const { 
     requests: deliveryRequests, 
     loading: deliveryLoading,
@@ -35,11 +36,11 @@ const Index = () => {
     bulkInsert: bulkInsertDelivery,
     updateRequest: updateDeliveryRequest,
     refetch: refetchDeliveryRequests
-  } = useDeliveryRequests();
+  } = useDeliveryRequestsQuery();
   const { toast } = useToast();
   const { isFinance } = useAuth();
 
-  // Enable realtime sync for all data
+  // Enable realtime sync for all data - single global subscription
   useRealtimeSync();
 
   // Dashboard refresh handler
@@ -47,56 +48,104 @@ const Index = () => {
     await Promise.all([refetchLabRequests(), refetchDeliveryRequests()]);
   }, [refetchLabRequests, refetchDeliveryRequests]);
 
-  const handleDeliveryDelete = (id: string) => {
-    deleteDeliveryRequest(id);
-    toast({
-      title: 'Delivery Entry Deleted',
-      description: 'The delivery request has been removed.',
-      variant: 'destructive',
-    });
-  };
-
-  const handleDeliveryStatusChange = (id: string, newStatus: string) => {
-    updateDeliveryRequest(id, { labStatus: newStatus });
-    toast({
-      title: 'Status Updated',
-      description: `Status changed to "${newStatus}".`,
-    });
-  };
-
-  const handleSubmit = (data: Parameters<typeof addRequest>[0]) => {
-    addRequest(data);
-    toast({
-      title: 'Request Submitted',
-      description: 'Your lab request has been recorded successfully.',
-    });
-  };
-
-  const handleDeliverySubmit = (data: Parameters<typeof addDeliveryRequest>[0]) => {
-    addDeliveryRequest(data);
-    toast({
-      title: 'Delivery Request Submitted',
-      description: 'Your delivery request has been recorded successfully.',
-    });
-  };
-
-  const handleDelete = (id: string) => {
-    deleteRequest(id);
-    toast({
-      title: 'Entry Deleted',
-      description: 'The request has been removed.',
-      variant: 'destructive',
-    });
-  };
-
-  const handleClearAll = () => {
-    if (window.confirm('Are you sure you want to delete all entries? This cannot be undone.')) {
-      clearAll();
+  const handleDeliveryDelete = async (id: string) => {
+    try {
+      await deleteDeliveryRequest(id);
       toast({
-        title: 'All Entries Cleared',
-        description: 'All lab requests have been removed.',
+        title: 'Delivery Entry Deleted',
+        description: 'The delivery request has been removed.',
         variant: 'destructive',
       });
+    } catch {
+      toast({
+        title: 'Delete Failed',
+        description: 'Could not delete the delivery request.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeliveryStatusChange = async (id: string, newStatus: string) => {
+    try {
+      await updateDeliveryRequest(id, { labStatus: newStatus });
+      toast({
+        title: 'Status Updated',
+        description: `Status changed to "${newStatus}".`,
+      });
+    } catch {
+      toast({
+        title: 'Update Failed',
+        description: 'Could not update the status.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSubmit = async (data: Parameters<typeof addRequest>[0]) => {
+    try {
+      await addRequest(data);
+      toast({
+        title: 'Request Submitted',
+        description: 'Your lab request has been recorded successfully.',
+      });
+    } catch {
+      toast({
+        title: 'Submit Failed',
+        description: 'Could not submit the request.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeliverySubmit = async (data: Parameters<typeof addDeliveryRequest>[0]) => {
+    try {
+      await addDeliveryRequest(data);
+      toast({
+        title: 'Delivery Request Submitted',
+        description: 'Your delivery request has been recorded successfully.',
+      });
+    } catch {
+      toast({
+        title: 'Submit Failed',
+        description: 'Could not submit the delivery request.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteRequest(id);
+      toast({
+        title: 'Entry Deleted',
+        description: 'The request has been removed.',
+        variant: 'destructive',
+      });
+    } catch {
+      toast({
+        title: 'Delete Failed',
+        description: 'Could not delete the request.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (window.confirm('Are you sure you want to delete all entries? This cannot be undone.')) {
+      try {
+        await clearAll();
+        toast({
+          title: 'All Entries Cleared',
+          description: 'All lab requests have been removed.',
+          variant: 'destructive',
+        });
+      } catch {
+        toast({
+          title: 'Clear Failed',
+          description: 'Could not clear all entries.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -116,9 +165,10 @@ const Index = () => {
     });
   };
 
-  // Convert solution to delivery - creates delivery record and DB trigger auto-removes the solution
+  // Convert solution to delivery - atomic operation with proper cache invalidation
   const handleConvertToDelivery = async (request: LabRequest) => {
     try {
+      // Create delivery record first
       await addDeliveryRequest({
         potentialId: request.potentialId,
         freshDeskTicketNumber: request.freshDeskTicketNumber,
@@ -147,8 +197,12 @@ const Index = () => {
         invoiceDetails: request.invoiceDetails,
       });
       
-      // Refetch lab requests to reflect auto-removal by DB trigger
-      await refetchLabRequests();
+      // Delete the original solution request to avoid duplicates
+      await deleteRequest(request.id);
+      
+      // Invalidate both caches to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['lab-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['delivery-requests'] });
       
       toast({
         title: 'Converted to Delivery',
@@ -159,6 +213,32 @@ const Index = () => {
       toast({
         title: 'Conversion Failed',
         description: 'There was an error converting to delivery.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Handle update for lab requests
+  const handleUpdateLabRequest = async (id: string, data: Partial<LabRequest>) => {
+    try {
+      await updateLabRequest(id, data);
+    } catch {
+      toast({
+        title: 'Update Failed',
+        description: 'Could not update the request.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Handle update for delivery requests
+  const handleUpdateDeliveryRequest = async (id: string, data: Partial<import('@/types/deliveryRequest').DeliveryRequest>) => {
+    try {
+      await updateDeliveryRequest(id, data);
+    } catch {
+      toast({
+        title: 'Update Failed',
+        description: 'Could not update the delivery request.',
         variant: 'destructive',
       });
     }
@@ -288,7 +368,7 @@ const Index = () => {
                   onSubmit={handleSubmit}
                   onDelete={handleDelete}
                   onConvertToDelivery={handleConvertToDelivery}
-                  onUpdate={updateLabRequest}
+                  onUpdate={handleUpdateLabRequest}
                   initialFilter={solutionsFilter}
                   onFilterChange={setSolutionsFilter}
                 />
@@ -300,7 +380,7 @@ const Index = () => {
                   onSubmit={handleDeliverySubmit}
                   onDelete={handleDeliveryDelete}
                   onStatusChange={handleDeliveryStatusChange}
-                  onUpdate={updateDeliveryRequest}
+                  onUpdate={handleUpdateDeliveryRequest}
                   initialFilter={deliveryFilter}
                   onFilterChange={setDeliveryFilter}
                 />
@@ -310,7 +390,7 @@ const Index = () => {
                 <ADRTabContent
                   deliveryRequests={deliveryRequests}
                   onDeliveryDelete={handleDeliveryDelete}
-                  onUpdate={updateDeliveryRequest}
+                  onUpdate={handleUpdateDeliveryRequest}
                   onBulkInsert={bulkInsertDelivery}
                   onRefetch={refetchDeliveryRequests}
                   initialFilter={adrFilter}

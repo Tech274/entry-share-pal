@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
-import { useLabRequests } from '@/hooks/useLabRequests';
-import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
+import { useLabRequestsQuery } from '@/hooks/useLabRequestsQuery';
+import { useDeliveryRequestsQuery } from '@/hooks/useDeliveryRequestsQuery';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -26,8 +26,8 @@ import logo from '@/assets/makemylabs-logo.png';
 const ADR_STATUSES = ['Delivered', 'Delivery In-Progress', 'Delivery Completed', 'Completed'];
 
 const MasterDataSheet = () => {
-  const { requests: labRequests, addRequest: addLabRequest, refetch: refetchLabRequests } = useLabRequests();
-  const { requests: deliveryRequests, addRequest: addDeliveryRequest, refetch: refetchDeliveryRequests } = useDeliveryRequests();
+  const { requests: labRequests, addRequest: addLabRequest, refetch: refetchLabRequests } = useLabRequestsQuery();
+  const { requests: deliveryRequests, addRequest: addDeliveryRequest, refetch: refetchDeliveryRequests } = useDeliveryRequestsQuery();
   const { toast } = useToast();
   const [activeLabType, setActiveLabType] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<string>('solutions');
