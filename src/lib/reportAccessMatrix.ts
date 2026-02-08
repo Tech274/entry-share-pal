@@ -1,15 +1,15 @@
 import type { AppRole } from '@/types/roles';
 
-export type ReportSlug = 'revenue' | 'labType' | 'learners' | 'summary';
+export type ReportSlug = 'revenue' | 'labType' | 'learners' | 'summary' | 'cloudBilling';
 
 /**
  * Report access matrix (Phase 4).
  * Admin: all; Finance: Revenue, Learners, Lab Type; Ops Lead: all; Ops Engineer: none (Agent Performance "own only" not yet a report tab).
  */
 export const REPORT_ACCESS_BY_ROLE: Record<AppRole, ReportSlug[]> = {
-  admin: ['revenue', 'labType', 'learners', 'summary'],
-  finance: ['revenue', 'labType', 'learners'],
-  ops_lead: ['revenue', 'labType', 'learners', 'summary'],
+  admin: ['revenue', 'labType', 'learners', 'summary', 'cloudBilling'],
+  finance: ['revenue', 'labType', 'learners', 'cloudBilling'],
+  ops_lead: ['revenue', 'labType', 'learners', 'summary', 'cloudBilling'],
   ops_engineer: [],
 };
 

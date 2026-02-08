@@ -203,6 +203,45 @@ export type Database = {
         }
         Relationships: []
       }
+      cloud_billing_details: {
+        Row: {
+          id: string
+          provider: string
+          month: string
+          year: number
+          overall_business: number
+          cloud_cost: number
+          invoiced_to_customer: number
+          yet_to_be_billed: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          provider: string
+          month: string
+          year: number
+          overall_business?: number
+          cloud_cost?: number
+          invoiced_to_customer?: number
+          yet_to_be_billed?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          provider?: string
+          month?: string
+          year?: number
+          overall_business?: number
+          cloud_cost?: number
+          invoiced_to_customer?: number
+          yet_to_be_billed?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       delivery_requests: {
         Row: {
           account_manager: string | null

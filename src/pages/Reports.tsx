@@ -13,9 +13,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, BarChart3, PieChart, Users, IndianRupee, Layers } from 'lucide-react';
+import { ArrowLeft, BarChart3, PieChart, Users, IndianRupee, Layers, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LabRequest } from '@/types/labRequest';
+import { CloudBillingDashboard } from '@/components/dashboards/CloudBillingDashboard';
 
 const Reports = () => {
   const { requests: labRequests, loading: labLoading } = useLabRequests();
@@ -92,7 +93,9 @@ const Reports = () => {
                     ? 'max-w-md grid-cols-2'
                     : allowedSlugs.length === 3
                       ? 'max-w-2xl grid-cols-3'
-                      : 'max-w-3xl grid-cols-4'
+                      : allowedSlugs.length === 4
+                        ? 'max-w-3xl grid-cols-4'
+                        : 'max-w-4xl grid-cols-5'
               }`}
             >
               {allowedSlugs.includes('revenue') && (
@@ -117,6 +120,12 @@ const Reports = () => {
                 <TabsTrigger value="summary" className="gap-2">
                   <BarChart3 className="w-4 h-4" />
                   Summary
+                </TabsTrigger>
+              )}
+              {allowedSlugs.includes('cloudBilling') && (
+                <TabsTrigger value="cloudBilling" className="gap-2">
+                  <Cloud className="w-4 h-4" />
+                  Cloud Billing
                 </TabsTrigger>
               )}
             </TabsList>
@@ -147,6 +156,12 @@ const Reports = () => {
                 deliveryRequests={deliveryRequests}
                 onNavigateToTab={handleNavigateToTab}
               />
+            </TabsContent>
+            )}
+
+            {allowedSlugs.includes('cloudBilling') && (
+            <TabsContent value="cloudBilling" className="space-y-6">
+              <CloudBillingDashboard />
             </TabsContent>
             )}
 
