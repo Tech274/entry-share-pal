@@ -1,4 +1,4 @@
-import { useLabRequests } from '@/hooks/useLabRequests';
+import { useLabRequestsQuery } from '@/hooks/useLabRequestsQuery';
 import { useSpreadsheetControls } from '@/hooks/useSpreadsheetControls';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { useSpreadsheetKeyboardShortcuts } from '@/hooks/useSpreadsheetKeyboardShortcuts';
@@ -68,7 +68,7 @@ const parseLabRequestRow = (row: Record<string, string | number>): Omit<LabReque
 };
 
 const Preview = () => {
-  const { requests, updateRequest, deleteRequest, clearAll, bulkDelete, bulkUpdateStatus, bulkInsert } = useLabRequests();
+  const { requests, updateRequest, deleteRequest, clearAll, bulkDelete, bulkUpdateStatus, bulkInsert } = useLabRequestsQuery();
   const { toast } = useToast();
   
   const {
