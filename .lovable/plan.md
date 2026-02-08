@@ -15,8 +15,8 @@
 | Add JWT authentication to AI edge functions | ✅ DONE | 2026-02-08 |
 | Create global ErrorBoundary component | ✅ DONE | 2026-02-08 |
 | Fix RLS policy for profiles table | ✅ DONE | 2026-02-08 |
-| Implement rate limiting on submit-request | 🔲 PENDING | - |
-| Add input validation with Zod to all endpoints | 🔲 PENDING | - |
+| Implement rate limiting on submit-request | ✅ DONE | 2026-02-08 |
+| Add input validation with Zod to submit-request | ✅ DONE | 2026-02-08 |
 
 ### Changes Implemented
 
@@ -60,7 +60,7 @@ This audit reveals a functional application with **moderate security vulnerabili
 | Category | Severity | Risk | Status |
 |----------|----------|------|--------|
 | All Edge Functions bypass JWT verification | HIGH | Unauthenticated access to data modification endpoints | ✅ FIXED (AI functions) |
-| No rate limiting on public endpoints | HIGH | DoS/abuse vectors on AI and email functions | 🔲 PENDING |
+| No rate limiting on public endpoints | HIGH | DoS/abuse vectors on AI and email functions | ✅ FIXED (submit-request) |
 | Overly permissive RLS on profiles | MEDIUM | All users can see all profiles | ✅ FIXED |
 | TypeScript strict mode disabled | MEDIUM | Runtime errors, null pointer exceptions | 🔲 PENDING |
 | Zero test coverage | MEDIUM | Regression risk, deployment anxiety | 🔲 PENDING |
@@ -104,14 +104,14 @@ The application can continue operating. Critical JWT auth security issues have b
 
 | Function | `verify_jwt` | Auth Check in Code | Rate Limit | Verdict |
 |----------|-------------|-------------------|------------|---------|
-| submit-request | false | None | None | PUBLIC (intentional) |
+| submit-request | false | None | ✅ 5/min per IP | PUBLIC (secured) |
 | send-notification-email | false | None | None | VULNERABLE |
 | send-catalog-share | false | None | None | VULNERABLE |
 | track-email-open | false | None | None | PUBLIC (tracking pixel) |
 | auto-status-update | false | None | None | VULNERABLE (cron-only) |
-| ai-assistant | false | None | None | VULNERABLE |
-| ai-data-editor | false | None | None | VULNERABLE |
-| ai-csv-autocorrect | false | None | None | VULNERABLE |
+| ai-assistant | false | ✅ JWT | None | SECURED |
+| ai-data-editor | false | ✅ JWT | None | SECURED |
+| ai-csv-autocorrect | false | ✅ JWT | None | SECURED |
 
 ### Remediation: Edge Function Security
 
