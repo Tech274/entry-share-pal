@@ -2,13 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Users, AlertTriangle, TrendingUp, IndianRupee, Activity, UserCog, Layers, ClipboardList, Truck, Info, Wallet } from 'lucide-react';
+import { Users, AlertTriangle, TrendingUp, IndianRupee, Activity, UserCog, Layers, ClipboardList, Truck, Info, Wallet, Building } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { UserManagement } from '@/components/UserManagement';
 import { LabCatalogManagement } from '@/components/LabCatalogManagement';
+import { PersonnelManagement } from '@/components/personnel/PersonnelManagement';
 import { QuickActionsPanel } from './QuickActionsPanel';
 import { SLAAlertCard } from './SLAAlertCard';
 import { MiniCalendarWidget } from './MiniCalendarWidget';
@@ -107,6 +108,10 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
             <TabsTrigger value="catalog" className="flex items-center gap-2">
               <Layers className="w-4 h-4" />
               Lab Catalog
+            </TabsTrigger>
+            <TabsTrigger value="personnel" className="flex items-center gap-2">
+              <Building className="w-4 h-4" />
+              Personnel & Clients
             </TabsTrigger>
           </TabsList>
           <Badge variant="secondary" className="bg-red-100 text-red-800">Admin</Badge>
@@ -503,6 +508,10 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
 
       <TabsContent value="catalog">
         <LabCatalogManagement />
+      </TabsContent>
+
+      <TabsContent value="personnel">
+        <PersonnelManagement />
       </TabsContent>
     </Tabs>
   );
