@@ -14,7 +14,7 @@ type PersonnelType = 'agents' | 'accountManagers' | 'clients' | 'solutionManager
 interface PersonnelSelectProps {
   type: PersonnelType;
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: string, id: string | null) => void;
   label: string;
   placeholder?: string;
   required?: boolean;
@@ -55,6 +55,16 @@ export const PersonnelSelect = ({
 
   const options = getOptions().filter(p => p.is_active);
 
+  const handleChange = (selectedValue: string) => {
+    if (selectedValue === '__none__') {
+      onChange('', null);
+    } else {
+      // Find the selected person to get their ID
+      const person = options.find(p => p.name === selectedValue);
+      onChange(selectedValue, person?.id || null);
+    }
+  };
+
   if (personnel.loading) {
     return (
       <div className={`space-y-2 ${className || ''}`}>
@@ -70,7 +80,7 @@ export const PersonnelSelect = ({
         {label}
         {required && <span className="text-destructive ml-1">*</span>}
       </Label>
-      <Select value={value} onValueChange={onChange} disabled={disabled}>
+      <Select value={value} onValueChange={handleChange} disabled={disabled}>
         <SelectTrigger className={error ? 'border-destructive' : ''}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>

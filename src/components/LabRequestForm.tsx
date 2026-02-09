@@ -60,6 +60,9 @@ const initialFormState = {
   remarks: '',
   lineOfBusiness: '',
   invoiceDetails: '',
+  agentId: null as string | null,
+  accountManagerId: null as string | null,
+  clientId: null as string | null,
 };
 
 export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
@@ -361,7 +364,10 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
           <PersonnelSelect
             type="clients"
             value={formData.client}
-            onChange={(v) => handleChange('client', v === '__none__' ? '' : v)}
+            onChange={(name, id) => {
+              setFormData(prev => ({ ...prev, client: name, clientId: id }));
+              if (errors.client) setErrors(prev => ({ ...prev, client: undefined }));
+            }}
             label="Client"
             placeholder="Select client"
             required
@@ -370,14 +376,18 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
           <PersonnelSelect
             type="agents"
             value={formData.agentName}
-            onChange={(v) => handleChange('agentName', v === '__none__' ? '' : v)}
+            onChange={(name, id) => {
+              setFormData(prev => ({ ...prev, agentName: name, agentId: id }));
+            }}
             label="Agent Name"
             placeholder="Select agent"
           />
           <PersonnelSelect
             type="accountManagers"
             value={formData.accountManager}
-            onChange={(v) => handleChange('accountManager', v === '__none__' ? '' : v)}
+            onChange={(name, id) => {
+              setFormData(prev => ({ ...prev, accountManager: name, accountManagerId: id }));
+            }}
             label="Account Manager"
             placeholder="Select account manager"
           />

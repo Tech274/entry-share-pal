@@ -31,6 +31,9 @@ const mapRowToDeliveryRequest = (row: any): DeliveryRequest => ({
   lineOfBusiness: row.line_of_business || '',
   invoiceDetails: row.invoice_details || '',
   assignedTo: row.assigned_to || null,
+  agentId: row.agent_id || null,
+  accountManagerId: row.account_manager_id || null,
+  clientId: row.client_id || null,
   createdAt: row.created_at,
 });
 
@@ -61,6 +64,9 @@ const mapDeliveryRequestToRow = (request: Omit<DeliveryRequest, 'id' | 'createdA
   total_amount: request.totalAmount,
   line_of_business: request.lineOfBusiness,
   invoice_details: request.invoiceDetails,
+  agent_id: request.agentId || null,
+  account_manager_id: request.accountManagerId || null,
+  client_id: request.clientId || null,
 });
 
 const fetchDeliveryRequests = async (): Promise<DeliveryRequest[]> => {
@@ -130,6 +136,9 @@ export const useDeliveryRequestsQuery = () => {
       if (data.lineOfBusiness !== undefined) updateData.line_of_business = data.lineOfBusiness;
       if (data.totalAmount !== undefined) updateData.total_amount = data.totalAmount;
       if (data.invoiceDetails !== undefined) updateData.invoice_details = data.invoiceDetails;
+      if (data.agentId !== undefined) updateData.agent_id = data.agentId;
+      if (data.accountManagerId !== undefined) updateData.account_manager_id = data.accountManagerId;
+      if (data.clientId !== undefined) updateData.client_id = data.clientId;
 
       const { data: updatedRow, error } = await supabase
         .from('delivery_requests')

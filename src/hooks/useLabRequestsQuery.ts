@@ -31,6 +31,9 @@ const mapRowToLabRequest = (row: any): LabRequest => ({
   lineOfBusiness: row.line_of_business || '',
   invoiceDetails: row.invoice_details || '',
   assignedTo: row.assigned_to || null,
+  agentId: row.agent_id || null,
+  accountManagerId: row.account_manager_id || null,
+  clientId: row.client_id || null,
   createdAt: row.created_at,
 });
 
@@ -61,6 +64,9 @@ const mapLabRequestToRow = (request: Omit<LabRequest, 'id' | 'createdAt'>) => ({
   remarks: request.remarks,
   line_of_business: request.lineOfBusiness,
   invoice_details: request.invoiceDetails,
+  agent_id: request.agentId || null,
+  account_manager_id: request.accountManagerId || null,
+  client_id: request.clientId || null,
 });
 
 const fetchLabRequests = async (): Promise<LabRequest[]> => {
@@ -130,6 +136,9 @@ export const useLabRequestsQuery = () => {
       if (data.remarks !== undefined) updateData.remarks = data.remarks;
       if (data.lineOfBusiness !== undefined) updateData.line_of_business = data.lineOfBusiness;
       if (data.invoiceDetails !== undefined) updateData.invoice_details = data.invoiceDetails;
+      if (data.agentId !== undefined) updateData.agent_id = data.agentId;
+      if (data.accountManagerId !== undefined) updateData.account_manager_id = data.accountManagerId;
+      if (data.clientId !== undefined) updateData.client_id = data.clientId;
 
       const { data: updatedRow, error } = await supabase
         .from('lab_requests')
