@@ -26,6 +26,9 @@ export interface DeliveryRequest {
   lineOfBusiness: string;
   invoiceDetails: string;
   assignedTo?: string | null;
+  agentId?: string | null;
+  accountManagerId?: string | null;
+  clientId?: string | null;
   createdAt: string;
 }
 
