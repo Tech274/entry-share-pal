@@ -13,7 +13,7 @@ import {
 import { DeliveryRequest, LAB_STATUS_OPTIONS, CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LINE_OF_BUSINESS_OPTIONS } from '@/types/deliveryRequest';
 import { CurrencyInput } from '@/components/CurrencyInput';
 import { IntegerInput } from '@/components/IntegerInput';
-
+import { PersonnelSelect } from '@/components/personnel/PersonnelSelect';
 import { Send, RotateCcw } from 'lucide-react';
 
 interface DeliveryRequestFormProps {
@@ -194,21 +194,6 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
         <h3 className="form-section-title">Client & Lab Details</h3>
         <div className="form-grid">
           <div className="space-y-2">
-            <Label htmlFor="client">
-              Client <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="client"
-              value={formData.client}
-              onChange={e => handleChange('client', e.target.value)}
-              placeholder="Client name"
-              className={errors.client ? 'border-destructive' : ''}
-            />
-            {errors.client && (
-              <p className="text-sm text-destructive">{errors.client}</p>
-            )}
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="cloud">Lab Type</Label>
             <Select value={formData.cloud} onValueChange={v => handleChange('cloud', v)}>
               <SelectTrigger>
@@ -267,6 +252,29 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
       <div className="form-section">
         <h3 className="form-section-title">Personnel</h3>
         <div className="form-grid">
+          <PersonnelSelect
+            type="clients"
+            value={formData.client}
+            onChange={(v) => handleChange('client', v === '__none__' ? '' : v)}
+            label="Client"
+            placeholder="Select client"
+            required
+            error={errors.client}
+          />
+          <PersonnelSelect
+            type="agents"
+            value={formData.agentName}
+            onChange={(v) => handleChange('agentName', v === '__none__' ? '' : v)}
+            label="Agent Name"
+            placeholder="Select agent"
+          />
+          <PersonnelSelect
+            type="accountManagers"
+            value={formData.accountManager}
+            onChange={(v) => handleChange('accountManager', v === '__none__' ? '' : v)}
+            label="Account Manager"
+            placeholder="Select account manager"
+          />
           <div className="space-y-2">
             <Label htmlFor="requester">Requester</Label>
             <Input
@@ -274,24 +282,6 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
               value={formData.requester}
               onChange={e => handleChange('requester', e.target.value)}
               placeholder="Requester name"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="agentName">Agent Name</Label>
-            <Input
-              id="agentName"
-              value={formData.agentName}
-              onChange={e => handleChange('agentName', e.target.value)}
-              placeholder="Agent name"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="accountManager">Account Manager</Label>
-            <Input
-              id="accountManager"
-              value={formData.accountManager}
-              onChange={e => handleChange('accountManager', e.target.value)}
-              placeholder="Account manager"
             />
           </div>
         </div>
