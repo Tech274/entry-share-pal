@@ -17,6 +17,7 @@ import Auth from "./pages/Auth";
 import Docs from "./pages/Docs";
 import LabCatalog from "./pages/LabCatalog";
 import PublicCatalog from "./pages/PublicCatalog";
+import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -83,6 +84,16 @@ const App = () => (
                   <ProtectedRoute>
                     <ErrorBoundary>
                       <MasterDataSheet />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/reports" 
+                element={
+                  <ProtectedRoute>
+                    <ErrorBoundary>
+                      <Reports />
                     </ErrorBoundary>
                   </ProtectedRoute>
                 } 

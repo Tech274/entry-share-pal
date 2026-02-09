@@ -5,13 +5,18 @@ import { ADRTabContent } from '@/components/ADRTabContent';
 import { CalendarView } from '@/components/CalendarView';
 import { Header } from '@/components/Header';
 import { AIAssistant } from '@/components/AIAssistant';
+import { ReportsSummary } from '@/components/reports/ReportsSummary';
+import { CloudBillingTab } from '@/components/reports/CloudBillingTab';
+import { RevenueBreakdown } from '@/components/dashboards/RevenueBreakdown';
+import { LabTypeBreakdown } from '@/components/dashboards/LabTypeBreakdown';
+import { LearnersBreakdown } from '@/components/dashboards/LearnersBreakdown';
 import { useLabRequestsQuery } from '@/hooks/useLabRequestsQuery';
 import { useDeliveryRequestsQuery } from '@/hooks/useDeliveryRequestsQuery';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { ClipboardList, Truck, LayoutDashboard, Database, Calendar } from 'lucide-react';
+import { ClipboardList, Truck, LayoutDashboard, Database, Calendar, FileText } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { useMemo, useCallback, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -38,7 +43,7 @@ const Index = () => {
     refetch: refetchDeliveryRequests
   } = useDeliveryRequestsQuery();
   const { toast } = useToast();
-  const { isFinance } = useAuth();
+  const { isFinance, isAdmin, isOpsLead } = useAuth();
 
   // Enable realtime sync for all data - single global subscription
   useRealtimeSync();
@@ -244,8 +249,9 @@ const Index = () => {
     }
   };
 
-  // Finance users have limited tabs
+  // Finance users have limited tabs but also have access to Reports
   const showOperationalTabs = !isFinance;
+  const canAccessReports = isAdmin || isOpsLead || isFinance;
 
   // Tab navigation state
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -316,7 +322,7 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className={`grid w-full ${isFinance ? 'max-w-md grid-cols-2' : 'max-w-3xl grid-cols-5'}`}>
+          <TabsList className={`grid w-full ${isFinance ? 'max-w-md grid-cols-2' : (canAccessReports ? 'max-w-4xl grid-cols-6' : 'max-w-3xl grid-cols-5')}`}>
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="w-4 h-4" />
               Dashboard
@@ -341,9 +347,9 @@ const Index = () => {
                 </TabsTrigger>
               </>
             )}
-            {isFinance && (
+            {canAccessReports && (
               <TabsTrigger value="reports" className="gap-2">
-                <Database className="w-4 h-4" />
+                <FileText className="w-4 h-4" />
                 Reports
               </TabsTrigger>
             )}
@@ -405,11 +411,32 @@ const Index = () => {
             </>
           )}
 
-          {isFinance && (
+          {canAccessReports && (
             <TabsContent value="reports" className="space-y-6">
-              <div className="text-center p-8 text-muted-foreground">
-                Financial reports view - Summary of costs and margins
-              </div>
+              <Tabs defaultValue="summary" className="space-y-4">
+                <TabsList className="grid w-full max-w-2xl grid-cols-5">
+                  <TabsTrigger value="summary">Summary</TabsTrigger>
+                  <TabsTrigger value="revenue">Revenue</TabsTrigger>
+                  <TabsTrigger value="labtype">Lab Type</TabsTrigger>
+                  <TabsTrigger value="learners">Learners</TabsTrigger>
+                  <TabsTrigger value="cloudbilling">Cloud Billing</TabsTrigger>
+                </TabsList>
+                <TabsContent value="summary">
+                  <ReportsSummary labRequests={requests} deliveryRequests={deliveryRequests} />
+                </TabsContent>
+                <TabsContent value="revenue">
+                  <RevenueBreakdown labRequests={requests} deliveryRequests={deliveryRequests} />
+                </TabsContent>
+                <TabsContent value="labtype">
+                  <LabTypeBreakdown labRequests={requests} deliveryRequests={deliveryRequests} />
+                </TabsContent>
+                <TabsContent value="learners">
+                  <LearnersBreakdown deliveryRequests={deliveryRequests} />
+                </TabsContent>
+                <TabsContent value="cloudbilling">
+                  <CloudBillingTab />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
           )}
         </Tabs>
