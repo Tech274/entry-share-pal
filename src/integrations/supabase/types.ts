@@ -283,9 +283,12 @@ export type Database = {
       delivery_requests: {
         Row: {
           account_manager: string | null
+          account_manager_id: string | null
+          agent_id: string | null
           agent_name: string | null
           assigned_to: string | null
           client: string
+          client_id: string | null
           cloud: string | null
           cloud_type: string | null
           created_at: string
@@ -314,9 +317,12 @@ export type Database = {
         }
         Insert: {
           account_manager?: string | null
+          account_manager_id?: string | null
+          agent_id?: string | null
           agent_name?: string | null
           assigned_to?: string | null
           client: string
+          client_id?: string | null
           cloud?: string | null
           cloud_type?: string | null
           created_at?: string
@@ -345,9 +351,12 @@ export type Database = {
         }
         Update: {
           account_manager?: string | null
+          account_manager_id?: string | null
+          agent_id?: string | null
           agent_name?: string | null
           assigned_to?: string | null
           client?: string
+          client_id?: string | null
           cloud?: string | null
           cloud_type?: string | null
           created_at?: string
@@ -374,7 +383,29 @@ export type Database = {
           updated_at?: string
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "delivery_requests_account_manager_id_fkey"
+            columns: ["account_manager_id"]
+            isOneToOne: false
+            referencedRelation: "account_managers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_requests_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       engineer_settings: {
         Row: {
@@ -553,9 +584,12 @@ export type Database = {
       lab_requests: {
         Row: {
           account_manager: string | null
+          account_manager_id: string | null
+          agent_id: string | null
           agent_name: string | null
           assigned_to: string | null
           client: string
+          client_id: string | null
           cloud: string | null
           cloud_type: string | null
           created_at: string
@@ -584,9 +618,12 @@ export type Database = {
         }
         Insert: {
           account_manager?: string | null
+          account_manager_id?: string | null
+          agent_id?: string | null
           agent_name?: string | null
           assigned_to?: string | null
           client: string
+          client_id?: string | null
           cloud?: string | null
           cloud_type?: string | null
           created_at?: string
@@ -615,9 +652,12 @@ export type Database = {
         }
         Update: {
           account_manager?: string | null
+          account_manager_id?: string | null
+          agent_id?: string | null
           agent_name?: string | null
           assigned_to?: string | null
           client?: string
+          client_id?: string | null
           cloud?: string | null
           cloud_type?: string | null
           created_at?: string
@@ -644,7 +684,29 @@ export type Database = {
           user_count?: number | null
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "lab_requests_account_manager_id_fkey"
+            columns: ["account_manager_id"]
+            isOneToOne: false
+            referencedRelation: "account_managers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
