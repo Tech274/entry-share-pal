@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -26,8 +25,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
-import { useCloudBillingDetails, useCloudBillingMutations, type CloudBillingDetail, type CloudProvider } from '@/hooks/useCloudBillingDetails';
-import { Plus, Pencil, Trash2, Cloud, AlertCircle } from 'lucide-react';
+import { useCloudBillingDetails, useCloudBillingMutations, SAMPLE_CLOUD_BILLING_DATA, type CloudBillingDetail, type CloudProvider } from '@/hooks/useCloudBillingDetails';
+import { Plus, Pencil, Trash2, Cloud, AlertCircle, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -86,6 +85,7 @@ function ProviderSection({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-28">Month</TableHead>
+                <TableHead className="w-40">Vendor Name</TableHead>
                 <TableHead className="text-right">Overall Business</TableHead>
                 <TableHead className="text-right">Cost on {providerLabel}</TableHead>
                 <TableHead className="text-right">Margins</TableHead>
@@ -102,6 +102,7 @@ function ProviderSection({
                 return (
                   <TableRow key={r.id}>
                     <TableCell className="font-medium">{r.month} {r.year}</TableCell>
+                    <TableCell className="text-muted-foreground">{r.vendor_name || '—'}</TableCell>
                     <TableCell className="text-right">{formatINR(r.overall_business)}</TableCell>
                     <TableCell className="text-right">{formatINR(r.cloud_cost)}</TableCell>
                     <TableCell className={`text-right ${margins < 0 ? 'text-red-600' : ''}`}>
@@ -133,6 +134,7 @@ function ProviderSection({
               {rows.length > 0 && (
                 <TableRow className="bg-green-600/20 font-semibold">
                   <TableCell>Total</TableCell>
+                  <TableCell />
                   <TableCell className="text-right">{formatINR(totals.overall_business)}</TableCell>
                   <TableCell className="text-right">{formatINR(totals.cloud_cost)}</TableCell>
                   <TableCell className={`text-right ${totals.margins < 0 ? 'text-red-600' : ''}`}>
@@ -168,6 +170,7 @@ export function CloudBillingDashboard() {
 
   const formState = useState({
     provider: 'aws' as CloudProvider,
+    vendor_name: '' as string,
     month: 'April',
     year: new Date().getFullYear(),
     overall_business: 0,
@@ -182,6 +185,7 @@ export function CloudBillingDashboard() {
     setActiveProvider(null);
     setForm({
       provider: 'aws',
+      vendor_name: '',
       month: 'April',
       year: new Date().getFullYear(),
       overall_business: 0,
@@ -196,6 +200,7 @@ export function CloudBillingDashboard() {
     setActiveProvider(provider);
     setForm({
       provider,
+      vendor_name: PROVIDERS.find((p) => p.id === provider)?.label ?? '',
       month: MONTHS[new Date().getMonth()],
       year: new Date().getFullYear(),
       overall_business: 0,
@@ -212,6 +217,7 @@ export function CloudBillingDashboard() {
     setActiveProvider(null);
     setForm({
       provider: r.provider,
+      vendor_name: r.vendor_name ?? '',
       month: r.month,
       year: r.year,
       overall_business: r.overall_business,
@@ -231,6 +237,7 @@ export function CloudBillingDashboard() {
           id: editing.id,
           data: {
             provider: form.provider,
+            vendor_name: form.vendor_name || null,
             month: form.month,
             year: form.year,
             overall_business: form.overall_business,
@@ -251,6 +258,7 @@ export function CloudBillingDashboard() {
       mutations.create.mutate(
         {
           provider: form.provider,
+          vendor_name: form.vendor_name || null,
           month: form.month,
           year: form.year,
           overall_business: form.overall_business,
@@ -316,11 +324,25 @@ export function CloudBillingDashboard() {
     );
   }
 
+  const loadSample = () => {
+    if (!confirm('Load sample data for AWS, Azure, GCP (April–June 2025)? Existing rows for those months will be replaced.')) return;
+    mutations.bulkInsert.mutate(SAMPLE_CLOUD_BILLING_DATA, {
+      onSuccess: () => toast.success('Sample data loaded. Margins and % calculated.'),
+      onError: (err: Error) => toast.error(err.message),
+    });
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 text-muted-foreground text-sm">
-        <Cloud className="w-4 h-4" />
-        <span>Month-on-month invoiced to customer, cloud spend vs cloud sales, and % margins by provider.</span>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2 text-muted-foreground text-sm">
+          <Cloud className="w-4 h-4" />
+          <span>Month-on-month invoiced to customer, cloud spend vs cloud sales, and % margins by provider.</span>
+        </div>
+        <Button variant="outline" size="sm" onClick={loadSample} disabled={mutations.bulkInsert.isPending} className="gap-2">
+          <Database className="w-4 h-4" />
+          {mutations.bulkInsert.isPending ? 'Loading…' : 'Load sample data'}
+        </Button>
       </div>
 
       {PROVIDERS.map(({ id }) => (
@@ -378,6 +400,14 @@ export function CloudBillingDashboard() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div>
+              <Label>Vendor Name</Label>
+              <Input
+                value={form.vendor_name}
+                onChange={(e) => setForm((f) => ({ ...f, vendor_name: e.target.value }))}
+                placeholder="e.g. Amazon Web Services"
+              />
             </div>
             <div>
               <Label>Year</Label>

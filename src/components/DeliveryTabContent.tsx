@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { DeliveryRequestForm } from '@/components/DeliveryRequestForm';
 import { DeliveryTable } from '@/components/DeliveryTable';
 import { DeliveryRequest } from '@/types/deliveryRequest';
-import { Truck, FileText, CheckCircle, PackageCheck, Cloud, Server, Building2 } from 'lucide-react';
+import { Truck, FileText, Clock, Loader2, KeyRound, Building2, ListFilter } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface DeliveryTabContentProps {
@@ -16,128 +17,91 @@ interface DeliveryTabContentProps {
   onFilterChange?: (filter: string | undefined) => void;
 }
 
-// Sub-component for Lab Type filtered view
-const LabTypeSubTabs = ({ 
-  requests, 
+// Status filter: same button-inline style as Solutions listing (Filter: All | Pending | Work In-Progress | Test Credentials)
+const STATUS_FILTERS = [
+  { value: 'all', label: 'All', icon: Building2 },
+  { value: 'Pending', label: 'Pending', icon: Clock },
+  { value: 'Work-in-Progress', label: 'Work In-Progress', icon: Loader2 },
+  { value: 'Test Credentials Shared', label: 'Test Credentials', icon: KeyRound },
+] as const;
+
+const LabTypeSubTabs = ({
+  requests,
   onDelete,
   onStatusChange,
   onUpdate,
   label,
   showStatusBreakdown = false,
-}: { 
-  requests: DeliveryRequest[]; 
+}: {
+  requests: DeliveryRequest[];
   onDelete: (id: string) => void;
   onStatusChange?: (id: string, newStatus: string) => void;
   onUpdate?: (id: string, data: Partial<DeliveryRequest>) => void;
   label: string;
   showStatusBreakdown?: boolean;
 }) => {
-  const publicCloudRequests = requests.filter(r => r.cloud === 'Public Cloud');
-  const privateCloudRequests = requests.filter(r => r.cloud === 'Private Cloud');
-  const tpLabsRequests = requests.filter(r => r.cloud === 'TP Labs');
+  const [listSubTab, setListSubTab] = useState<string>('all');
 
-  // Status breakdown for active requests
-  const pendingCount = requests.filter(r => r.labStatus === 'Pending').length;
-  const wipCount = requests.filter(r => r.labStatus === 'Work-in-Progress').length;
-  const testCredentialsCount = requests.filter(r => r.labStatus === 'Test Credentials Shared').length;
-  const inProgressCount = requests.filter(r => r.labStatus === 'Delivery In-Progress').length;
-  const cancelledCount = requests.filter(r => r.labStatus === 'Cancelled').length;
+  const pendingRequests = requests.filter((r) => r.labStatus === 'Pending');
+  const wipRequests = requests.filter((r) => r.labStatus === 'Work-in-Progress');
+  const testCredsRequests = requests.filter((r) => r.labStatus === 'Test Credentials Shared');
+
+  const getFilteredRequests = () => {
+    if (listSubTab === 'all') return requests;
+    if (listSubTab === 'Pending') return pendingRequests;
+    if (listSubTab === 'Work-in-Progress') return wipRequests;
+    if (listSubTab === 'Test Credentials Shared') return testCredsRequests;
+    return requests;
+  };
+
+  const getCount = (value: string) => {
+    if (value === 'all') return requests.length;
+    if (value === 'Pending') return pendingRequests.length;
+    if (value === 'Work-in-Progress') return wipRequests.length;
+    if (value === 'Test Credentials Shared') return testCredsRequests.length;
+    return 0;
+  };
 
   return (
-    <Tabs defaultValue="all" className="space-y-4">
+    <div className="space-y-4">
       {showStatusBreakdown && requests.length > 0 && (
-        <div className="flex items-center gap-6 px-4 py-3 bg-muted/40 border rounded-lg">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-foreground">{label}</span>
-            <Badge variant="secondary" className="text-xs">
-              {requests.length}
-            </Badge>
-          </div>
-          
-          <div className="h-4 w-px bg-border" />
-          
-          <div className="flex items-center gap-3">
-            {pendingCount > 0 && (
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-warning" />
-                <span className="text-xs text-muted-foreground">Pending</span>
-                <span className="text-xs font-medium">{pendingCount}</span>
-              </div>
-            )}
-            {wipCount > 0 && (
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-primary" />
-                <span className="text-xs text-muted-foreground">WIP</span>
-                <span className="text-xs font-medium">{wipCount}</span>
-              </div>
-            )}
-            {testCredentialsCount > 0 && (
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-accent" />
-                <span className="text-xs text-muted-foreground">Test Creds</span>
-                <span className="text-xs font-medium">{testCredentialsCount}</span>
-              </div>
-            )}
-            {inProgressCount > 0 && (
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-secondary" />
-                <span className="text-xs text-muted-foreground">In-Progress</span>
-                <span className="text-xs font-medium">{inProgressCount}</span>
-              </div>
-            )}
-            {cancelledCount > 0 && (
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-destructive" />
-                <span className="text-xs text-muted-foreground">Cancelled</span>
-                <span className="text-xs font-medium">{cancelledCount}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      
-      {!showStatusBreakdown && (
         <div className="flex items-center gap-2 px-4 py-2 bg-muted/40 border rounded-lg">
-          <span className="text-sm font-medium">{label}</span>
-          <Badge variant="secondary" className="text-xs">{requests.length}</Badge>
+          <span className="text-sm font-medium text-foreground">{label}</span>
+          <Badge variant="secondary" className="text-xs">
+            {requests.length}
+          </Badge>
         </div>
       )}
-      
-      <TabsList className="grid w-full max-w-2xl grid-cols-4">
-        <TabsTrigger value="all" className="gap-2">
-          <Building2 className="w-4 h-4" />
-          All ({requests.length})
-        </TabsTrigger>
-        <TabsTrigger value="public" className="gap-2">
-          <Cloud className="w-4 h-4" />
-          Public Cloud ({publicCloudRequests.length})
-        </TabsTrigger>
-        <TabsTrigger value="private" className="gap-2">
-          <Server className="w-4 h-4" />
-          Private Cloud ({privateCloudRequests.length})
-        </TabsTrigger>
-        <TabsTrigger value="tp-labs" className="gap-2">
-          <Building2 className="w-4 h-4" />
-          TP Labs ({tpLabsRequests.length})
-        </TabsTrigger>
-      </TabsList>
 
-      <TabsContent value="all">
-        <DeliveryTable requests={requests} onDelete={onDelete} onStatusChange={onStatusChange} onUpdate={onUpdate} />
-      </TabsContent>
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-sm font-medium text-muted-foreground mr-2">
+          <ListFilter className="w-4 h-4 inline mr-1" />
+          Filter:
+        </span>
+        {STATUS_FILTERS.map(({ value, label: tabLabel, icon: Icon }) => (
+          <Button
+            key={value}
+            variant={listSubTab === value ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setListSubTab(value)}
+            className="gap-2"
+          >
+            <Icon className="w-4 h-4" />
+            {tabLabel}
+            <Badge variant="secondary" className="ml-1">
+              {getCount(value)}
+            </Badge>
+          </Button>
+        ))}
+      </div>
 
-      <TabsContent value="public">
-        <DeliveryTable requests={publicCloudRequests} onDelete={onDelete} onStatusChange={onStatusChange} onUpdate={onUpdate} />
-      </TabsContent>
-
-      <TabsContent value="private">
-        <DeliveryTable requests={privateCloudRequests} onDelete={onDelete} onStatusChange={onStatusChange} onUpdate={onUpdate} />
-      </TabsContent>
-
-      <TabsContent value="tp-labs">
-        <DeliveryTable requests={tpLabsRequests} onDelete={onDelete} onStatusChange={onStatusChange} onUpdate={onUpdate} />
-      </TabsContent>
-    </Tabs>
+      <DeliveryTable
+        requests={getFilteredRequests()}
+        onDelete={onDelete}
+        onStatusChange={onStatusChange}
+        onUpdate={onUpdate}
+      />
+    </div>
   );
 };
 

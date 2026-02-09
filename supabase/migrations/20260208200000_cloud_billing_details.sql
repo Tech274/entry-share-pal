@@ -4,6 +4,7 @@
 CREATE TABLE IF NOT EXISTS public.cloud_billing_details (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   provider TEXT NOT NULL CHECK (provider IN ('aws', 'azure', 'gcp')),
+  vendor_name TEXT,
   month TEXT NOT NULL,
   year INTEGER NOT NULL,
   overall_business NUMERIC DEFAULT 0,

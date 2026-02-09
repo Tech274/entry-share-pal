@@ -207,6 +207,7 @@ export type Database = {
         Row: {
           id: string
           provider: string
+          vendor_name: string | null
           month: string
           year: number
           overall_business: number
@@ -219,6 +220,7 @@ export type Database = {
         Insert: {
           id?: string
           provider: string
+          vendor_name?: string | null
           month: string
           year: number
           overall_business?: number
@@ -231,6 +233,7 @@ export type Database = {
         Update: {
           id?: string
           provider?: string
+          vendor_name?: string | null
           month?: string
           year?: number
           overall_business?: number

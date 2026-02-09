@@ -6,6 +6,7 @@ export type CloudProvider = 'aws' | 'azure' | 'gcp';
 export interface CloudBillingDetail {
   id: string;
   provider: CloudProvider;
+  vendor_name: string | null;
   month: string;
   year: number;
   overall_business: number;
@@ -18,6 +19,7 @@ export interface CloudBillingDetail {
 
 export interface CloudBillingDetailInsert {
   provider: CloudProvider;
+  vendor_name?: string | null;
   month: string;
   year: number;
   overall_business?: number;
@@ -28,6 +30,7 @@ export interface CloudBillingDetailInsert {
 
 const parseRow = (r: Record<string, unknown>): CloudBillingDetail => ({
   ...r,
+  vendor_name: (r.vendor_name as string) ?? null,
   overall_business: Number(r.overall_business) || 0,
   cloud_cost: Number(r.cloud_cost) || 0,
   invoiced_to_customer: Number(r.invoiced_to_customer) || 0,
@@ -58,6 +61,7 @@ export function useCloudBillingMutations() {
     mutationFn: async (input: CloudBillingDetailInsert) => {
       const { error } = await supabase.from('cloud_billing_details').insert({
         provider: input.provider,
+        vendor_name: input.vendor_name ?? null,
         month: input.month,
         year: input.year,
         overall_business: input.overall_business ?? 0,
@@ -73,6 +77,7 @@ export function useCloudBillingMutations() {
     mutationFn: async ({ id, data }: { id: string; data: Partial<CloudBillingDetailInsert> }) => {
       const payload: Record<string, unknown> = {};
       if (data.provider != null) payload.provider = data.provider;
+      if (data.vendor_name !== undefined) payload.vendor_name = data.vendor_name;
       if (data.month != null) payload.month = data.month;
       if (data.year != null) payload.year = data.year;
       if (data.overall_business != null) payload.overall_business = data.overall_business;
@@ -91,5 +96,37 @@ export function useCloudBillingMutations() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey }),
   });
-  return { create, update, remove };
+  const bulkInsert = useMutation({
+    mutationFn: async (rows: CloudBillingDetailInsert[]) => {
+      const payload = rows.map((r) => ({
+        provider: r.provider,
+        vendor_name: r.vendor_name ?? null,
+        month: r.month,
+        year: r.year,
+        overall_business: r.overall_business ?? 0,
+        cloud_cost: r.cloud_cost ?? 0,
+        invoiced_to_customer: r.invoiced_to_customer ?? 0,
+        yet_to_be_billed: r.yet_to_be_billed ?? 0,
+      }));
+      const { error } = await supabase
+        .from('cloud_billing_details')
+        .upsert(payload, { onConflict: 'provider,month,year' });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey }),
+  });
+  return { create, update, remove, bulkInsert };
 }
+
+/** Sample data matching the Public Cloud Billing - Details Excel (AWS, Azure, GCP Apr–Jun) */
+export const SAMPLE_CLOUD_BILLING_DATA: CloudBillingDetailInsert[] = [
+  { provider: 'aws', vendor_name: 'Amazon Web Services', month: 'April', year: 2025, overall_business: 2241051, cloud_cost: 253075, invoiced_to_customer: 1162266, yet_to_be_billed: 1078785 },
+  { provider: 'aws', vendor_name: 'Amazon Web Services', month: 'May', year: 2025, overall_business: 1250000, cloud_cost: 1100000, invoiced_to_customer: 850000, yet_to_be_billed: 400000 },
+  { provider: 'aws', vendor_name: 'Amazon Web Services', month: 'June', year: 2025, overall_business: 1270097, cloud_cost: 1372212, invoiced_to_customer: 677079, yet_to_be_billed: 592998 },
+  { provider: 'azure', vendor_name: 'Microsoft Azure', month: 'April', year: 2025, overall_business: 2612794, cloud_cost: 293507, invoiced_to_customer: 2078545, yet_to_be_billed: 534249 },
+  { provider: 'azure', vendor_name: 'Microsoft Azure', month: 'May', year: 2025, overall_business: 1680000, cloud_cost: 156594, invoiced_to_customer: 1187000, yet_to_be_billed: 17000 },
+  { provider: 'azure', vendor_name: 'Microsoft Azure', month: 'June', year: 2025, overall_business: 1701186, cloud_cost: 156500, invoiced_to_customer: 1195208, yet_to_be_billed: 50660 },
+  { provider: 'gcp', vendor_name: 'Google Cloud Platform', month: 'April', year: 2025, overall_business: 161644, cloud_cost: 54819, invoiced_to_customer: 161644, yet_to_be_billed: 0 },
+  { provider: 'gcp', vendor_name: 'Google Cloud Platform', month: 'May', year: 2025, overall_business: 145823, cloud_cost: 56643, invoiced_to_customer: 40287, yet_to_be_billed: 0 },
+  { provider: 'gcp', vendor_name: 'Google Cloud Platform', month: 'June', year: 2025, overall_business: 145824, cloud_cost: 56643, invoiced_to_customer: 0, yet_to_be_billed: 251360 },
+];

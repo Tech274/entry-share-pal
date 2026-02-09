@@ -196,7 +196,7 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
               <div 
                 className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => onNavigate?.('delivery')}
@@ -238,13 +238,6 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
               >
                 <div className="text-3xl font-bold text-emerald-600">{completedDeliveries}</div>
                 <div className="text-sm text-muted-foreground">Completed</div>
-              </div>
-              <div 
-                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
-                onClick={() => onNavigate?.('delivery')}
-              >
-                <div className="text-xl font-bold text-primary">{formatINR(deliveryRevenue)}</div>
-                <div className="text-sm text-muted-foreground">Total Revenue</div>
               </div>
             </div>
           </CardContent>
