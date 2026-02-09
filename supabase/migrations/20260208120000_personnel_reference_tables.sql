@@ -95,6 +95,14 @@ CREATE POLICY "Allow insert access to delivery_managers" ON public.delivery_mana
 CREATE POLICY "Allow update access to delivery_managers" ON public.delivery_managers FOR UPDATE USING (true);
 CREATE POLICY "Allow delete access to delivery_managers" ON public.delivery_managers FOR DELETE USING (true);
 
+-- Grants (ensure anon/authenticated can use the tables with RLS)
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.agents TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.account_managers TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.clients TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.solution_managers TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.delivery_managers TO anon, authenticated;
+
 -- Add FK columns to lab_requests
 ALTER TABLE public.lab_requests ADD COLUMN IF NOT EXISTS agent_id UUID REFERENCES public.agents(id) ON DELETE SET NULL;
 ALTER TABLE public.lab_requests ADD COLUMN IF NOT EXISTS account_manager_id UUID REFERENCES public.account_managers(id) ON DELETE SET NULL;

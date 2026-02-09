@@ -214,6 +214,8 @@ function ClientsCRUD() {
   const [name, setName] = useState('');
   const [accountManagerId, setAccountManagerId] = useState<string>('');
   const [isActive, setIsActive] = useState(true);
+  const [filterAccountManagerId, setFilterAccountManagerId] = useState<string>('all');
+  const [filterClientName, setFilterClientName] = useState('');
 
   const reset = () => {
     setEditing(null);
@@ -272,13 +274,22 @@ function ClientsCRUD() {
     });
   };
 
+  const filteredClients = clients.filter((client) => {
+    const matchesAccount =
+      filterAccountManagerId === 'all' || client.account_manager_id === filterAccountManagerId;
+    const matchesName =
+      filterClientName.trim() === '' ||
+      client.name.toLowerCase().includes(filterClientName.trim().toLowerCase());
+    return matchesAccount && matchesName;
+  });
+
   return (
     <Card>
       <CardHeader className="bg-primary text-primary-foreground py-3 px-4 rounded-t-lg">
         <CardTitle className="text-base flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Building2 className="w-4 h-4" />
-            Clients ({clients.length})
+            Clients ({filteredClients.length}/{clients.length})
           </div>
           <Dialog open={isOpen} onOpenChange={(v) => { setIsOpen(v); if (!v) reset(); }}>
             <DialogTrigger asChild>
@@ -331,10 +342,45 @@ function ClientsCRUD() {
           </Dialog>
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-4">
+      <CardContent className="p-4 space-y-4">
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="min-w-[200px] space-y-1">
+            <Label>Account Name</Label>
+            <Select value={filterAccountManagerId} onValueChange={setFilterAccountManagerId}>
+              <SelectTrigger>
+                <SelectValue placeholder="All account managers" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                {accountManagers.filter((am) => am.is_active).map((am) => (
+                  <SelectItem key={am.id} value={am.id}>
+                    {am.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="min-w-[220px] space-y-1">
+            <Label>Client Name</Label>
+            <Input
+              value={filterClientName}
+              onChange={(e) => setFilterClientName(e.target.value)}
+              placeholder="Search client name"
+            />
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setFilterAccountManagerId('all');
+              setFilterClientName('');
+            }}
+          >
+            Reset
+          </Button>
+        </div>
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">Loading...</div>
-        ) : clients.length === 0 ? (
+        ) : filteredClients.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">No clients. Click Add to create one.</div>
         ) : (
           <div className="rounded-md border">
@@ -348,7 +394,7 @@ function ClientsCRUD() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {clients.map((row) => (
+                {filteredClients.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium">{row.name}</TableCell>
                     <TableCell>
@@ -383,6 +429,62 @@ function ClientsCRUD() {
   );
 }
 
+function AccountNameTab() {
+  const { data: clients = [], isLoading } = useClients();
+  const { data: accountManagers = [] } = useAccountManagers();
+
+  const rows = clients.map((client) => ({
+    id: client.id,
+    clientName: client.name,
+    accountManagerName:
+      accountManagers.find((am) => am.id === client.account_manager_id)?.name ?? '—',
+    status: client.is_active ? 'Active' : 'Inactive',
+  }));
+
+  return (
+    <Card>
+      <CardHeader className="bg-primary text-primary-foreground py-3 px-4 rounded-t-lg">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Building2 className="w-4 h-4" />
+          Account Name (Clients & Account Managers)
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-4">
+        {isLoading ? (
+          <div className="text-center py-8 text-muted-foreground">Loading...</div>
+        ) : rows.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">No clients found.</div>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Account Name</TableHead>
+                  <TableHead>Client Name</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell className="font-medium">{row.accountManagerName}</TableCell>
+                    <TableCell>{row.clientName}</TableCell>
+                    <TableCell>
+                      <span className={row.status === 'Active' ? 'text-green-600' : 'text-muted-foreground'}>
+                        {row.status}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export const PersonnelManagement = () => {
   const { data: agents = [], isLoading: agentsLoading, isError: agentsError, error: agentsErrorDetail } = useAgents();
   const { data: accountManagers = [] } = useAccountManagers();
@@ -399,6 +501,12 @@ export const PersonnelManagement = () => {
     (errMsg.includes('does not exist') ||
       errMsg.includes('relation') ||
       /schema/i.test(errMsg));
+  const permissionsHint =
+    agentsError &&
+    errMsg &&
+    (errMsg.toLowerCase().includes('permission denied') ||
+      errMsg.toLowerCase().includes('row-level security') ||
+      errMsg.toLowerCase().includes('insufficient privilege'));
 
   return (
     <div className="space-y-4">
@@ -415,6 +523,16 @@ export const PersonnelManagement = () => {
           </AlertDescription>
         </Alert>
       )}
+      {permissionsHint && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Permissions missing for personnel tables</AlertTitle>
+          <AlertDescription>
+            Run <code className="text-xs bg-muted px-1 rounded">supabase/RUN_PERSONNEL_GRANTS.sql</code> in Supabase SQL
+            Editor to grant insert/update permissions for clients, account managers, and other personnel tables.
+          </AlertDescription>
+        </Alert>
+      )}
       <Tabs defaultValue="agents" className="space-y-4">
       <TabsList>
         <TabsTrigger value="agents" className="flex items-center gap-2">
@@ -428,6 +546,10 @@ export const PersonnelManagement = () => {
         <TabsTrigger value="clients" className="flex items-center gap-2">
           <Building2 className="w-4 h-4" />
           Clients
+        </TabsTrigger>
+        <TabsTrigger value="accountName" className="flex items-center gap-2">
+          <Building2 className="w-4 h-4" />
+          Account Name
         </TabsTrigger>
         <TabsTrigger value="solutionManagers" className="flex items-center gap-2">
           <ClipboardList className="w-4 h-4" />
@@ -463,6 +585,10 @@ export const PersonnelManagement = () => {
 
       <TabsContent value="clients">
         <ClientsCRUD />
+      </TabsContent>
+
+      <TabsContent value="accountName">
+        <AccountNameTab />
       </TabsContent>
 
       <TabsContent value="solutionManagers">

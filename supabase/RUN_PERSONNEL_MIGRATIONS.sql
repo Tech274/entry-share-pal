@@ -128,6 +128,14 @@ CREATE POLICY "Allow update access to delivery_managers" ON public.delivery_mana
 DROP POLICY IF EXISTS "Allow delete access to delivery_managers" ON public.delivery_managers;
 CREATE POLICY "Allow delete access to delivery_managers" ON public.delivery_managers FOR DELETE USING (true);
 
+-- Grants (ensure anon/authenticated can use the tables with RLS)
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.agents TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.account_managers TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.clients TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.solution_managers TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.delivery_managers TO anon, authenticated;
+
 -- Add FK columns to lab_requests / delivery_requests only if those tables exist (safe when DB has no schema yet)
 DO $$
 BEGIN
