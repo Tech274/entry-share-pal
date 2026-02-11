@@ -52,6 +52,30 @@ const DELIVERY_HEADERS = [
   'Invoice Details',
 ];
 
+const CLOUD_BILLING_HEADERS = [
+  'Provider',
+  'Vendor Name',
+  'Month',
+  'Year',
+  'Overall Business',
+  'Cloud Cost',
+  'Margins',
+  'Margin %',
+  'Invoiced to Customer',
+  'Yet to be Billed',
+];
+
+export interface CloudBillingExportRow {
+  provider: string;
+  vendor_name?: string | null;
+  month: string;
+  year: number;
+  overall_business: number;
+  cloud_cost: number;
+  invoiced_to_customer: number;
+  yet_to_be_billed: number;
+}
+
 const escapeCSV = (value: string | number): string => {
   const stringValue = String(value);
   if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
@@ -217,6 +241,80 @@ export function exportToXLS(requests: (LabRequest | DeliveryRequest)[], filename
           <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
         </thead>
         <tbody>${rows}</tbody>
+      </table>
+    </body>
+    </html>
+  `;
+
+  downloadFile(xlsContent, `${filename}.xls`, 'application/vnd.ms-excel');
+}
+
+export function exportCloudBillingToCSV(rows: CloudBillingExportRow[], filename = 'cloud-billing'): void {
+  if (rows.length === 0) return;
+
+  const csvRows = rows.map((row) => {
+    const margins = row.overall_business - row.cloud_cost;
+    const marginPct = row.overall_business > 0 ? (margins / row.overall_business) * 100 : 0;
+    return [
+      row.provider.toUpperCase(),
+      row.vendor_name || '',
+      row.month,
+      row.year,
+      formatINR(row.overall_business),
+      formatINR(row.cloud_cost),
+      formatINR(margins),
+      formatPercentage(marginPct),
+      formatINR(row.invoiced_to_customer),
+      formatINR(row.yet_to_be_billed),
+    ];
+  });
+
+  const csvContent = [
+    CLOUD_BILLING_HEADERS.map(escapeCSV).join(','),
+    ...csvRows.map((row) => row.map(escapeCSV).join(',')),
+  ].join('\n');
+
+  downloadFile(csvContent, `${filename}.csv`, 'text/csv');
+}
+
+export function exportCloudBillingToXLS(rows: CloudBillingExportRow[], filename = 'cloud-billing'): void {
+  if (rows.length === 0) return;
+
+  const tableRows = rows.map((row) => {
+    const margins = row.overall_business - row.cloud_cost;
+    const marginPct = row.overall_business > 0 ? (margins / row.overall_business) * 100 : 0;
+    return `
+      <tr>
+        <td>${row.provider.toUpperCase()}</td>
+        <td>${row.vendor_name || ''}</td>
+        <td>${row.month}</td>
+        <td>${row.year}</td>
+        <td>${formatINR(row.overall_business)}</td>
+        <td>${formatINR(row.cloud_cost)}</td>
+        <td>${formatINR(margins)}</td>
+        <td>${formatPercentage(marginPct)}</td>
+        <td>${formatINR(row.invoiced_to_customer)}</td>
+        <td>${formatINR(row.yet_to_be_billed)}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const xlsContent = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+    <head>
+      <meta charset="utf-8">
+      <style>
+        table { border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 8px; }
+        th { background-color: #16a34a; color: white; font-weight: bold; }
+      </style>
+    </head>
+    <body>
+      <table>
+        <thead>
+          <tr>${CLOUD_BILLING_HEADERS.map((h) => `<th>${h}</th>`).join('')}</tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
       </table>
     </body>
     </html>

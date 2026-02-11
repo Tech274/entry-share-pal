@@ -195,10 +195,18 @@ const MasterDataSheet = () => {
         rows.push(row);
       }
 
+      const referenceData = {
+        clients: clients.map(({ id, name }) => ({ id, name })),
+        agents: agents.map(({ id, name }) => ({ id, name })),
+        accountManagers: accountManagers.map(({ id, name }) => ({ id, name })),
+        solutionManagers: solutionManagers.map(({ id, name }) => ({ id, name })),
+        deliveryManagers: deliveryManagers.map(({ id, name }) => ({ id, name })),
+      };
+
       // Call AI autocorrect edge function for Delivery records
       if (activeTab === 'delivery') {
         const { data: aiResult, error: aiError } = await supabase.functions.invoke('ai-csv-autocorrect', {
-          body: { headers, rows }
+          body: { headers, rows, requestType: 'delivery', referenceData }
         });
 
         if (aiError) {
@@ -210,16 +218,25 @@ const MasterDataSheet = () => {
           let importedCount = 0;
 
           for (const row of aiResult.correctedRows) {
-            const ids = resolvePersonnelIds(
-              row.client || '',
-              row.agentName || '',
-              row.accountManager || '',
-              row.requester || '',
-              clients,
-              agents,
-              accountManagers,
-              deliveryManagers
-            );
+            const ids = {
+              clientId: row.clientId ?? null,
+              agentId: row.agentId ?? null,
+              accountManagerId: row.accountManagerId ?? null,
+              requesterId: row.requesterId ?? null,
+            };
+            const fallbackIds =
+              ids.clientId || ids.agentId || ids.accountManagerId || ids.requesterId
+                ? ids
+                : resolvePersonnelIds(
+                    row.client || '',
+                    row.agentName || '',
+                    row.accountManager || '',
+                    row.requester || '',
+                    clients,
+                    agents,
+                    accountManagers,
+                    deliveryManagers
+                  );
 
             await addDeliveryRequest({
               potentialId: row.potentialId || '',
@@ -227,7 +244,7 @@ const MasterDataSheet = () => {
               trainingName: row.trainingName || row.labName || '',
               numberOfUsers: row.numberOfUsers || 0,
               client: row.client || 'Unknown Client',
-              clientId: ids.clientId,
+              clientId: fallbackIds.clientId,
               month: row.month,
               year: row.year,
               receivedOn: row.receivedOn || '',
@@ -236,11 +253,11 @@ const MasterDataSheet = () => {
               tpLabType: row.tpLabType || '',
               labName: row.labName || row.trainingName || '',
               requester: row.requester || '',
-              requesterId: ids.requesterId,
+              requesterId: fallbackIds.requesterId,
               agentName: row.agentName || '',
-              agentId: ids.agentId,
+              agentId: fallbackIds.agentId,
               accountManager: row.accountManager || '',
-              accountManagerId: ids.accountManagerId,
+              accountManagerId: fallbackIds.accountManagerId,
               labStatus: row.labStatus || 'Delivered',
               labType: row.labType || '',
               startDate: row.startDate || '',

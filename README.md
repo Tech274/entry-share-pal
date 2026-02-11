@@ -71,3 +71,36 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## Docker (Production)
+
+Run locally with Docker:
+
+```sh
+# Build image
+docker build -t entry-share-pal:latest .
+
+# Run container
+docker run --rm -p 8080:80 entry-share-pal:latest
+```
+
+Or with compose:
+
+```sh
+docker compose up --build -d
+```
+
+Then open: `http://localhost:8080`
+
+### Publish to Docker Hub
+
+```sh
+# 1) Login
+docker login
+
+# 2) Tag
+docker tag entry-share-pal:latest <dockerhub-username>/entry-share-pal:latest
+
+# 3) Push
+docker push <dockerhub-username>/entry-share-pal:latest
+```

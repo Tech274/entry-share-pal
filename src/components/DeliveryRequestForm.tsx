@@ -98,12 +98,11 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
       if (field === 'cloud' && value !== 'TP Labs') {
         updated.tpLabType = '';
       }
-      // Auto-calculate total when users or costs change
+      // Auto-calculate revenue when users or selling cost changes
       if (field === 'numberOfUsers' || field === 'inputCostPerUser' || field === 'sellingCostPerUser') {
         const users = field === 'numberOfUsers' ? Number(value) : updated.numberOfUsers;
-        const inputCost = field === 'inputCostPerUser' ? Number(value) : updated.inputCostPerUser;
         const sellingCost = field === 'sellingCostPerUser' ? Number(value) : updated.sellingCostPerUser;
-        updated.totalAmount = Math.round(users * (inputCost + sellingCost) * 100) / 100;
+        updated.totalAmount = Math.round(sellingCost * users * 100) / 100;
       }
       return updated;
     });
@@ -507,7 +506,10 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Auto-calculated: (Input + Selling) × Users
+              Auto-calculated revenue: Selling × Users
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Profit formula: (Selling - Input) × Users
             </p>
           </div>
         </div>

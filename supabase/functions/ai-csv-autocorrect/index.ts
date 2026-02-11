@@ -164,6 +164,23 @@ interface CorrectedRow {
   totalAmount: number;
   lineOfBusiness: string;
   invoiceDetails: string;
+  clientId?: string | null;
+  agentId?: string | null;
+  accountManagerId?: string | null;
+  requesterId?: string | null;
+}
+
+interface NamedReference {
+  id: string;
+  name: string;
+}
+
+interface ReferenceData {
+  clients?: NamedReference[];
+  agents?: NamedReference[];
+  accountManagers?: NamedReference[];
+  solutionManagers?: NamedReference[];
+  deliveryManagers?: NamedReference[];
 }
 
 // Find best matching field from CSV headers
@@ -246,6 +263,12 @@ function parseNumber(value: string | number | undefined): number {
   return isNaN(parsed) ? 0 : parsed;
 }
 
+function resolveIdByName(list: NamedReference[] | undefined, name: string): string | null {
+  if (!list?.length || !name?.trim()) return null;
+  const target = name.trim().toLowerCase();
+  return list.find((item) => item.name?.trim().toLowerCase() === target)?.id ?? null;
+}
+
 // Correct a single row
 function correctRow(row: RowData, headerMapping: Record<string, string>): CorrectedRow {
   const mappedRow: Record<string, string | number> = {};
@@ -311,7 +334,12 @@ serve(async (req) => {
   }
 
   try {
-    const { headers, rows } = await req.json();
+    const { headers, rows, requestType, referenceData } = await req.json() as {
+      headers: string[];
+      rows: RowData[];
+      requestType?: 'solutions' | 'delivery';
+      referenceData?: ReferenceData;
+    };
     
     if (!headers || !rows || !Array.isArray(rows)) {
       return new Response(
@@ -337,7 +365,19 @@ serve(async (req) => {
     }
 
     // Correct all rows
-    const correctedRows = rows.map((row: RowData) => correctRow(row, headerMapping));
+    const correctedRows = rows.map((row: RowData) => {
+      const corrected = correctRow(row, headerMapping);
+      const requesterSource =
+        requestType === 'solutions'
+          ? referenceData?.solutionManagers
+          : referenceData?.deliveryManagers;
+
+      corrected.clientId = resolveIdByName(referenceData?.clients, corrected.client);
+      corrected.agentId = resolveIdByName(referenceData?.agents, corrected.agentName);
+      corrected.accountManagerId = resolveIdByName(referenceData?.accountManagers, corrected.accountManager);
+      corrected.requesterId = resolveIdByName(requesterSource, corrected.requester);
+      return corrected;
+    });
 
     // Generate summary of corrections
     const corrections: string[] = [];

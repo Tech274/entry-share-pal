@@ -1,0 +1,9 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: entry-share-pal:latest
+    ports:
+      - "8080:80"
+    restart: unless-stopped

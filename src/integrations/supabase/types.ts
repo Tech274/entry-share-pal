@@ -248,9 +248,12 @@ export type Database = {
       delivery_requests: {
         Row: {
           account_manager: string | null
+          account_manager_id: string | null
           agent_name: string | null
+          agent_id: string | null
           assigned_to: string | null
           client: string
+          client_id: string | null
           cloud: string | null
           cloud_type: string | null
           created_at: string
@@ -269,6 +272,7 @@ export type Database = {
           potential_id: string | null
           received_on: string | null
           requester: string | null
+          requester_id: string | null
           selling_cost_per_user: number | null
           start_date: string | null
           total_amount: number | null
@@ -279,9 +283,12 @@ export type Database = {
         }
         Insert: {
           account_manager?: string | null
+          account_manager_id?: string | null
           agent_name?: string | null
+          agent_id?: string | null
           assigned_to?: string | null
           client: string
+          client_id?: string | null
           cloud?: string | null
           cloud_type?: string | null
           created_at?: string
@@ -300,6 +307,7 @@ export type Database = {
           potential_id?: string | null
           received_on?: string | null
           requester?: string | null
+          requester_id?: string | null
           selling_cost_per_user?: number | null
           start_date?: string | null
           total_amount?: number | null
@@ -310,9 +318,12 @@ export type Database = {
         }
         Update: {
           account_manager?: string | null
+          account_manager_id?: string | null
           agent_name?: string | null
+          agent_id?: string | null
           assigned_to?: string | null
           client?: string
+          client_id?: string | null
           cloud?: string | null
           cloud_type?: string | null
           created_at?: string
@@ -331,6 +342,7 @@ export type Database = {
           potential_id?: string | null
           received_on?: string | null
           requester?: string | null
+          requester_id?: string | null
           selling_cost_per_user?: number | null
           start_date?: string | null
           total_amount?: number | null
@@ -518,9 +530,12 @@ export type Database = {
       lab_requests: {
         Row: {
           account_manager: string | null
+          account_manager_id: string | null
           agent_name: string | null
+          agent_id: string | null
           assigned_to: string | null
           client: string
+          client_id: string | null
           cloud: string | null
           cloud_type: string | null
           created_at: string
@@ -539,6 +554,7 @@ export type Database = {
           received_on: string | null
           remarks: string | null
           requester: string | null
+          requester_id: string | null
           selling_cost_per_user: number | null
           status: string | null
           total_amount_for_training: number | null
@@ -549,9 +565,12 @@ export type Database = {
         }
         Insert: {
           account_manager?: string | null
+          account_manager_id?: string | null
           agent_name?: string | null
+          agent_id?: string | null
           assigned_to?: string | null
           client: string
+          client_id?: string | null
           cloud?: string | null
           cloud_type?: string | null
           created_at?: string
@@ -570,6 +589,7 @@ export type Database = {
           received_on?: string | null
           remarks?: string | null
           requester?: string | null
+          requester_id?: string | null
           selling_cost_per_user?: number | null
           status?: string | null
           total_amount_for_training?: number | null
@@ -580,9 +600,12 @@ export type Database = {
         }
         Update: {
           account_manager?: string | null
+          account_manager_id?: string | null
           agent_name?: string | null
+          agent_id?: string | null
           assigned_to?: string | null
           client?: string
+          client_id?: string | null
           cloud?: string | null
           cloud_type?: string | null
           created_at?: string
@@ -601,6 +624,7 @@ export type Database = {
           received_on?: string | null
           remarks?: string | null
           requester?: string | null
+          requester_id?: string | null
           selling_cost_per_user?: number | null
           status?: string | null
           total_amount_for_training?: number | null
