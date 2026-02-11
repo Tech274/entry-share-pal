@@ -8,9 +8,11 @@ import { LabTypeBreakdown } from '@/components/dashboards/LabTypeBreakdown';
 import { LearnersBreakdown } from '@/components/dashboards/LearnersBreakdown';
 import { ReportsSummary } from '@/components/reports/ReportsSummary';
 import { CloudBillingTab } from '@/components/reports/CloudBillingTab';
-import { IndianRupee, Layers, Users, FileText, Cloud } from 'lucide-react';
+import { IndianRupee, Layers, Users, FileText, Cloud, Download } from 'lucide-react';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const ReportsPage = () => {
   const { isAdmin, isFinance, isOpsLead } = useAuth();
@@ -73,6 +75,28 @@ const ReportsPage = () => {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">Reports</h1>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" disabled={labRequests.length === 0 && deliveryRequests.length === 0}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => { exportToCSV(labRequests, 'solutions-report'); toast({ title: 'Export Complete', description: 'Solutions exported as CSV' }); }} disabled={labRequests.length === 0}>
+                  Solutions CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { exportToXLS(labRequests, 'solutions-report'); toast({ title: 'Export Complete', description: 'Solutions exported as XLS' }); }} disabled={labRequests.length === 0}>
+                  Solutions XLS
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { exportToCSV(deliveryRequests as any, 'delivery-report'); toast({ title: 'Export Complete', description: 'Delivery exported as CSV' }); }} disabled={deliveryRequests.length === 0}>
+                  Delivery CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { exportToXLS(deliveryRequests as any, 'delivery-report'); toast({ title: 'Export Complete', description: 'Delivery exported as XLS' }); }} disabled={deliveryRequests.length === 0}>
+                  Delivery XLS
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <Tabs defaultValue="revenue" className="space-y-6">

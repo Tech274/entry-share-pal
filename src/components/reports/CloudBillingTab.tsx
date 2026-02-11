@@ -7,10 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Plus, Edit, Trash2, Database, AlertTriangle, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Database, AlertTriangle, Loader2, Download } from 'lucide-react';
 import { useCloudBilling, CloudBillingEntry, MONTH_OPTIONS } from '@/hooks/useCloudBilling';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
 import { useToast } from '@/hooks/use-toast';
+import { exportCloudBillingCSV, exportCloudBillingXLS } from '@/lib/reportExportUtils';
 
 const YEAR_OPTIONS = [2024, 2025, 2026];
 
@@ -219,10 +220,20 @@ export const CloudBillingTab = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Cloud Billing Details</h2>
-        <Button variant="outline" onClick={handleLoadSampleData}>
-          <Database className="w-4 h-4 mr-2" />
-          Load Sample Data
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => { exportCloudBillingCSV(entries); toast({ title: 'Export Complete', description: 'Cloud billing exported as CSV' }); }} disabled={entries.length === 0}>
+            <Download className="w-4 h-4 mr-1" />
+            CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => { exportCloudBillingXLS(entries); toast({ title: 'Export Complete', description: 'Cloud billing exported as XLS' }); }} disabled={entries.length === 0}>
+            <Download className="w-4 h-4 mr-1" />
+            XLS
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleLoadSampleData}>
+            <Database className="w-4 h-4 mr-1" />
+            Load Sample Data
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-6">
