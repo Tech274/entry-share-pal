@@ -4,6 +4,7 @@ import { ClipboardList, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatINR } from '@/lib/formatUtils';
 import { differenceInDays, parseISO } from 'date-fns';
 
 interface OpsEngineerDashboardProps {
@@ -48,7 +49,7 @@ export const OpsEngineerDashboard = ({ labRequests, deliveryRequests, onNavigate
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">My Dashboard</h2>
-        <Badge variant="secondary" className="bg-blue-100 text-blue-800">Ops Engineer</Badge>
+        <Badge variant="secondary" className="bg-blue-100 text-blue-800">Ops</Badge>
       </div>
       
       {/* Quick Stats */}
@@ -149,9 +150,12 @@ export const OpsEngineerDashboard = ({ labRequests, deliveryRequests, onNavigate
                       <td className="p-3">
                         <Badge 
                           variant="outline" 
-                          className={request.status === 'Solution Pending' 
-                            ? 'bg-yellow-50 text-yellow-700 border-yellow-200' 
-                            : 'bg-green-50 text-green-700 border-green-200'}
+                          className={
+                            request.status === 'Solution Pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                            request.status === 'POC In-Progress' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                            request.status === 'Lost Closed' ? 'bg-slate-50 text-slate-700 border-slate-200' :
+                            'bg-green-50 text-green-700 border-green-200'
+                          }
                         >
                           {request.status}
                         </Badge>

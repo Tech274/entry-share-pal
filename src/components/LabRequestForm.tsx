@@ -11,10 +11,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LOB_OPTIONS, LabRequest } from '@/types/labRequest';
+import { useAgents, useAccountManagers, useClients, useSolutionManagers } from '@/hooks/usePersonnel';
 import { CurrencyInput } from '@/components/CurrencyInput';
 import { IntegerInput } from '@/components/IntegerInput';
 import { PercentageInput } from '@/components/PercentageInput';
-import { PersonnelSelect } from '@/components/personnel/PersonnelSelect';
 import { Send, RotateCcw } from 'lucide-react';
 
 interface LabRequestFormProps {
@@ -40,13 +40,17 @@ const initialFormState = {
   month: '',
   year: new Date().getFullYear(),
   client: '',
+  clientId: '' as string,
   cloud: '',
   cloudType: '',
   tpLabType: '',
   labName: '',
   requester: '',
+  requesterId: '' as string,
   agentName: '',
+  agentId: '' as string,
   accountManager: '',
+  accountManagerId: '' as string,
   receivedOn: '',
   labStartDate: '',
   labEndDate: '',
@@ -60,20 +64,47 @@ const initialFormState = {
   remarks: '',
   lineOfBusiness: '',
   invoiceDetails: '',
-  agentId: null as string | null,
-  accountManagerId: null as string | null,
-  clientId: null as string | null,
 };
 
 export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
+  const { data: clients = [] } = useClients();
+  const { data: agents = [] } = useAgents();
+  const { data: accountManagers = [] } = useAccountManagers();
+  const { data: solutionManagers = [] } = useSolutionManagers();
+
   const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [_touched, setTouched] = useState<Set<string>>(new Set());
+  const [touched, setTouched] = useState<Set<string>>(new Set());
 
   const handleChange = (field: string, value: string | number) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
       
+      // Pre-fill account manager when client is selected
+      if (field === 'clientId' && typeof value === 'string') {
+        const client = clients.find((c) => c.id === value);
+        if (client?.account_manager_id) {
+          updated.accountManagerId = client.account_manager_id;
+          updated.accountManager = accountManagers.find((am) => am.id === client.account_manager_id)?.name ?? '';
+        }
+      }
+      // Sync display names when IDs change
+      if (field === 'clientId') {
+        const c = clients.find((x) => x.id === value);
+        updated.client = c?.name ?? '';
+      }
+      if (field === 'agentId') {
+        const a = agents.find((x) => x.id === value);
+        updated.agentName = a?.name ?? '';
+      }
+      if (field === 'accountManagerId') {
+        const am = accountManagers.find((x) => x.id === value);
+        updated.accountManager = am?.name ?? '';
+      }
+      if (field === 'requesterId') {
+        const sm = solutionManagers.find((x) => x.id === value);
+        updated.requester = sm?.name ?? '';
+      }
       // Clear cloudType when cloud changes to non-Public Cloud
       if (field === 'cloud' && value !== 'Public Cloud') {
         updated.cloudType = '';
@@ -298,10 +329,31 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
         </div>
       </div>
 
-      {/* Lab Details */}
+      {/* Client & Lab Details */}
       <div className="form-section">
-        <h3 className="form-section-title">Lab Details</h3>
+        <h3 className="form-section-title">Client & Lab Details</h3>
         <div className="form-grid">
+          <div className="space-y-2">
+            <Label htmlFor="client">
+              Client
+              <span className="text-destructive ml-1">*</span>
+            </Label>
+            <Select
+              value={formData.clientId || '__none__'}
+              onValueChange={v => handleChange('clientId', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger className={errors.client ? 'border-destructive' : ''}>
+                <SelectValue placeholder="Select client" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Select client</SelectItem>
+                {clients.filter((c) => c.is_active).map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.client && <p className="text-sm text-destructive">{errors.client}</p>}
+          </div>
           <div className="space-y-2">
             <Label htmlFor="cloud">Lab Type</Label>
             <Select value={formData.cloud} onValueChange={v => handleChange('cloud', v)}>
@@ -361,44 +413,56 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
       <div className="form-section">
         <h3 className="form-section-title">Personnel</h3>
         <div className="form-grid">
-          <PersonnelSelect
-            type="clients"
-            value={formData.client}
-            onChange={(name, id) => {
-              setFormData(prev => ({ ...prev, client: name, clientId: id }));
-              if (errors.client) setErrors(prev => ({ ...prev, client: undefined }));
-            }}
-            label="Client"
-            placeholder="Select client"
-            required
-            error={errors.client}
-          />
-          <PersonnelSelect
-            type="agents"
-            value={formData.agentName}
-            onChange={(name, id) => {
-              setFormData(prev => ({ ...prev, agentName: name, agentId: id }));
-            }}
-            label="Agent Name"
-            placeholder="Select agent"
-          />
-          <PersonnelSelect
-            type="accountManagers"
-            value={formData.accountManager}
-            onChange={(name, id) => {
-              setFormData(prev => ({ ...prev, accountManager: name, accountManagerId: id }));
-            }}
-            label="Account Manager"
-            placeholder="Select account manager"
-          />
           <div className="space-y-2">
-            <Label htmlFor="requester">Requester</Label>
-            <Input
-              id="requester"
-              value={formData.requester}
-              onChange={e => handleChange('requester', e.target.value)}
-              placeholder="Requester name"
-            />
+            <Label htmlFor="requester">Solution Manager</Label>
+            <Select
+              value={formData.requesterId || '__none__'}
+              onValueChange={v => handleChange('requesterId', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select solution manager" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Select solution manager</SelectItem>
+                {solutionManagers.filter((s) => s.is_active).map((s) => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="agentName">Agent</Label>
+            <Select
+              value={formData.agentId || '__none__'}
+              onValueChange={v => handleChange('agentId', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select agent" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Select agent</SelectItem>
+                {agents.filter((a) => a.is_active).map((a) => (
+                  <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="accountManager">Account Manager</Label>
+            <Select
+              value={formData.accountManagerId || '__none__'}
+              onValueChange={v => handleChange('accountManagerId', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select account manager" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Select account manager</SelectItem>
+                {accountManagers.filter((am) => am.is_active).map((am) => (
+                  <SelectItem key={am.id} value={am.id}>{am.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

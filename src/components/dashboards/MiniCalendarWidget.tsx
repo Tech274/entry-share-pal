@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, ChevronRight, ClipboardList, Truck } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
-import { format, addDays, parseISO, isSameDay, startOfDay } from 'date-fns';
+import { format, addDays, parseISO, isWithinInterval, isSameDay, startOfDay } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -89,9 +89,9 @@ export function MiniCalendarWidget({
 
   return (
     <Card>
-      <CardHeader className="bg-primary text-primary-foreground py-3 px-4 rounded-t-lg flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Calendar className="w-4 h-4" />
+      <CardHeader className="bg-primary text-primary-foreground py-4 px-4 rounded-t-lg flex flex-row items-center justify-between">
+        <CardTitle className="text-xl font-bold flex items-center gap-2">
+          <Calendar className="w-5 h-5" />
           Next 7 Days
         </CardTitle>
         {onNavigateToCalendar && (

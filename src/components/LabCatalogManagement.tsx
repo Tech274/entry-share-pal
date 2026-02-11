@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/external-supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,7 +71,7 @@ export const LabCatalogManagement = () => {
   const { data: entryLabels = [] } = useEntryLabels(editingEntry?.id || null);
   const { data: allEntryLabels = [] } = useAllEntryLabels();
   const { updateEntryLabels } = useManageEntryLabels();
-  const { labels: _allLabels } = useLabLabels();
+  const { labels: allLabels } = useLabLabels();
 
   // Update form labelIds when entry labels load
   useEffect(() => {

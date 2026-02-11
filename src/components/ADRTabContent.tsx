@@ -1,16 +1,15 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Eye, Upload, Download, Sparkles, Loader2, ChevronRight, LayoutDashboard, X, PackageCheck, CheckCircle, Database } from 'lucide-react';
+import { Cloud, Server, Building2, Eye, Upload, Download, Sparkles, Loader2, ChevronRight, LayoutDashboard, X, PackageCheck, CheckCircle, Database } from 'lucide-react';
 import { DeliveryTable } from '@/components/DeliveryTable';
 import { AIDataEditBar } from '@/components/AIDataEditBar';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/external-supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
-import { StatusFilterBar, FilterOption } from '@/components/shared/StatusFilterBar';
-import { LabTypeFilterBar } from '@/components/shared/LabTypeFilterBar';
 
 // CSV Headers for bulk upload template
 const ADR_CSV_HEADERS = [
@@ -60,6 +59,76 @@ interface CorrectedRow {
   invoiceDetails: string;
 }
 
+// Sub-component for Lab Type filtered view within each main tab
+const LabTypeSubTabs = ({ 
+  requests, 
+  onDelete,
+  onUpdate,
+  showMasterSheetButton = false,
+  canPreview = false,
+}: { 
+  requests: DeliveryRequest[]; 
+  onDelete: (id: string) => void;
+  onUpdate?: (id: string, data: Partial<DeliveryRequest>) => void;
+  showMasterSheetButton?: boolean;
+  canPreview?: boolean;
+}) => {
+  const publicCloudRequests = requests.filter(r => r.cloud === 'Public Cloud');
+  const privateCloudRequests = requests.filter(r => r.cloud === 'Private Cloud');
+  const tpLabsRequests = requests.filter(r => r.cloud === 'TP Labs');
+
+  return (
+    <Tabs defaultValue="all" className="space-y-4">
+      <TabsList className="grid w-full max-w-2xl grid-cols-4">
+        <TabsTrigger value="all" className="gap-2">
+          <Building2 className="w-4 h-4" />
+          All ({requests.length})
+        </TabsTrigger>
+        <TabsTrigger value="public" className="gap-2">
+          <Cloud className="w-4 h-4" />
+          Public Cloud ({publicCloudRequests.length})
+        </TabsTrigger>
+        <TabsTrigger value="private" className="gap-2">
+          <Server className="w-4 h-4" />
+          Private Cloud ({privateCloudRequests.length})
+        </TabsTrigger>
+        <TabsTrigger value="tp-labs" className="gap-2">
+          <Building2 className="w-4 h-4" />
+          TP Labs ({tpLabsRequests.length})
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="all">
+        <div className="space-y-4">
+          {showMasterSheetButton && canPreview && (
+            <div className="flex justify-end">
+              <Link to="/master-data-sheet">
+                <Button variant="secondary" className="gap-2">
+                  <Eye className="w-4 h-4" />
+                  Preview Master Data Sheet
+                </Button>
+              </Link>
+            </div>
+          )}
+          <DeliveryTable requests={requests} onDelete={onDelete} onUpdate={onUpdate} />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="public">
+        <DeliveryTable requests={publicCloudRequests} onDelete={onDelete} onUpdate={onUpdate} />
+      </TabsContent>
+
+      <TabsContent value="private">
+        <DeliveryTable requests={privateCloudRequests} onDelete={onDelete} onUpdate={onUpdate} />
+      </TabsContent>
+
+      <TabsContent value="tp-labs">
+        <DeliveryTable requests={tpLabsRequests} onDelete={onDelete} onUpdate={onUpdate} />
+      </TabsContent>
+    </Tabs>
+  );
+};
+
 export const ADRTabContent = ({
   deliveryRequests,
   onDeliveryDelete,
@@ -74,8 +143,7 @@ export const ADRTabContent = ({
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [labTypeFilter, setLabTypeFilter] = useState('all');
+  const [mainTab, setMainTab] = useState('in-progress');
   const [activeFilter, setActiveFilter] = useState<string | undefined>(undefined);
 
   const canPreview = isAdmin || isOpsLead;
@@ -84,12 +152,14 @@ export const ADRTabContent = ({
   useEffect(() => {
     if (initialFilter) {
       setActiveFilter(initialFilter);
+      // Map filter to appropriate main tab
       if (initialFilter === 'Delivery Completed' || initialFilter === 'Completed') {
-        setStatusFilter('completed');
+        setMainTab('completed');
       } else if (initialFilter === 'Delivery In-Progress') {
-        setStatusFilter('in-progress');
+        setMainTab('in-progress');
       } else {
-        setStatusFilter('all');
+        // For lab type filters, stay on current tab
+        setMainTab('all-records');
       }
     }
   }, [initialFilter]);
@@ -99,57 +169,22 @@ export const ADRTabContent = ({
     onFilterChange?.(undefined);
   };
 
+  // Filter delivery requests by status categories
+  const deliveryInProgressRequests = deliveryRequests.filter(r => 
+    r.labStatus === 'Delivery In-Progress'
+  );
+  
+  const completedRequests = deliveryRequests.filter(r => 
+    r.labStatus === 'Completed' || r.labStatus === 'Delivery Completed'
+  );
+
   // All ADR records (Delivery In-Progress + Completed)
-  const allAdrRequests = useMemo(() => deliveryRequests.filter(r => 
+  const allAdrRequests = deliveryRequests.filter(r => 
     r.labStatus === 'Delivery In-Progress' || 
     r.labStatus === 'Completed' || 
     r.labStatus === 'Delivery Completed' ||
     r.labStatus === 'Delivered'
-  ), [deliveryRequests]);
-
-  // Status-based counts
-  const deliveryInProgressRequests = useMemo(() => 
-    allAdrRequests.filter(r => r.labStatus === 'Delivery In-Progress'), [allAdrRequests]);
-  const completedRequests = useMemo(() => 
-    allAdrRequests.filter(r => r.labStatus === 'Completed' || r.labStatus === 'Delivery Completed'), [allAdrRequests]);
-
-  // Status filter options
-  const statusFilterOptions: FilterOption[] = [
-    { key: 'all', label: 'All Records', count: allAdrRequests.length, icon: <Database className="w-4 h-4" /> },
-    { key: 'in-progress', label: 'Delivery In-Progress', count: deliveryInProgressRequests.length, icon: <PackageCheck className="w-4 h-4" /> },
-    { key: 'completed', label: 'Completed', count: completedRequests.length, icon: <CheckCircle className="w-4 h-4" /> },
-  ];
-
-  // Get status-filtered requests
-  const getStatusFilteredRequests = () => {
-    switch (statusFilter) {
-      case 'in-progress': return deliveryInProgressRequests;
-      case 'completed': return completedRequests;
-      default: return allAdrRequests;
-    }
-  };
-
-  // Apply lab type filter
-  const getFilteredRequests = () => {
-    const statusFiltered = getStatusFilteredRequests();
-    switch (labTypeFilter) {
-      case 'public': return statusFiltered.filter(r => r.cloud === 'Public Cloud');
-      case 'private': return statusFiltered.filter(r => r.cloud === 'Private Cloud');
-      case 'tp-labs': return statusFiltered.filter(r => r.cloud === 'TP Labs');
-      default: return statusFiltered;
-    }
-  };
-
-  const filteredRequests = getFilteredRequests();
-  const statusFiltered = getStatusFilteredRequests();
-
-  // Lab type counts based on status-filtered data
-  const labTypeCounts = useMemo(() => ({
-    all: statusFiltered.length,
-    publicCloud: statusFiltered.filter(r => r.cloud === 'Public Cloud').length,
-    privateCloud: statusFiltered.filter(r => r.cloud === 'Private Cloud').length,
-    tpLabs: statusFiltered.filter(r => r.cloud === 'TP Labs').length,
-  }), [statusFiltered]);
+  );
 
   const handleDownloadTemplate = () => {
     const csvContent = ADR_CSV_HEADERS.join(',') + '\n';
@@ -227,6 +262,7 @@ export const ADRTabContent = ({
         return;
       }
 
+      // Parse headers and rows
       const headers = lines[0].split(',').map(h => h.trim());
       const rows: Record<string, string>[] = [];
 
@@ -239,6 +275,7 @@ export const ADRTabContent = ({
         rows.push(row);
       }
 
+      // Call AI autocorrect edge function
       const { data: aiResult, error: aiError } = await supabase.functions.invoke('ai-csv-autocorrect', {
         body: { headers, rows }
       });
@@ -251,6 +288,7 @@ export const ADRTabContent = ({
       let recordsToInsert: Omit<DeliveryRequest, 'id' | 'createdAt'>[];
 
       if (aiResult?.success && aiResult?.correctedRows) {
+        // Use AI-corrected data
         recordsToInsert = aiResult.correctedRows.map((row: CorrectedRow) => ({
           potentialId: row.potentialId || '',
           freshDeskTicketNumber: row.freshDeskTicketNumber || '',
@@ -279,6 +317,7 @@ export const ADRTabContent = ({
           invoiceDetails: row.invoiceDetails || '',
         }));
 
+        // Show AI corrections summary
         if (aiResult.corrections && aiResult.corrections.length > 0) {
           toast({
             title: 'AI Auto-Corrections Applied',
@@ -305,6 +344,7 @@ export const ADRTabContent = ({
       });
     } finally {
       setIsProcessing(false);
+      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -398,38 +438,49 @@ export const ADRTabContent = ({
         recordCount={allAdrRequests.length}
       />
 
-      {/* Status Filter Row */}
-      <StatusFilterBar
-        options={statusFilterOptions}
-        activeFilter={statusFilter}
-        onFilterChange={setStatusFilter}
-      />
+      {/* Main Status Tabs */}
+      <Tabs value={mainTab} onValueChange={setMainTab} className="space-y-6">
+        <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <TabsTrigger value="in-progress" className="gap-2">
+            <PackageCheck className="w-4 h-4" />
+            Delivery In-Progress ({deliveryInProgressRequests.length})
+          </TabsTrigger>
+          <TabsTrigger value="completed" className="gap-2">
+            <CheckCircle className="w-4 h-4" />
+            Completed ({completedRequests.length})
+          </TabsTrigger>
+          <TabsTrigger value="all-records" className="gap-2">
+            <Database className="w-4 h-4" />
+            All Records ({allAdrRequests.length})
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Lab Type Filter Row */}
-      <LabTypeFilterBar
-        counts={labTypeCounts}
-        activeFilter={labTypeFilter}
-        onFilterChange={setLabTypeFilter}
-      />
+        <TabsContent value="in-progress" className="space-y-4">
+          <LabTypeSubTabs 
+            requests={deliveryInProgressRequests} 
+            onDelete={onDeliveryDelete}
+            onUpdate={onUpdate}
+          />
+        </TabsContent>
 
-      {/* Master Data Sheet Link */}
-      {canPreview && statusFilter === 'all' && (
-        <div className="flex justify-end">
-          <Link to="/master-data-sheet">
-            <Button variant="secondary" className="gap-2">
-              <Eye className="w-4 h-4" />
-              Preview Master Data Sheet
-            </Button>
-          </Link>
-        </div>
-      )}
+        <TabsContent value="completed" className="space-y-4">
+          <LabTypeSubTabs 
+            requests={completedRequests} 
+            onDelete={onDeliveryDelete}
+            onUpdate={onUpdate}
+          />
+        </TabsContent>
 
-      {/* Data Table */}
-      <DeliveryTable 
-        requests={filteredRequests} 
-        onDelete={onDeliveryDelete} 
-        onUpdate={onUpdate} 
-      />
+        <TabsContent value="all-records" className="space-y-4">
+          <LabTypeSubTabs 
+            requests={allAdrRequests} 
+            onDelete={onDeliveryDelete}
+            onUpdate={onUpdate}
+            showMasterSheetButton={true}
+            canPreview={canPreview}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

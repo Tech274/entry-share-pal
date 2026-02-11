@@ -23,6 +23,7 @@ interface ParsedEdit {
 }
 
 const FIELD_MAPPINGS: Record<string, string> = {
+  // Common aliases to actual DB column names
   'status': 'lab_status',
   'labstatus': 'lab_status',
   'lab status': 'lab_status',
@@ -110,6 +111,7 @@ function normalizeValue(field: string, value: string): string | number {
     return MONTH_MAPPINGS[lowerValue] || value;
   }
   
+  // Check if numeric
   const num = parseFloat(value.replace(/[₹$,]/g, ''));
   if (!isNaN(num) && ['total_amount', 'input_cost_per_user', 'selling_cost_per_user', 'number_of_users', 'year'].includes(normalizedField)) {
     return num;
@@ -124,38 +126,6 @@ serve(async (req) => {
   }
 
   try {
-    // Authentication check - require valid JWT
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      console.error('Missing or invalid Authorization header');
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - Missing authentication token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    
-    const authSupabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
-
-    // Validate the JWT token
-    const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await authSupabase.auth.getClaims(token);
-    
-    if (claimsError || !claimsData?.claims) {
-      console.error('JWT validation failed:', claimsError?.message);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - Invalid authentication token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const userId = claimsData.claims.sub;
-    console.log(`Authenticated AI data edit request from user: ${userId}`);
-
     const { instruction, context }: EditRequest = await req.json();
     
     if (!instruction || !context?.tableType) {
@@ -166,18 +136,19 @@ serve(async (req) => {
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!LOVABLE_API_KEY || !supabaseUrl || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (!LOVABLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('Missing required environment variables');
     }
 
-    // Use service role for actual data operations
-    const supabase = createClient(supabaseUrl, SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const tableName = context.tableType === 'delivery' ? 'delivery_requests' : 'lab_requests';
 
     console.log(`Processing edit instruction: "${instruction}" on table: ${tableName}`);
 
+    // Use AI to parse the instruction into structured edits
     const systemPrompt = `You are a data editing assistant. Parse the user's natural language instruction into a structured JSON edit operation.
 
 Available fields for ${tableName}:
@@ -198,14 +169,16 @@ IMPORTANT RULES:
 Return JSON in this format:
 {
   "action": "update" or "delete",
-  "filters": { "field": "value" },
-  "updates": { "field": "new_value" },
+  "filters": { "field": "value" },  // Simple key-value pairs only. Use null for empty fields.
+  "updates": { "field": "new_value" },  // Only for update action
   "description": "Human readable description of what will be done"
 }
 
 Examples:
 - "Change status to Delivered for P-001" → {"action":"update","filters":{"potential_id":"P-001"},"updates":{"lab_status":"Delivered"},"description":"Update status to Delivered for potential ID P-001"}
-- "Set all January 2025 records to Completed" → {"action":"update","filters":{"month":"January","year":2025},"updates":{"lab_status":"Delivery Completed"},"description":"Update all January 2025 records to Delivery Completed"}`;
+- "Set all January 2025 records to Completed" → {"action":"update","filters":{"month":"January","year":2025},"updates":{"lab_status":"Delivery Completed"},"description":"Update all January 2025 records to Delivery Completed"}
+- "Update cloud to Private Cloud where cloud is empty" → {"action":"update","filters":{"cloud":null},"updates":{"cloud":"Private Cloud"},"description":"Update cloud to Private Cloud for all records where cloud is empty"}
+- "Change lab type to AWS for records without cloud type" → {"action":"update","filters":{"cloud_type":null},"updates":{"cloud_type":"AWS"},"description":"Set cloud type to AWS for all records with empty cloud type"}`;
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -247,6 +220,7 @@ Examples:
     
     console.log('AI response:', aiContent);
 
+    // Extract JSON from response
     const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return new Response(
@@ -262,6 +236,7 @@ Examples:
     const parsedEdit: ParsedEdit & { description?: string } = JSON.parse(jsonMatch[0]);
     console.log('Parsed edit:', parsedEdit);
 
+    // Normalize field names and values
     const normalizedFilters: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(parsedEdit.filters || {})) {
       const normalizedKey = normalizeFieldName(key);
@@ -280,11 +255,14 @@ Examples:
       }
     }
 
+    // First, count how many records will be affected
     let countQuery = supabase.from(tableName).select('id', { count: 'exact', head: true });
     for (const [key, value] of Object.entries(normalizedFilters)) {
+      // Handle null filters (for empty/null fields)
       if (value === null) {
         countQuery = countQuery.is(key, null);
       } else if (typeof value === 'object') {
+        // Skip complex filters that Supabase doesn't support directly
         console.warn(`Skipping unsupported filter operator for ${key}:`, value);
         continue;
       } else {
@@ -318,12 +296,15 @@ Examples:
       );
     }
 
+    // Execute the edit
     if (parsedEdit.action === 'update') {
       let updateQuery = supabase.from(tableName).update(normalizedUpdates);
       for (const [key, value] of Object.entries(normalizedFilters)) {
+        // Handle null filters (for empty/null fields)
         if (value === null) {
           updateQuery = updateQuery.is(key, null);
         } else if (typeof value === 'object') {
+          // Skip complex filters
           continue;
         } else {
           updateQuery = updateQuery.eq(key, value);
@@ -357,6 +338,7 @@ Examples:
     }
 
     if (parsedEdit.action === 'delete') {
+      // For safety, require confirmation for deletes
       return new Response(
         JSON.stringify({
           success: false,

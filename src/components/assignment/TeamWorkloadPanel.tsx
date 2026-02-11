@@ -11,7 +11,7 @@ interface TeamWorkloadPanelProps {
 }
 
 export function TeamWorkloadPanel({ className }: TeamWorkloadPanelProps) {
-  const { engineers, loading, refetch, getWorkloadColor } = useEngineers();
+  const { engineers, loading, refetch, getWorkloadColor, getWorkloadBgColor } = useEngineers();
 
   const totalCapacity = engineers.reduce((sum, e) => sum + e.maxCapacity, 0);
   const totalActive = engineers.reduce((sum, e) => sum + e.activeCount, 0);

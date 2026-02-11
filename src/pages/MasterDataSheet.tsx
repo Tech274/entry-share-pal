@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
-import { useLabRequestsQuery } from '@/hooks/useLabRequestsQuery';
-import { useDeliveryRequestsQuery } from '@/hooks/useDeliveryRequestsQuery';
+import { useLabRequests } from '@/hooks/useLabRequests';
+import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
+import { useAgents, useAccountManagers, useClients, useSolutionManagers, useDeliveryManagers } from '@/hooks/usePersonnel';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -10,8 +11,10 @@ import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
 import { getStatusBadgeVariant } from '@/lib/statusColors';
+import { LabRequest } from '@/types/labRequest';
+import { DeliveryRequest } from '@/types/deliveryRequest';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
-import { supabase } from '@/integrations/external-supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { AIDataEditBar } from '@/components/AIDataEditBar';
 import {
   DropdownMenu,
@@ -25,9 +28,35 @@ import logo from '@/assets/makemylabs-logo.png';
 // ADR statuses for delivery filtering
 const ADR_STATUSES = ['Delivered', 'Delivery In-Progress', 'Delivery Completed', 'Completed'];
 
+// Resolve text values to personnel IDs (match by name, case-insensitive)
+function resolvePersonnelIds(
+  clientName: string,
+  agentName: string,
+  accountManagerName: string,
+  requesterName: string,
+  clients: { id: string; name: string }[],
+  agents: { id: string; name: string }[],
+  accountManagers: { id: string; name: string }[],
+  requesters: { id: string; name: string }[]
+) {
+  const byName = (arr: { id: string; name: string }[], name: string) =>
+    arr.find((x) => name && x.name.trim().toLowerCase() === name.trim().toLowerCase())?.id ?? null;
+  return {
+    clientId: byName(clients, clientName),
+    agentId: byName(agents, agentName),
+    accountManagerId: byName(accountManagers, accountManagerName),
+    requesterId: byName(requesters, requesterName),
+  };
+}
+
 const MasterDataSheet = () => {
-  const { requests: labRequests, addRequest: addLabRequest, refetch: refetchLabRequests } = useLabRequestsQuery();
-  const { requests: deliveryRequests, addRequest: addDeliveryRequest, refetch: refetchDeliveryRequests } = useDeliveryRequestsQuery();
+  const { requests: labRequests, addRequest: addLabRequest, refetch: refetchLabRequests } = useLabRequests();
+  const { requests: deliveryRequests, addRequest: addDeliveryRequest, refetch: refetchDeliveryRequests } = useDeliveryRequests();
+  const { data: clients = [] } = useClients();
+  const { data: agents = [] } = useAgents();
+  const { data: accountManagers = [] } = useAccountManagers();
+  const { data: solutionManagers = [] } = useSolutionManagers();
+  const { data: deliveryManagers = [] } = useDeliveryManagers();
   const { toast } = useToast();
   const [activeLabType, setActiveLabType] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<string>('solutions');
@@ -166,10 +195,18 @@ const MasterDataSheet = () => {
         rows.push(row);
       }
 
+      const referenceData = {
+        clients: clients.map(({ id, name }) => ({ id, name })),
+        agents: agents.map(({ id, name }) => ({ id, name })),
+        accountManagers: accountManagers.map(({ id, name }) => ({ id, name })),
+        solutionManagers: solutionManagers.map(({ id, name }) => ({ id, name })),
+        deliveryManagers: deliveryManagers.map(({ id, name }) => ({ id, name })),
+      };
+
       // Call AI autocorrect edge function for Delivery records
       if (activeTab === 'delivery') {
         const { data: aiResult, error: aiError } = await supabase.functions.invoke('ai-csv-autocorrect', {
-          body: { headers, rows }
+          body: { headers, rows, requestType: 'delivery', referenceData }
         });
 
         if (aiError) {
@@ -179,14 +216,35 @@ const MasterDataSheet = () => {
 
         if (aiResult?.success && aiResult?.correctedRows) {
           let importedCount = 0;
-          
+
           for (const row of aiResult.correctedRows) {
+            const ids = {
+              clientId: row.clientId ?? null,
+              agentId: row.agentId ?? null,
+              accountManagerId: row.accountManagerId ?? null,
+              requesterId: row.requesterId ?? null,
+            };
+            const fallbackIds =
+              ids.clientId || ids.agentId || ids.accountManagerId || ids.requesterId
+                ? ids
+                : resolvePersonnelIds(
+                    row.client || '',
+                    row.agentName || '',
+                    row.accountManager || '',
+                    row.requester || '',
+                    clients,
+                    agents,
+                    accountManagers,
+                    deliveryManagers
+                  );
+
             await addDeliveryRequest({
               potentialId: row.potentialId || '',
               freshDeskTicketNumber: row.freshDeskTicketNumber || '',
               trainingName: row.trainingName || row.labName || '',
               numberOfUsers: row.numberOfUsers || 0,
               client: row.client || 'Unknown Client',
+              clientId: fallbackIds.clientId,
               month: row.month,
               year: row.year,
               receivedOn: row.receivedOn || '',
@@ -195,8 +253,11 @@ const MasterDataSheet = () => {
               tpLabType: row.tpLabType || '',
               labName: row.labName || row.trainingName || '',
               requester: row.requester || '',
+              requesterId: fallbackIds.requesterId,
               agentName: row.agentName || '',
+              agentId: fallbackIds.agentId,
               accountManager: row.accountManager || '',
+              accountManagerId: fallbackIds.accountManagerId,
               labStatus: row.labStatus || 'Delivered',
               labType: row.labType || '',
               startDate: row.startDate || '',
@@ -227,13 +288,29 @@ const MasterDataSheet = () => {
       } else {
         // Solutions import (standard processing)
         let importedCount = 0;
-        // Headers already processed, use lowercase row keys
+        const headersLower = headers.map(h => h.toLowerCase());
 
         for (const row of rows) {
           const rowLower: Record<string, string> = {};
           Object.keys(row).forEach(k => {
             rowLower[k.toLowerCase()] = row[k];
           });
+
+          const clientName = rowLower.client || 'Unknown Client';
+          const agentName = rowLower['agent name'] || '';
+          const accountManagerName = rowLower['account manager'] || '';
+          const requesterName = rowLower.requester || '';
+
+          const ids = resolvePersonnelIds(
+            clientName,
+            agentName,
+            accountManagerName,
+            requesterName,
+            clients,
+            agents,
+            accountManagers,
+            solutionManagers
+          );
 
           const currentDate = new Date();
           const month = rowLower.month || currentDate.toLocaleString('default', { month: 'long' });
@@ -242,16 +319,20 @@ const MasterDataSheet = () => {
           await addLabRequest({
             potentialId: rowLower['potential id'] || '',
             freshDeskTicketNumber: rowLower['freshdesk ticket number'] || rowLower['ticket'] || '',
-            client: rowLower.client || 'Unknown Client',
+            client: clientName,
+            clientId: ids.clientId,
             month,
             year,
             cloud: rowLower['lab type'] || rowLower.cloud || '',
             cloudType: rowLower['cloud type'] || '',
             tpLabType: rowLower['tp lab type'] || '',
             labName: rowLower['training name'] || rowLower['lab name'] || '',
-            requester: rowLower.requester || '',
-            agentName: rowLower['agent name'] || '',
-            accountManager: rowLower['account manager'] || '',
+            requester: requesterName,
+            requesterId: ids.requesterId,
+            agentName,
+            agentId: ids.agentId,
+            accountManager: accountManagerName,
+            accountManagerId: ids.accountManagerId,
             receivedOn: rowLower['received on'] || '',
             labStartDate: rowLower['lab start date'] || rowLower['start date'] || '',
             labEndDate: rowLower['lab end date'] || rowLower['end date'] || '',

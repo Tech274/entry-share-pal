@@ -3,7 +3,7 @@ import { MessageCircle, X, Send, Loader2, Sparkles, Minimize2, Maximize2 } from 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { supabase } from '@/integrations/external-supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 

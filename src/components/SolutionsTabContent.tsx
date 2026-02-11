@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LabRequestForm } from '@/components/LabRequestForm';
 import { RequestsTable } from '@/components/RequestsTable';
 import { LabRequest } from '@/types/labRequest';
-import { ClipboardList, FileText, CheckCircle, Clock } from 'lucide-react';
-import { StatusFilterBar, FilterOption } from '@/components/shared/StatusFilterBar';
+import { ClipboardList, FileText, CheckCircle, Clock, ListFilter, Beaker, XCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface SolutionsTabContentProps {
   requests: LabRequest[];
@@ -25,53 +26,50 @@ export const SolutionsTabContent = ({
   initialFilter,
   onFilterChange,
 }: SolutionsTabContentProps) => {
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [listSubTab, setListSubTab] = useState<string>('all');
   const [mainTab, setMainTab] = useState<string>('form');
 
   // Handle initial filter from dashboard navigation
   useEffect(() => {
     if (initialFilter) {
       setMainTab('list');
-      if (initialFilter === 'Solution Pending') {
-        setStatusFilter('pending');
-      } else if (initialFilter === 'Solution Sent') {
-        setStatusFilter('sent');
-      } else {
-        setStatusFilter('all');
-      }
+      const tabMap: Record<string, string> = {
+        'Solution Pending': 'pending',
+        'Solution Sent': 'sent',
+        'POC In-Progress': 'pocInProgress',
+        'Lost Closed': 'lostClosed',
+      };
+      setListSubTab(tabMap[initialFilter] ?? 'all');
     }
   }, [initialFilter]);
 
-  // Filter counts
-  const pendingRequests = useMemo(() => 
-    requests.filter(r => r.status === 'Solution Pending'), [requests]);
-  const sentRequests = useMemo(() => 
-    requests.filter(r => r.status === 'Solution Sent'), [requests]);
-
-  const filterOptions: FilterOption[] = [
-    { key: 'all', label: 'All', count: requests.length },
-    { key: 'pending', label: 'Pending', count: pendingRequests.length, icon: <Clock className="w-4 h-4" /> },
-    { key: 'sent', label: 'Sent', count: sentRequests.length, icon: <CheckCircle className="w-4 h-4" /> },
-  ];
+  // Filter requests by status
+  const pendingRequests = requests.filter(r => r.status === 'Solution Pending');
+  const sentRequests = requests.filter(r => r.status === 'Solution Sent');
+  const pocInProgressRequests = requests.filter(r => r.status === 'POC In-Progress');
+  const lostClosedRequests = requests.filter(r => r.status === 'Lost Closed');
 
   const getFilteredRequests = () => {
-    switch (statusFilter) {
-      case 'pending':
-        return pendingRequests;
-      case 'sent':
-        return sentRequests;
-      default:
-        return requests;
+    switch (listSubTab) {
+      case 'pending': return pendingRequests;
+      case 'sent': return sentRequests;
+      case 'pocInProgress': return pocInProgressRequests;
+      case 'lostClosed': return lostClosedRequests;
+      default: return requests;
     }
   };
-  
-  const handleFilterChange = (key: string) => {
-    setStatusFilter(key);
-    if (onFilterChange) {
-      const filterValue = key === 'pending' ? 'Solution Pending' : 
-                         key === 'sent' ? 'Solution Sent' : undefined;
-      onFilterChange(filterValue);
-    }
+
+  const statusToFilter: Record<string, string | undefined> = {
+    pending: 'Solution Pending',
+    sent: 'Solution Sent',
+    pocInProgress: 'POC In-Progress',
+    lostClosed: 'Lost Closed',
+    all: undefined,
+  };
+
+  const handleSubTabChange = (tab: string) => {
+    setListSubTab(tab);
+    onFilterChange?.(statusToFilter[tab]);
   };
 
   return (
@@ -92,11 +90,72 @@ export const SolutionsTabContent = ({
       </TabsContent>
 
       <TabsContent value="list" className="space-y-4">
-        <StatusFilterBar
-          options={filterOptions}
-          activeFilter={statusFilter}
-          onFilterChange={handleFilterChange}
-        />
+        {/* Sub-tabs for filtering by status */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-medium text-muted-foreground mr-2">
+            <ListFilter className="w-4 h-4 inline mr-1" />
+            Filter:
+          </span>
+          <Button
+            variant={listSubTab === 'all' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleSubTabChange('all')}
+            className="gap-2"
+          >
+            All
+            <Badge variant="secondary" className="ml-1">
+              {requests.length}
+            </Badge>
+          </Button>
+          <Button
+            variant={listSubTab === 'pending' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleSubTabChange('pending')}
+            className="gap-2"
+          >
+            <Clock className="w-4 h-4" />
+            Pending
+            <Badge variant="secondary" className="ml-1">
+              {pendingRequests.length}
+            </Badge>
+          </Button>
+          <Button
+            variant={listSubTab === 'sent' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleSubTabChange('sent')}
+            className="gap-2"
+          >
+            <CheckCircle className="w-4 h-4" />
+            Sent
+            <Badge variant="secondary" className="ml-1">
+              {sentRequests.length}
+            </Badge>
+          </Button>
+          <Button
+            variant={listSubTab === 'pocInProgress' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleSubTabChange('pocInProgress')}
+            className="gap-2"
+          >
+            <Beaker className="w-4 h-4" />
+            POC In-Progress
+            <Badge variant="secondary" className="ml-1">
+              {pocInProgressRequests.length}
+            </Badge>
+          </Button>
+          <Button
+            variant={listSubTab === 'lostClosed' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleSubTabChange('lostClosed')}
+            className="gap-2"
+          >
+            <XCircle className="w-4 h-4" />
+            Lost Closed
+            <Badge variant="secondary" className="ml-1">
+              {lostClosedRequests.length}
+            </Badge>
+          </Button>
+        </div>
 
         <RequestsTable 
           requests={getFilteredRequests()} 

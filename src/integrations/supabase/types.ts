@@ -14,66 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      account_managers: {
-        Row: {
-          created_at: string | null
-          email: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-          phone: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      agents: {
-        Row: {
-          created_at: string | null
-          email: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-          phone: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       catalog_share_tracking: {
         Row: {
           catalog_url: string
@@ -128,155 +68,180 @@ export type Database = {
         }
         Relationships: []
       }
-      clients: {
+      agents: {
         Row: {
-          account_manager_id: string | null
-          created_at: string | null
+          id: string
+          name: string
           email: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-          phone: string | null
-          updated_at: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
         }
         Insert: {
-          account_manager_id?: string | null
-          created_at?: string | null
-          email?: string | null
           id?: string
-          is_active?: boolean | null
           name: string
-          phone?: string | null
-          updated_at?: string | null
+          email?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
         }
         Update: {
-          account_manager_id?: string | null
-          created_at?: string | null
-          email?: string | null
           id?: string
-          is_active?: boolean | null
           name?: string
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "clients_account_manager_id_fkey"
-            columns: ["account_manager_id"]
-            isOneToOne: false
-            referencedRelation: "account_managers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cloud_billing_details: {
-        Row: {
-          cloud_cost: number | null
-          created_at: string | null
-          created_by: string | null
-          id: string
-          invoiced_to_customer: number | null
-          margin_percentage: number | null
-          margins: number | null
-          month: string
-          overall_business: number | null
-          provider: string
-          updated_at: string | null
-          vendor_name: string
-          year: number
-          yet_to_be_billed: number | null
-        }
-        Insert: {
-          cloud_cost?: number | null
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          invoiced_to_customer?: number | null
-          margin_percentage?: number | null
-          margins?: number | null
-          month: string
-          overall_business?: number | null
-          provider: string
-          updated_at?: string | null
-          vendor_name: string
-          year: number
-          yet_to_be_billed?: number | null
-        }
-        Update: {
-          cloud_cost?: number | null
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          invoiced_to_customer?: number | null
-          margin_percentage?: number | null
-          margins?: number | null
-          month?: string
-          overall_business?: number | null
-          provider?: string
-          updated_at?: string | null
-          vendor_name?: string
-          year?: number
-          yet_to_be_billed?: number | null
+          email?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
-      dashboard_config: {
+      account_managers: {
         Row: {
-          created_at: string | null
-          dashboard_key: string
-          display_order: number | null
           id: string
-          is_enabled: boolean | null
-          role: string
-          updated_at: string | null
+          name: string
+          email: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
-          dashboard_key: string
-          display_order?: number | null
           id?: string
-          is_enabled?: boolean | null
-          role: string
-          updated_at?: string | null
+          name: string
+          email?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
-          dashboard_key?: string
-          display_order?: number | null
           id?: string
-          is_enabled?: boolean | null
-          role?: string
-          updated_at?: string | null
+          name?: string
+          email?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          id: string
+          name: string
+          account_manager_id: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          account_manager_id?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          account_manager_id?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      solution_managers: {
+        Row: {
+          id: string
+          name: string
+          email: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          email?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          email?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
       delivery_managers: {
         Row: {
-          created_at: string | null
-          email: string | null
           id: string
-          is_active: boolean | null
           name: string
-          phone: string | null
-          updated_at: string | null
+          email: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
-          email?: string | null
           id?: string
-          is_active?: boolean | null
           name: string
-          phone?: string | null
-          updated_at?: string | null
+          email?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
-          email?: string | null
           id?: string
-          is_active?: boolean | null
           name?: string
-          phone?: string | null
-          updated_at?: string | null
+          email?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cloud_billing_details: {
+        Row: {
+          id: string
+          provider: string
+          vendor_name: string | null
+          month: string
+          year: number
+          overall_business: number
+          cloud_cost: number
+          invoiced_to_customer: number
+          yet_to_be_billed: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          provider: string
+          vendor_name?: string | null
+          month: string
+          year: number
+          overall_business?: number
+          cloud_cost?: number
+          invoiced_to_customer?: number
+          yet_to_be_billed?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          provider?: string
+          vendor_name?: string | null
+          month?: string
+          year?: number
+          overall_business?: number
+          cloud_cost?: number
+          invoiced_to_customer?: number
+          yet_to_be_billed?: number
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -284,8 +249,8 @@ export type Database = {
         Row: {
           account_manager: string | null
           account_manager_id: string | null
-          agent_id: string | null
           agent_name: string | null
+          agent_id: string | null
           assigned_to: string | null
           client: string
           client_id: string | null
@@ -307,6 +272,7 @@ export type Database = {
           potential_id: string | null
           received_on: string | null
           requester: string | null
+          requester_id: string | null
           selling_cost_per_user: number | null
           start_date: string | null
           total_amount: number | null
@@ -318,8 +284,8 @@ export type Database = {
         Insert: {
           account_manager?: string | null
           account_manager_id?: string | null
-          agent_id?: string | null
           agent_name?: string | null
+          agent_id?: string | null
           assigned_to?: string | null
           client: string
           client_id?: string | null
@@ -341,6 +307,7 @@ export type Database = {
           potential_id?: string | null
           received_on?: string | null
           requester?: string | null
+          requester_id?: string | null
           selling_cost_per_user?: number | null
           start_date?: string | null
           total_amount?: number | null
@@ -352,8 +319,8 @@ export type Database = {
         Update: {
           account_manager?: string | null
           account_manager_id?: string | null
-          agent_id?: string | null
           agent_name?: string | null
+          agent_id?: string | null
           assigned_to?: string | null
           client?: string
           client_id?: string | null
@@ -375,6 +342,7 @@ export type Database = {
           potential_id?: string | null
           received_on?: string | null
           requester?: string | null
+          requester_id?: string | null
           selling_cost_per_user?: number | null
           start_date?: string | null
           total_amount?: number | null
@@ -383,29 +351,7 @@ export type Database = {
           updated_at?: string
           year?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "delivery_requests_account_manager_id_fkey"
-            columns: ["account_manager_id"]
-            isOneToOne: false
-            referencedRelation: "account_managers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "delivery_requests_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "delivery_requests_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       engineer_settings: {
         Row: {
@@ -585,8 +531,8 @@ export type Database = {
         Row: {
           account_manager: string | null
           account_manager_id: string | null
-          agent_id: string | null
           agent_name: string | null
+          agent_id: string | null
           assigned_to: string | null
           client: string
           client_id: string | null
@@ -608,6 +554,7 @@ export type Database = {
           received_on: string | null
           remarks: string | null
           requester: string | null
+          requester_id: string | null
           selling_cost_per_user: number | null
           status: string | null
           total_amount_for_training: number | null
@@ -619,8 +566,8 @@ export type Database = {
         Insert: {
           account_manager?: string | null
           account_manager_id?: string | null
-          agent_id?: string | null
           agent_name?: string | null
+          agent_id?: string | null
           assigned_to?: string | null
           client: string
           client_id?: string | null
@@ -642,6 +589,7 @@ export type Database = {
           received_on?: string | null
           remarks?: string | null
           requester?: string | null
+          requester_id?: string | null
           selling_cost_per_user?: number | null
           status?: string | null
           total_amount_for_training?: number | null
@@ -653,8 +601,8 @@ export type Database = {
         Update: {
           account_manager?: string | null
           account_manager_id?: string | null
-          agent_id?: string | null
           agent_name?: string | null
+          agent_id?: string | null
           assigned_to?: string | null
           client?: string
           client_id?: string | null
@@ -676,6 +624,7 @@ export type Database = {
           received_on?: string | null
           remarks?: string | null
           requester?: string | null
+          requester_id?: string | null
           selling_cost_per_user?: number | null
           status?: string | null
           total_amount_for_training?: number | null
@@ -684,29 +633,7 @@ export type Database = {
           user_count?: number | null
           year?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "lab_requests_account_manager_id_fkey"
-            columns: ["account_manager_id"]
-            isOneToOne: false
-            referencedRelation: "account_managers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lab_requests_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lab_requests_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -738,24 +665,33 @@ export type Database = {
         }
         Relationships: []
       }
-      rate_limit_log: {
+      report_access_config: {
         Row: {
           created_at: string
-          endpoint: string
+          display_order: number
+          enabled: boolean
           id: string
-          ip_address: string
+          report_slug: string
+          role: string
+          updated_at: string
         }
         Insert: {
           created_at?: string
-          endpoint: string
+          display_order?: number
+          enabled?: boolean
           id?: string
-          ip_address: string
+          report_slug: string
+          role: string
+          updated_at?: string
         }
         Update: {
           created_at?: string
-          endpoint?: string
+          display_order?: number
+          enabled?: boolean
           id?: string
-          ip_address?: string
+          report_slug?: string
+          role?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -792,36 +728,6 @@ export type Database = {
         }
         Relationships: []
       }
-      solution_managers: {
-        Row: {
-          created_at: string | null
-          email: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-          phone: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       user_roles: {
         Row: {
           created_at: string
@@ -848,7 +754,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      cleanup_old_rate_limits: { Args: never; Returns: undefined }
       get_engineer_workload: { Args: { engineer_id: string }; Returns: number }
       get_user_role: {
         Args: { _user_id: string }

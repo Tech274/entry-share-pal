@@ -67,7 +67,7 @@ export const FinanceDashboard = ({ labRequests, deliveryRequests, onNavigate }: 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Financial Dashboard</h2>
-        <Badge variant="secondary" className="bg-green-100 text-green-800">Finance</Badge>
+        <Badge variant="secondary" className="bg-green-100 text-green-800">Leadership</Badge>
       </div>
       
       {/* Financial KPIs */}
@@ -183,7 +183,7 @@ export const FinanceDashboard = ({ labRequests, deliveryRequests, onNavigate }: 
                     dataKey="revenue"
                     label={({ name, value }) => `${name}: ₹${(value/1000).toFixed(0)}k`}
                   >
-                    {lobData.map((_entry, index) => (
+                    {lobData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={lobColors[index % lobColors.length]} />
                     ))}
                   </Pie>

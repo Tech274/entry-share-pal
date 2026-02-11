@@ -40,7 +40,7 @@ const LabTemplateCard = forwardRef<HTMLDivElement, LabTemplateCardProps>(({
   onToggleSelect,
   animationIndex = 0,
   hideSelection = false,
-}, _ref) => {
+}, ref) => {
   const TemplateIcon = template.icon || categoryIcon || Layers;
   const cardRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);

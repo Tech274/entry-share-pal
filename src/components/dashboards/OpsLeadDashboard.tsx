@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, AlertTriangle, Clock, CheckCircle, TrendingUp } from 'lucide-react';
+import { Users, AlertTriangle, Clock, CheckCircle, TrendingUp, IndianRupee } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { formatINR } from '@/lib/formatUtils';
 import { TeamWorkloadPanel } from '@/components/assignment/TeamWorkloadPanel';
 import { ActivityTimeline } from '@/components/activity/ActivityTimeline';
+import { SLAAlertCard } from './SLAAlertCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 interface OpsLeadDashboardProps {
@@ -15,7 +16,7 @@ interface OpsLeadDashboardProps {
   onNavigateToCalendar?: () => void;
 }
 
-export const OpsLeadDashboard = ({ labRequests, deliveryRequests, onNavigate }: OpsLeadDashboardProps) => {
+export const OpsLeadDashboard = ({ labRequests, deliveryRequests, onNavigate, onNavigateToCalendar }: OpsLeadDashboardProps) => {
   // Team workload by agent
   const agentWorkload = labRequests.reduce((acc, req) => {
     const agent = req.agentName || 'Unassigned';
@@ -30,24 +31,69 @@ export const OpsLeadDashboard = ({ labRequests, deliveryRequests, onNavigate }: 
   // Pending approvals
   const pendingRequests = labRequests.filter(r => r.status === 'Solution Pending');
   
-  // Status distribution
-  // Status distribution data for potential future visualization
+  // Status distribution (Solutions: Pending, Sent, POC In-Progress, Lost Closed)
+  const statusData = [
+    { name: 'Solution Pending', value: labRequests.filter(r => r.status === 'Solution Pending').length, color: '#f59e0b' },
+    { name: 'Solution Sent', value: labRequests.filter(r => r.status === 'Solution Sent').length, color: '#22c55e' },
+    { name: 'POC In-Progress', value: labRequests.filter(r => r.status === 'POC In-Progress').length, color: '#6366f1' },
+    { name: 'Lost Closed', value: labRequests.filter(r => r.status === 'Lost Closed').length, color: '#64748b' },
+  ].filter(d => d.value > 0);
 
   const deliveryStatusData = [
     { name: 'Pending', value: deliveryRequests.filter(r => r.labStatus === 'Pending').length, color: '#f59e0b' },
-    { name: 'In Progress', value: deliveryRequests.filter(r => r.labStatus === 'In Progress').length, color: '#3b82f6' },
-    { name: 'Ready', value: deliveryRequests.filter(r => r.labStatus === 'Ready').length, color: '#22c55e' },
-    { name: 'Completed', value: deliveryRequests.filter(r => r.labStatus === 'Completed').length, color: '#6b7280' },
-  ];
+    { name: 'Work-in-Progress', value: deliveryRequests.filter(r => r.labStatus === 'Work-in-Progress').length, color: '#3b82f6' },
+    { name: 'Test Creds', value: deliveryRequests.filter(r => r.labStatus === 'Test Credentials Shared').length, color: '#06b6d4' },
+    { name: 'Delivery In-Progress', value: deliveryRequests.filter(r => r.labStatus === 'Delivery In-Progress').length, color: '#8b5cf6' },
+    { name: 'Completed', value: deliveryRequests.filter(r => r.labStatus === 'Delivery Completed').length, color: '#22c55e' },
+  ].filter(d => d.value > 0);
+
+  // Leadership metrics (combined Ops + Leadership view)
+  const totalRevenue = labRequests.reduce((sum, r) => sum + r.totalAmountForTraining, 0);
+  const deliveryRevenue = deliveryRequests.reduce((sum, r) => {
+    const users = r.numberOfUsers || 0;
+    return sum + ((r.sellingCostPerUser || 0) * users) - ((r.inputCostPerUser || 0) * users);
+  }, 0);
+  const totalLearners = deliveryRequests.reduce((sum, r) => sum + (r.numberOfUsers || 0), 0);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Team Dashboard</h2>
-        <Badge variant="secondary" className="bg-purple-100 text-purple-800">Ops Lead</Badge>
+        <Badge variant="secondary" className="bg-purple-100 text-purple-800">Ops + Leadership</Badge>
+      </div>
+
+      {/* SLA & Month-over-Month (Leadership metrics) */}
+      <SLAAlertCard labRequests={labRequests} deliveryRequests={deliveryRequests} />
+      
+      {/* Leadership KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="cursor-default">
+          <CardHeader className="bg-primary text-primary-foreground py-2 px-4 rounded-t-lg">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <IndianRupee className="w-4 h-4" />
+              Total Revenue
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold">{formatINR(totalRevenue + deliveryRevenue)}</div>
+            <p className="text-xs text-muted-foreground">Solutions + Delivery</p>
+          </CardContent>
+        </Card>
+        <Card className="cursor-default">
+          <CardHeader className="bg-green-600 text-white py-2 px-4 rounded-t-lg">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Total Learners
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold">{totalLearners.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">From deliveries</p>
+          </CardContent>
+        </Card>
       </div>
       
-      {/* Quick Stats */}
+      {/* Ops Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card
           className="cursor-pointer hover:shadow-md transition-shadow"

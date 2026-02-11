@@ -61,7 +61,7 @@ export function DashboardFilters({
   onRefresh,
   isRefreshing = false,
 }: DashboardFiltersProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   
   const activeFilterCount = Object.entries(filters).filter(([key, value]) => {
     if (key === 'dateRange') {

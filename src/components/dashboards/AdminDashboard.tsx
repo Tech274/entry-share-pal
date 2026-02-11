@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Users, AlertTriangle, TrendingUp, IndianRupee, Activity, UserCog, Layers, ClipboardList, Truck, Info, Wallet, Building } from 'lucide-react';
+import { Users, AlertTriangle, TrendingUp, IndianRupee, Activity, UserCog, Layers, ClipboardList, Truck, Info, Wallet, BarChart2, UserPlus, LayoutDashboard } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
@@ -10,6 +10,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import { UserManagement } from '@/components/UserManagement';
 import { LabCatalogManagement } from '@/components/LabCatalogManagement';
 import { PersonnelManagement } from '@/components/personnel/PersonnelManagement';
+import { DashboardConfigManagement } from './DashboardConfigManagement';
+import { ReportAccessConfigManagement } from './ReportAccessConfigManagement';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { QuickActionsPanel } from './QuickActionsPanel';
 import { SLAAlertCard } from './SLAAlertCard';
 import { MiniCalendarWidget } from './MiniCalendarWidget';
@@ -26,10 +30,12 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNavigateToCalendar }: AdminDashboardProps) => {
+  const navigate = useNavigate();
+
   // Overall metrics
   const totalRevenue = labRequests.reduce((sum, r) => sum + r.totalAmountForTraining, 0);
   // Total learners from Solutions (userCount) + Deliveries (numberOfUsers)
-  // Total learners from Solutions (userCount) - kept for potential future use
+  const solutionLearners = labRequests.reduce((sum, r) => sum + (r.userCount || 0), 0);
   const deliveryLearners = deliveryRequests.reduce((sum, r) => sum + (r.numberOfUsers || 0), 0);
   const deliveryRevenue = deliveryRequests.reduce((sum, r) => {
     const users = r.numberOfUsers || 0;
@@ -47,10 +53,16 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
       }, 0) / labRequests.filter(r => r.totalAmountForTraining > 0).length
     : 0;
 
-  // Status breakdown
-  const pendingSolutions = labRequests.filter(r => r.status === 'Solution Pending').length;
+  // Status breakdown - Solutions: Pending, Sent, POC In-Progress, Lost Closed
+  const solutionPending = labRequests.filter(r => r.status === 'Solution Pending').length;
+  const solutionSent = labRequests.filter(r => r.status === 'Solution Sent').length;
+  const pocInProgress = labRequests.filter(r => r.status === 'POC In-Progress').length;
+  const lostClosed = labRequests.filter(r => r.status === 'Lost Closed').length;
   const pendingDeliveries = deliveryRequests.filter(r => r.labStatus === 'Pending').length;
+  const wipDeliveries = deliveryRequests.filter(r => r.labStatus === 'Work-in-Progress').length;
+  const testCredsShared = deliveryRequests.filter(r => r.labStatus === 'Test Credentials Shared').length;
   const inProgressDeliveries = deliveryRequests.filter(r => r.labStatus === 'Delivery In-Progress').length;
+  const completedDeliveries = deliveryRequests.filter(r => r.labStatus === 'Delivery Completed').length;
   
   // Agent performance
   const agentPerformance = labRequests.reduce((acc, req) => {
@@ -85,7 +97,7 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
 
   // Alerts/Exceptions
   const alerts = [
-    pendingSolutions > 5 && { type: 'warning', message: `${pendingSolutions} solutions pending review` },
+    solutionPending > 5 && { type: 'warning', message: `${solutionPending} solutions pending review` },
     pendingDeliveries > 3 && { type: 'warning', message: `${pendingDeliveries} deliveries pending` },
     avgMarginPercentage < 20 && { type: 'error', message: `Average margin below 20% (${formatPercentage(avgMarginPercentage)})` },
   ].filter(Boolean);
@@ -95,6 +107,10 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Admin Dashboard</h2>
         <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm" onClick={() => navigate('/reports')} className="gap-2">
+            <BarChart2 className="w-4 h-4" />
+            Reports
+          </Button>
           <DashboardExport labRequests={labRequests} deliveryRequests={deliveryRequests} />
           <TabsList>
             <TabsTrigger value="overview" className="flex items-center gap-2">
@@ -110,8 +126,16 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
               Lab Catalog
             </TabsTrigger>
             <TabsTrigger value="personnel" className="flex items-center gap-2">
-              <Building className="w-4 h-4" />
+              <UserPlus className="w-4 h-4" />
               Personnel & Clients
+            </TabsTrigger>
+            <TabsTrigger value="dashboardConfig" className="flex items-center gap-2">
+              <LayoutDashboard className="w-4 h-4" />
+              Dashboard Config
+            </TabsTrigger>
+            <TabsTrigger value="reportAccessConfig" className="flex items-center gap-2">
+              <BarChart2 className="w-4 h-4" />
+              Report Access
             </TabsTrigger>
           </TabsList>
           <Badge variant="secondary" className="bg-red-100 text-red-800">Admin</Badge>
@@ -119,54 +143,61 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
       </div>
       
       <TabsContent value="overview" className="space-y-6">
-        {/* Solutions Overview Section - Moved to Top */}
+        {/* Solutions KPI Cards */}
         <Card>
           <CardHeader className="bg-blue-500 text-white py-3 px-4 rounded-t-lg">
             <CardTitle className="text-base flex items-center gap-2">
               <ClipboardList className="w-4 h-4" />
-              Solutions Overview
+              Solutions
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div 
                 className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => onNavigate?.('solutions')}
               >
                 <div className="text-3xl font-bold text-blue-600">{labRequests.length}</div>
-                <div className="text-sm text-muted-foreground">Total Solutions</div>
+                <div className="text-sm text-muted-foreground">Total</div>
               </div>
               <div 
                 className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => onNavigate?.('solutions', 'Solution Pending')}
               >
-                <div className="text-3xl font-bold text-amber-600">{pendingSolutions}</div>
-                <div className="text-sm text-muted-foreground">Pending</div>
+                <div className="text-3xl font-bold text-amber-600">{solutionPending}</div>
+                <div className="text-sm text-muted-foreground">Solution Pending</div>
               </div>
               <div 
                 className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => onNavigate?.('solutions', 'Solution Sent')}
               >
-                <div className="text-3xl font-bold text-green-600">{labRequests.filter(r => r.status === 'Solution Sent').length}</div>
-                <div className="text-sm text-muted-foreground">Sent</div>
+                <div className="text-3xl font-bold text-green-600">{solutionSent}</div>
+                <div className="text-sm text-muted-foreground">Solution Sent</div>
               </div>
               <div 
                 className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
-                onClick={() => onNavigate?.('solutions')}
+                onClick={() => onNavigate?.('solutions', 'POC In-Progress')}
               >
-                <div className="text-xl font-bold text-primary">{formatINR(totalRevenue)}</div>
-                <div className="text-sm text-muted-foreground">Total Value</div>
+                <div className="text-3xl font-bold text-indigo-600">{pocInProgress}</div>
+                <div className="text-sm text-muted-foreground">POC In-Progress</div>
+              </div>
+              <div 
+                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => onNavigate?.('solutions', 'Lost Closed')}
+              >
+                <div className="text-3xl font-bold text-slate-600">{lostClosed}</div>
+                <div className="text-sm text-muted-foreground">Lost Closed</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Delivery Overview Section - Moved to Top */}
+        {/* Delivery KPI Cards */}
         <Card>
           <CardHeader className="bg-green-500 text-white py-3 px-4 rounded-t-lg">
             <CardTitle className="text-base flex items-center gap-2">
               <Truck className="w-4 h-4" />
-              Delivery Overview
+              Delivery
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
@@ -176,7 +207,7 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
                 onClick={() => onNavigate?.('delivery')}
               >
                 <div className="text-3xl font-bold text-green-600">{deliveryRequests.length}</div>
-                <div className="text-sm text-muted-foreground">Total Deliveries</div>
+                <div className="text-sm text-muted-foreground">Total</div>
               </div>
               <div 
                 className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
@@ -187,31 +218,31 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
               </div>
               <div 
                 className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => onNavigate?.('delivery', 'Work-in-Progress')}
+              >
+                <div className="text-3xl font-bold text-blue-500">{wipDeliveries}</div>
+                <div className="text-sm text-muted-foreground">Work-in-Progress</div>
+              </div>
+              <div 
+                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => onNavigate?.('delivery', 'Test Credentials Shared')}
+              >
+                <div className="text-3xl font-bold text-cyan-600">{testCredsShared}</div>
+                <div className="text-sm text-muted-foreground">Test Creds Shared</div>
+              </div>
+              <div 
+                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => onNavigate?.('delivery', 'Delivery In-Progress')}
               >
                 <div className="text-3xl font-bold text-blue-600">{inProgressDeliveries}</div>
-                <div className="text-sm text-muted-foreground">In Progress</div>
+                <div className="text-sm text-muted-foreground">Delivery In-Progress</div>
               </div>
               <div 
                 className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => onNavigate?.('delivery', 'Delivery Completed')}
               >
-                <div className="text-3xl font-bold text-emerald-600">{deliveryRequests.filter(r => r.labStatus === 'Delivery Completed').length}</div>
+                <div className="text-3xl font-bold text-emerald-600">{completedDeliveries}</div>
                 <div className="text-sm text-muted-foreground">Completed</div>
-              </div>
-              <div 
-                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
-                onClick={() => onNavigate?.('delivery')}
-              >
-                <div className="text-3xl font-bold text-purple-600">{totalLearners.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">Total Learners</div>
-              </div>
-              <div 
-                className="text-center p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
-                onClick={() => onNavigate?.('delivery')}
-              >
-                <div className="text-xl font-bold text-primary">{formatINR(deliveryRevenue)}</div>
-                <div className="text-sm text-muted-foreground">Total Revenue</div>
               </div>
             </div>
           </CardContent>
@@ -512,6 +543,13 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
 
       <TabsContent value="personnel">
         <PersonnelManagement />
+      </TabsContent>
+
+      <TabsContent value="dashboardConfig">
+        <DashboardConfigManagement />
+      </TabsContent>
+      <TabsContent value="reportAccessConfig">
+        <ReportAccessConfigManagement />
       </TabsContent>
     </Tabs>
   );

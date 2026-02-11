@@ -36,8 +36,10 @@ export const DashboardExport = ({ labRequests, deliveryRequests }: DashboardExpo
 
     const agentNames = new Set(labRequests.map(r => r.agentName).filter(Boolean));
 
-    const pendingSolutions = labRequests.filter(r => r.status === 'Solution Pending').length;
-    const sentSolutions = labRequests.filter(r => r.status === 'Solution Sent').length;
+    const solutionPending = labRequests.filter(r => r.status === 'Solution Pending').length;
+    const solutionSent = labRequests.filter(r => r.status === 'Solution Sent').length;
+    const pocInProgress = labRequests.filter(r => r.status === 'POC In-Progress').length;
+    const lostClosed = labRequests.filter(r => r.status === 'Lost Closed').length;
     const pendingDeliveries = deliveryRequests.filter(r => r.labStatus === 'Pending').length;
     const inProgressDeliveries = deliveryRequests.filter(r => r.labStatus === 'Delivery In-Progress').length;
     const completedDeliveries = deliveryRequests.filter(r => r.labStatus === 'Delivery Completed').length;
@@ -53,8 +55,10 @@ export const DashboardExport = ({ labRequests, deliveryRequests }: DashboardExpo
       },
       solutions: {
         'Total Solutions': labRequests.length,
-        'Pending': pendingSolutions,
-        'Sent': sentSolutions,
+        'Solution Pending': solutionPending,
+        'Solution Sent': solutionSent,
+        'POC In-Progress': pocInProgress,
+        'Lost Closed': lostClosed,
       },
       deliveries: {
         'Total Deliveries': deliveryRequests.length,

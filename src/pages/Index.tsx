@@ -1,3 +1,4 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RoleBasedDashboard } from '@/components/RoleBasedDashboard';
 import { SolutionsTabContent } from '@/components/SolutionsTabContent';
 import { DeliveryTabContent } from '@/components/DeliveryTabContent';
@@ -5,34 +6,30 @@ import { ADRTabContent } from '@/components/ADRTabContent';
 import { CalendarView } from '@/components/CalendarView';
 import { Header } from '@/components/Header';
 import { AIAssistant } from '@/components/AIAssistant';
-import { ReportsSummary } from '@/components/reports/ReportsSummary';
-import { CloudBillingTab } from '@/components/reports/CloudBillingTab';
-import { RevenueBreakdown } from '@/components/dashboards/RevenueBreakdown';
-import { LabTypeBreakdown } from '@/components/dashboards/LabTypeBreakdown';
-import { LearnersBreakdown } from '@/components/dashboards/LearnersBreakdown';
-import { useLabRequestsQuery } from '@/hooks/useLabRequestsQuery';
-import { useDeliveryRequestsQuery } from '@/hooks/useDeliveryRequestsQuery';
+import { useLabRequests } from '@/hooks/useLabRequests';
+import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { ClipboardList, Truck, LayoutDashboard, Database, Calendar, FileText } from 'lucide-react';
+import { ClipboardList, Truck, LayoutDashboard, Database, Calendar } from 'lucide-react';
+import { useReportAccessForRole } from '@/hooks/useReportAccessConfig';
 import { LabRequest } from '@/types/labRequest';
-import { useMemo, useCallback, useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMemo, useCallback, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
-  const queryClient = useQueryClient();
   const { 
     requests, 
     loading: labLoading,
     addRequest, 
     deleteRequest, 
     clearAll, 
+    bulkInsert, 
     updateRequest: updateLabRequest, 
     refetch: refetchLabRequests 
-  } = useLabRequestsQuery();
+  } = useLabRequests();
   const { 
     requests: deliveryRequests, 
     loading: deliveryLoading,
@@ -41,11 +38,13 @@ const Index = () => {
     bulkInsert: bulkInsertDelivery,
     updateRequest: updateDeliveryRequest,
     refetch: refetchDeliveryRequests
-  } = useDeliveryRequestsQuery();
+  } = useDeliveryRequests();
   const { toast } = useToast();
-  const { isFinance, isAdmin, isOpsLead } = useAuth();
+  const { isFinance, isOpsLead, isAdmin, role } = useAuth();
+  const { canAccess: canAccessReports } = useReportAccessForRole(role);
+  const navigate = useNavigate();
 
-  // Enable realtime sync for all data - single global subscription
+  // Enable realtime sync for all data
   useRealtimeSync();
 
   // Dashboard refresh handler
@@ -53,104 +52,56 @@ const Index = () => {
     await Promise.all([refetchLabRequests(), refetchDeliveryRequests()]);
   }, [refetchLabRequests, refetchDeliveryRequests]);
 
-  const handleDeliveryDelete = async (id: string) => {
-    try {
-      await deleteDeliveryRequest(id);
-      toast({
-        title: 'Delivery Entry Deleted',
-        description: 'The delivery request has been removed.',
-        variant: 'destructive',
-      });
-    } catch {
-      toast({
-        title: 'Delete Failed',
-        description: 'Could not delete the delivery request.',
-        variant: 'destructive',
-      });
-    }
+  const handleDeliveryDelete = (id: string) => {
+    deleteDeliveryRequest(id);
+    toast({
+      title: 'Delivery Entry Deleted',
+      description: 'The delivery request has been removed.',
+      variant: 'destructive',
+    });
   };
 
-  const handleDeliveryStatusChange = async (id: string, newStatus: string) => {
-    try {
-      await updateDeliveryRequest(id, { labStatus: newStatus });
-      toast({
-        title: 'Status Updated',
-        description: `Status changed to "${newStatus}".`,
-      });
-    } catch {
-      toast({
-        title: 'Update Failed',
-        description: 'Could not update the status.',
-        variant: 'destructive',
-      });
-    }
+  const handleDeliveryStatusChange = (id: string, newStatus: string) => {
+    updateDeliveryRequest(id, { labStatus: newStatus });
+    toast({
+      title: 'Status Updated',
+      description: `Status changed to "${newStatus}".`,
+    });
   };
 
-  const handleSubmit = async (data: Parameters<typeof addRequest>[0]) => {
-    try {
-      await addRequest(data);
-      toast({
-        title: 'Request Submitted',
-        description: 'Your lab request has been recorded successfully.',
-      });
-    } catch {
-      toast({
-        title: 'Submit Failed',
-        description: 'Could not submit the request.',
-        variant: 'destructive',
-      });
-    }
+  const handleSubmit = (data: Parameters<typeof addRequest>[0]) => {
+    addRequest(data);
+    toast({
+      title: 'Request Submitted',
+      description: 'Your lab request has been recorded successfully.',
+    });
   };
 
-  const handleDeliverySubmit = async (data: Parameters<typeof addDeliveryRequest>[0]) => {
-    try {
-      await addDeliveryRequest(data);
-      toast({
-        title: 'Delivery Request Submitted',
-        description: 'Your delivery request has been recorded successfully.',
-      });
-    } catch {
-      toast({
-        title: 'Submit Failed',
-        description: 'Could not submit the delivery request.',
-        variant: 'destructive',
-      });
-    }
+  const handleDeliverySubmit = (data: Parameters<typeof addDeliveryRequest>[0]) => {
+    addDeliveryRequest(data);
+    toast({
+      title: 'Delivery Request Submitted',
+      description: 'Your delivery request has been recorded successfully.',
+    });
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteRequest(id);
-      toast({
-        title: 'Entry Deleted',
-        description: 'The request has been removed.',
-        variant: 'destructive',
-      });
-    } catch {
-      toast({
-        title: 'Delete Failed',
-        description: 'Could not delete the request.',
-        variant: 'destructive',
-      });
-    }
+  const handleDelete = (id: string) => {
+    deleteRequest(id);
+    toast({
+      title: 'Entry Deleted',
+      description: 'The request has been removed.',
+      variant: 'destructive',
+    });
   };
 
-  const handleClearAll = async () => {
+  const handleClearAll = () => {
     if (window.confirm('Are you sure you want to delete all entries? This cannot be undone.')) {
-      try {
-        await clearAll();
-        toast({
-          title: 'All Entries Cleared',
-          description: 'All lab requests have been removed.',
-          variant: 'destructive',
-        });
-      } catch {
-        toast({
-          title: 'Clear Failed',
-          description: 'Could not clear all entries.',
-          variant: 'destructive',
-        });
-      }
+      clearAll();
+      toast({
+        title: 'All Entries Cleared',
+        description: 'All lab requests have been removed.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -170,10 +121,9 @@ const Index = () => {
     });
   };
 
-  // Convert solution to delivery - atomic operation with proper cache invalidation
+  // Convert solution to delivery - creates delivery record and DB trigger auto-removes the solution
   const handleConvertToDelivery = async (request: LabRequest) => {
     try {
-      // Create delivery record first
       await addDeliveryRequest({
         potentialId: request.potentialId,
         freshDeskTicketNumber: request.freshDeskTicketNumber,
@@ -202,12 +152,8 @@ const Index = () => {
         invoiceDetails: request.invoiceDetails,
       });
       
-      // Delete the original solution request to avoid duplicates
-      await deleteRequest(request.id);
-      
-      // Invalidate both caches to ensure consistency
-      queryClient.invalidateQueries({ queryKey: ['lab-requests'] });
-      queryClient.invalidateQueries({ queryKey: ['delivery-requests'] });
+      // Refetch lab requests to reflect auto-removal by DB trigger
+      await refetchLabRequests();
       
       toast({
         title: 'Converted to Delivery',
@@ -223,35 +169,8 @@ const Index = () => {
     }
   };
 
-  // Handle update for lab requests
-  const handleUpdateLabRequest = async (id: string, data: Partial<LabRequest>) => {
-    try {
-      await updateLabRequest(id, data);
-    } catch {
-      toast({
-        title: 'Update Failed',
-        description: 'Could not update the request.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  // Handle update for delivery requests
-  const handleUpdateDeliveryRequest = async (id: string, data: Partial<import('@/types/deliveryRequest').DeliveryRequest>) => {
-    try {
-      await updateDeliveryRequest(id, data);
-    } catch {
-      toast({
-        title: 'Update Failed',
-        description: 'Could not update the delivery request.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  // Finance users have limited tabs but also have access to Reports
+  // Finance users have limited tabs
   const showOperationalTabs = !isFinance;
-  const canAccessReports = isAdmin || isOpsLead || isFinance;
 
   // Tab navigation state
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -322,7 +241,11 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className={`grid w-full ${isFinance ? 'max-w-md grid-cols-2' : (canAccessReports ? 'max-w-4xl grid-cols-6' : 'max-w-3xl grid-cols-5')}`}>
+          <TabsList
+            className={`grid w-full ${
+              isFinance ? 'max-w-md grid-cols-2' : (isOpsLead || isAdmin) ? 'max-w-4xl grid-cols-6' : 'max-w-3xl grid-cols-5'
+            }`}
+          >
             <TabsTrigger value="dashboard" className="gap-2">
               <LayoutDashboard className="w-4 h-4" />
               Dashboard
@@ -347,9 +270,9 @@ const Index = () => {
                 </TabsTrigger>
               </>
             )}
-            {canAccessReports && (
+            {(isFinance || isOpsLead || isAdmin) && canAccessReports && (
               <TabsTrigger value="reports" className="gap-2">
-                <FileText className="w-4 h-4" />
+                <Database className="w-4 h-4" />
                 Reports
               </TabsTrigger>
             )}
@@ -374,7 +297,7 @@ const Index = () => {
                   onSubmit={handleSubmit}
                   onDelete={handleDelete}
                   onConvertToDelivery={handleConvertToDelivery}
-                  onUpdate={handleUpdateLabRequest}
+                  onUpdate={updateLabRequest}
                   initialFilter={solutionsFilter}
                   onFilterChange={setSolutionsFilter}
                 />
@@ -386,7 +309,7 @@ const Index = () => {
                   onSubmit={handleDeliverySubmit}
                   onDelete={handleDeliveryDelete}
                   onStatusChange={handleDeliveryStatusChange}
-                  onUpdate={handleUpdateDeliveryRequest}
+                  onUpdate={updateDeliveryRequest}
                   initialFilter={deliveryFilter}
                   onFilterChange={setDeliveryFilter}
                 />
@@ -396,7 +319,7 @@ const Index = () => {
                 <ADRTabContent
                   deliveryRequests={deliveryRequests}
                   onDeliveryDelete={handleDeliveryDelete}
-                  onUpdate={handleUpdateDeliveryRequest}
+                  onUpdate={updateDeliveryRequest}
                   onBulkInsert={bulkInsertDelivery}
                   onRefetch={refetchDeliveryRequests}
                   initialFilter={adrFilter}
@@ -411,32 +334,22 @@ const Index = () => {
             </>
           )}
 
-          {canAccessReports && (
+          {(isFinance || isOpsLead || isAdmin) && canAccessReports && (
             <TabsContent value="reports" className="space-y-6">
-              <Tabs defaultValue="summary" className="space-y-4">
-                <TabsList className="grid w-full max-w-2xl grid-cols-5">
-                  <TabsTrigger value="summary">Summary</TabsTrigger>
-                  <TabsTrigger value="revenue">Revenue</TabsTrigger>
-                  <TabsTrigger value="labtype">Lab Type</TabsTrigger>
-                  <TabsTrigger value="learners">Learners</TabsTrigger>
-                  <TabsTrigger value="cloudbilling">Cloud Billing</TabsTrigger>
-                </TabsList>
-                <TabsContent value="summary">
-                  <ReportsSummary labRequests={requests} deliveryRequests={deliveryRequests} />
-                </TabsContent>
-                <TabsContent value="revenue">
-                  <RevenueBreakdown labRequests={requests} deliveryRequests={deliveryRequests} />
-                </TabsContent>
-                <TabsContent value="labtype">
-                  <LabTypeBreakdown labRequests={requests} deliveryRequests={deliveryRequests} />
-                </TabsContent>
-                <TabsContent value="learners">
-                  <LearnersBreakdown deliveryRequests={deliveryRequests} />
-                </TabsContent>
-                <TabsContent value="cloudbilling">
-                  <CloudBillingTab />
-                </TabsContent>
-              </Tabs>
+              <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg font-semibold">Reports</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Revenue, Lab Type, Learners, Summary, and Cloud Billing. Open the full Reports page for filters and detailed breakdowns.
+                    </p>
+                  </div>
+                  <Button onClick={() => navigate('/reports')} className="gap-2 shrink-0 w-full sm:w-auto" size="lg">
+                    <Database className="w-4 h-4" />
+                    Open Reports
+                  </Button>
+                </div>
+              </div>
             </TabsContent>
           )}
         </Tabs>

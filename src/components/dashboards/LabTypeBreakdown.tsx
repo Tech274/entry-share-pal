@@ -28,7 +28,10 @@ const COLORS = {
 
 // Animated active shape for pie chart
 const renderActiveShape = (props: any) => {
-  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+  const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+  const RADIAN = Math.PI / 180;
+  const sin = Math.sin(-RADIAN * midAngle);
+  const cos = Math.cos(-RADIAN * midAngle);
 
   return (
     <g>
@@ -156,7 +159,7 @@ export const LabTypeBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
   const totalRequests = labRequests.length + deliveryRequests.length;
   const totalRevenue = allRequests.reduce((sum, r) => sum + r.revenue, 0);
 
-  const handlePieClick = (data: any, _index: number, labType?: string) => {
+  const handlePieClick = (data: any, index: number, labType?: string) => {
     if (onNavigateToTab && data) {
       // Navigate to ADR tab with lab type filter
       const filterValue = labType || data.name;

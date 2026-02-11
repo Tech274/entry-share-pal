@@ -8,13 +8,17 @@ export interface DeliveryRequest {
   year: number;
   receivedOn: string;
   client: string;
+  clientId?: string | null;
   cloud: string;
   cloudType: string;
   tpLabType: string;
   labName: string;
   requester: string;
+  requesterId?: string | null;
   agentName: string;
+  agentId?: string | null;
   accountManager: string;
+  accountManagerId?: string | null;
   labStatus: string;
   labType: string;
   startDate: string;
@@ -26,9 +30,6 @@ export interface DeliveryRequest {
   lineOfBusiness: string;
   invoiceDetails: string;
   assignedTo?: string | null;
-  agentId?: string | null;
-  accountManagerId?: string | null;
-  clientId?: string | null;
   createdAt: string;
 }
 

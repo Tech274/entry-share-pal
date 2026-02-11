@@ -25,7 +25,7 @@ interface HeaderProps {
   deliveryRequests: DeliveryRequest[];
 }
 
-export const Header = ({ requestCount, onClearAll, labRequests, deliveryRequests }: HeaderProps) => {
+export const Header = ({ requestCount, onExportCSV, onExportXLS, onClearAll, labRequests, deliveryRequests }: HeaderProps) => {
   const { profile, role, signOut, isAdmin, isOpsLead } = useAuth();
   const navigate = useNavigate();
 
@@ -35,6 +35,7 @@ export const Header = ({ requestCount, onClearAll, labRequests, deliveryRequests
   };
 
   const canClearAll = isAdmin || isOpsLead;
+  const canExport = isAdmin || isOpsLead || role === 'finance';
 
   return (
     <header className="bg-primary border-b sticky top-0 z-10">
