@@ -6,12 +6,12 @@ const CLOUD_BILLING_HEADERS = [
   'Vendor Name',
   'Month',
   'Year',
-  'Overall Business',
-  'Cloud Cost',
-  'Margins',
+  'Overall Business (₹ INR)',
+  'Cloud Cost (₹ INR)',
+  'Margins (₹ INR)',
   'Margin %',
-  'Invoiced to Customer',
-  'Yet to be Billed',
+  'Invoiced to Customer (₹ INR)',
+  'Yet to be Billed (₹ INR)',
 ];
 
 const escapeCSV = (value: string | number): string => {
