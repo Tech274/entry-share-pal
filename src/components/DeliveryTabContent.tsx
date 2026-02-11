@@ -32,6 +32,8 @@ const LabTypeSubTabs = ({
   onUpdate,
   label,
   showStatusBreakdown = false,
+  initialFilter,
+  onFilterChange,
 }: {
   requests: DeliveryRequest[];
   onDelete: (id: string) => void;
@@ -39,12 +41,24 @@ const LabTypeSubTabs = ({
   onUpdate?: (id: string, data: Partial<DeliveryRequest>) => void;
   label: string;
   showStatusBreakdown?: boolean;
+  initialFilter?: string;
+  onFilterChange?: (filter: string | undefined) => void;
 }) => {
   const [listSubTab, setListSubTab] = useState<string>('all');
 
   const pendingRequests = requests.filter((r) => r.labStatus === 'Pending');
   const wipRequests = requests.filter((r) => r.labStatus === 'Work-in-Progress');
   const testCredsRequests = requests.filter((r) => r.labStatus === 'Test Credentials Shared');
+
+  useEffect(() => {
+    if (!initialFilter) return;
+    const tabMap: Record<string, string> = {
+      Pending: 'Pending',
+      'Work-in-Progress': 'Work-in-Progress',
+      'Test Credentials Shared': 'Test Credentials Shared',
+    };
+    setListSubTab(tabMap[initialFilter] ?? 'all');
+  }, [initialFilter]);
 
   const getFilteredRequests = () => {
     if (listSubTab === 'all') return requests;
@@ -60,6 +74,13 @@ const LabTypeSubTabs = ({
     if (value === 'Work-in-Progress') return wipRequests.length;
     if (value === 'Test Credentials Shared') return testCredsRequests.length;
     return 0;
+  };
+
+  const statusToFilter: Record<string, string | undefined> = {
+    Pending: 'Pending',
+    'Work-in-Progress': 'Work-in-Progress',
+    'Test Credentials Shared': 'Test Credentials Shared',
+    all: undefined,
   };
 
   return (
@@ -83,7 +104,10 @@ const LabTypeSubTabs = ({
             key={value}
             variant={listSubTab === value ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setListSubTab(value)}
+            onClick={() => {
+              setListSubTab(value);
+              onFilterChange?.(statusToFilter[value]);
+            }}
             className="gap-2"
           >
             <Icon className="w-4 h-4" />
@@ -157,6 +181,8 @@ export const DeliveryTabContent = ({
           onUpdate={onUpdate}
           label="Active Requests"
           showStatusBreakdown={true}
+          initialFilter={initialFilter}
+          onFilterChange={onFilterChange}
         />
       </TabsContent>
     </Tabs>

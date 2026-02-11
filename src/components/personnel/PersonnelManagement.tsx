@@ -206,13 +206,14 @@ function SimplePersonnelCRUD<T extends { id: string; name: string; email?: strin
 
 // Clients CRUD (includes account_manager_id select)
 function ClientsCRUD() {
+  const NONE_ACCOUNT_MANAGER = '__none__';
   const { data: clients = [], isLoading } = useClients();
   const { data: accountManagers = [] } = useAccountManagers();
   const mutations = useClientMutations();
   const [isOpen, setIsOpen] = useState(false);
   const [editing, setEditing] = useState<Client | null>(null);
   const [name, setName] = useState('');
-  const [accountManagerId, setAccountManagerId] = useState<string>('');
+  const [accountManagerId, setAccountManagerId] = useState<string>(NONE_ACCOUNT_MANAGER);
   const [isActive, setIsActive] = useState(true);
   const [filterAccountManagerId, setFilterAccountManagerId] = useState<string>('all');
   const [filterClientName, setFilterClientName] = useState('');
@@ -220,7 +221,7 @@ function ClientsCRUD() {
   const reset = () => {
     setEditing(null);
     setName('');
-    setAccountManagerId('');
+    setAccountManagerId(NONE_ACCOUNT_MANAGER);
     setIsActive(true);
     setIsOpen(false);
   };
@@ -228,7 +229,7 @@ function ClientsCRUD() {
   const handleEdit = (row: Client) => {
     setEditing(row);
     setName(row.name);
-    setAccountManagerId(row.account_manager_id || '');
+    setAccountManagerId(row.account_manager_id ?? NONE_ACCOUNT_MANAGER);
     setIsActive(row.is_active);
     setIsOpen(true);
   };
@@ -240,7 +241,7 @@ function ClientsCRUD() {
       toast.error('Name is required');
       return;
     }
-    const amId = accountManagerId || null;
+    const amId = accountManagerId === NONE_ACCOUNT_MANAGER ? null : accountManagerId;
     if (editing) {
       mutations.update.mutate(
         { id: editing.id, data: { name: trimmedName, account_manager_id: amId, is_active: isActive } },
@@ -314,7 +315,7 @@ function ClientsCRUD() {
                       <SelectValue placeholder="Select account manager (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value={NONE_ACCOUNT_MANAGER}>None</SelectItem>
                       {accountManagers.filter((am) => am.is_active).map((am) => (
                         <SelectItem key={am.id} value={am.id}>
                           {am.name}
