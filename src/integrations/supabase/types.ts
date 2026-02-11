@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_managers: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      agents: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       catalog_share_tracking: {
         Row: {
           catalog_url: string
@@ -68,12 +128,167 @@ export type Database = {
         }
         Relationships: []
       }
+      clients: {
+        Row: {
+          account_manager_id: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_manager_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_manager_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_account_manager_id_fkey"
+            columns: ["account_manager_id"]
+            isOneToOne: false
+            referencedRelation: "account_managers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_billing_details: {
+        Row: {
+          cloud_cost: number | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          invoiced_to_customer: number | null
+          margin_percentage: number | null
+          margins: number | null
+          month: string
+          overall_business: number | null
+          provider: string
+          updated_at: string | null
+          vendor_name: string
+          year: number
+          yet_to_be_billed: number | null
+        }
+        Insert: {
+          cloud_cost?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          invoiced_to_customer?: number | null
+          margin_percentage?: number | null
+          margins?: number | null
+          month: string
+          overall_business?: number | null
+          provider: string
+          updated_at?: string | null
+          vendor_name: string
+          year: number
+          yet_to_be_billed?: number | null
+        }
+        Update: {
+          cloud_cost?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          invoiced_to_customer?: number | null
+          margin_percentage?: number | null
+          margins?: number | null
+          month?: string
+          overall_business?: number | null
+          provider?: string
+          updated_at?: string | null
+          vendor_name?: string
+          year?: number
+          yet_to_be_billed?: number | null
+        }
+        Relationships: []
+      }
+      dashboard_config: {
+        Row: {
+          created_at: string | null
+          dashboard_key: string
+          display_order: number | null
+          id: string
+          is_enabled: boolean | null
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dashboard_key: string
+          display_order?: number | null
+          id?: string
+          is_enabled?: boolean | null
+          role: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dashboard_key?: string
+          display_order?: number | null
+          id?: string
+          is_enabled?: boolean | null
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      delivery_managers: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       delivery_requests: {
         Row: {
           account_manager: string | null
+          account_manager_id: string | null
+          agent_id: string | null
           agent_name: string | null
           assigned_to: string | null
           client: string
+          client_id: string | null
           cloud: string | null
           cloud_type: string | null
           created_at: string
@@ -102,9 +317,12 @@ export type Database = {
         }
         Insert: {
           account_manager?: string | null
+          account_manager_id?: string | null
+          agent_id?: string | null
           agent_name?: string | null
           assigned_to?: string | null
           client: string
+          client_id?: string | null
           cloud?: string | null
           cloud_type?: string | null
           created_at?: string
@@ -133,9 +351,12 @@ export type Database = {
         }
         Update: {
           account_manager?: string | null
+          account_manager_id?: string | null
+          agent_id?: string | null
           agent_name?: string | null
           assigned_to?: string | null
           client?: string
+          client_id?: string | null
           cloud?: string | null
           cloud_type?: string | null
           created_at?: string
@@ -162,7 +383,29 @@ export type Database = {
           updated_at?: string
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "delivery_requests_account_manager_id_fkey"
+            columns: ["account_manager_id"]
+            isOneToOne: false
+            referencedRelation: "account_managers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_requests_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       engineer_settings: {
         Row: {
@@ -341,9 +584,12 @@ export type Database = {
       lab_requests: {
         Row: {
           account_manager: string | null
+          account_manager_id: string | null
+          agent_id: string | null
           agent_name: string | null
           assigned_to: string | null
           client: string
+          client_id: string | null
           cloud: string | null
           cloud_type: string | null
           created_at: string
@@ -372,9 +618,12 @@ export type Database = {
         }
         Insert: {
           account_manager?: string | null
+          account_manager_id?: string | null
+          agent_id?: string | null
           agent_name?: string | null
           assigned_to?: string | null
           client: string
+          client_id?: string | null
           cloud?: string | null
           cloud_type?: string | null
           created_at?: string
@@ -403,9 +652,12 @@ export type Database = {
         }
         Update: {
           account_manager?: string | null
+          account_manager_id?: string | null
+          agent_id?: string | null
           agent_name?: string | null
           assigned_to?: string | null
           client?: string
+          client_id?: string | null
           cloud?: string | null
           cloud_type?: string | null
           created_at?: string
@@ -432,7 +684,29 @@ export type Database = {
           user_count?: number | null
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "lab_requests_account_manager_id_fkey"
+            columns: ["account_manager_id"]
+            isOneToOne: false
+            referencedRelation: "account_managers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -515,6 +789,36 @@ export type Database = {
           performed_by?: string | null
           request_id?: string
           request_type?: string
+        }
+        Relationships: []
+      }
+      solution_managers: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
