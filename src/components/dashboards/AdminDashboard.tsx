@@ -11,6 +11,7 @@ import { UserManagement } from '@/components/UserManagement';
 import { LabCatalogManagement } from '@/components/LabCatalogManagement';
 import { PersonnelManagement } from '@/components/personnel/PersonnelManagement';
 import { DashboardConfigManagement } from './DashboardConfigManagement';
+import { ReportAccessConfigManagement } from './ReportAccessConfigManagement';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { QuickActionsPanel } from './QuickActionsPanel';
@@ -131,6 +132,10 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
             <TabsTrigger value="dashboardConfig" className="flex items-center gap-2">
               <LayoutDashboard className="w-4 h-4" />
               Dashboard Config
+            </TabsTrigger>
+            <TabsTrigger value="reportAccessConfig" className="flex items-center gap-2">
+              <BarChart2 className="w-4 h-4" />
+              Report Access
             </TabsTrigger>
           </TabsList>
           <Badge variant="secondary" className="bg-red-100 text-red-800">Admin</Badge>
@@ -542,6 +547,9 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
 
       <TabsContent value="dashboardConfig">
         <DashboardConfigManagement />
+      </TabsContent>
+      <TabsContent value="reportAccessConfig">
+        <ReportAccessConfigManagement />
       </TabsContent>
     </Tabs>
   );

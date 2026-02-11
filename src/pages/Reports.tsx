@@ -4,7 +4,8 @@ import { useLabRequests } from '@/hooks/useLabRequests';
 import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { useAuth } from '@/contexts/AuthContext';
-import { canAccessReports, getAllowedReportSlugs, type ReportSlug } from '@/lib/reportAccessMatrix';
+import { type ReportSlug } from '@/lib/reportAccessMatrix';
+import { useReportAccessForRole } from '@/hooks/useReportAccessConfig';
 import { RevenueBreakdown } from '@/components/dashboards/RevenueBreakdown';
 import { LabTypeBreakdown } from '@/components/dashboards/LabTypeBreakdown';
 import { LearnersBreakdown } from '@/components/dashboards/LearnersBreakdown';
@@ -24,8 +25,7 @@ const Reports = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { role } = useAuth();
-  const canAccess = canAccessReports(role);
-  const allowedSlugs = getAllowedReportSlugs(role);
+  const { canAccess, allowedSlugs } = useReportAccessForRole(role);
 
   useRealtimeSync();
 

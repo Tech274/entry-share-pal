@@ -641,6 +641,36 @@ export type Database = {
         }
         Relationships: []
       }
+      report_access_config: {
+        Row: {
+          created_at: string
+          display_order: number
+          enabled: boolean
+          id: string
+          report_slug: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          enabled?: boolean
+          id?: string
+          report_slug: string
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          enabled?: boolean
+          id?: string
+          report_slug?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       request_activity_log: {
         Row: {
           action: string

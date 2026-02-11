@@ -90,6 +90,9 @@ All enhancements added for personnel reference data, product plan phases, report
 - **Access control**
   - `src/lib/reportAccessMatrix.ts` – which roles can access Reports (e.g. admin, finance, ops_lead).
   - Reports route and page restrict access by role; Reports tab and “Open Reports” shown only for allowed roles.
+  - `supabase/migrations/20260209000000_report_access_config.sql` + `supabase/RUN_REPORT_ACCESS_CONFIG.sql` – DB-configurable report visibility per role.
+  - `src/hooks/useReportAccessConfig.ts` – reads role report visibility from DB with fallback to `reportAccessMatrix` defaults.
+  - `src/components/dashboards/ReportAccessConfigManagement.tsx` – Admin UI to enable/disable reports and set order per role.
 
 - **Reports UX**
   - Reports page tab layout (TabsList columns) depends on number of allowed tabs (1–4).

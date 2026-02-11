@@ -13,6 +13,7 @@ import { exportToCSV, exportToXLS } from '@/lib/exportUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { ClipboardList, Truck, LayoutDashboard, Database, Calendar } from 'lucide-react';
+import { useReportAccessForRole } from '@/hooks/useReportAccessConfig';
 import { LabRequest } from '@/types/labRequest';
 import { useMemo, useCallback, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -39,7 +40,8 @@ const Index = () => {
     refetch: refetchDeliveryRequests
   } = useDeliveryRequests();
   const { toast } = useToast();
-  const { isFinance, isOpsLead, isAdmin } = useAuth();
+  const { isFinance, isOpsLead, isAdmin, role } = useAuth();
+  const { canAccess: canAccessReports } = useReportAccessForRole(role);
   const navigate = useNavigate();
 
   // Enable realtime sync for all data
@@ -268,7 +270,7 @@ const Index = () => {
                 </TabsTrigger>
               </>
             )}
-            {(isFinance || isOpsLead || isAdmin) && (
+            {(isFinance || isOpsLead || isAdmin) && canAccessReports && (
               <TabsTrigger value="reports" className="gap-2">
                 <Database className="w-4 h-4" />
                 Reports
@@ -332,14 +334,14 @@ const Index = () => {
             </>
           )}
 
-          {(isFinance || isOpsLead || isAdmin) && (
+          {(isFinance || isOpsLead || isAdmin) && canAccessReports && (
             <TabsContent value="reports" className="space-y-6">
               <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
                     <h2 className="text-lg font-semibold">Reports</h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Revenue, Lab Type, Learners, and Summary. Open the full Reports page for filters and detailed breakdowns.
+                      Revenue, Lab Type, Learners, Summary, and Cloud Billing. Open the full Reports page for filters and detailed breakdowns.
                     </p>
                   </div>
                   <Button onClick={() => navigate('/reports')} className="gap-2 shrink-0 w-full sm:w-auto" size="lg">
