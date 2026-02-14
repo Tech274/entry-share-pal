@@ -5,7 +5,6 @@ import { useQueryClient } from '@tanstack/react-query';
 /**
  * Hook to set up realtime subscriptions for lab_requests and delivery_requests tables.
  * Automatically invalidates React Query cache when data changes.
- * This is a single global subscription - should only be called once at app root level.
  */
 export const useRealtimeSync = () => {
   const queryClient = useQueryClient();
@@ -23,7 +22,7 @@ export const useRealtimeSync = () => {
         },
         (payload) => {
           console.log('Lab requests changed:', payload.eventType);
-          // Invalidate React Query cache - single source of truth
+          // Invalidate all related queries
           queryClient.invalidateQueries({ queryKey: ['lab-requests'] });
         }
       )
@@ -41,7 +40,7 @@ export const useRealtimeSync = () => {
         },
         (payload) => {
           console.log('Delivery requests changed:', payload.eventType);
-          // Invalidate React Query cache - single source of truth
+          // Invalidate all related queries
           queryClient.invalidateQueries({ queryKey: ['delivery-requests'] });
         }
       )

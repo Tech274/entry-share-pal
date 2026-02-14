@@ -1,11 +1,14 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAgents, useAccountManagers, useClients } from '@/hooks/usePersonnel';
+import { useDashboardConfigForRole, type DashboardSlug } from '@/hooks/useDashboardConfig';
 import { OpsEngineerDashboard } from './dashboards/OpsEngineerDashboard';
 import { OpsLeadDashboard } from './dashboards/OpsLeadDashboard';
 import { FinanceDashboard } from './dashboards/FinanceDashboard';
 import { AdminDashboard } from './dashboards/AdminDashboard';
 import { DashboardFilters, DashboardFiltersState, defaultFilters, applyDashboardFilters } from './dashboards/DashboardFilters';
 import { FullDashboardSkeleton } from './dashboards/DashboardSkeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { useToast } from '@/hooks/use-toast';
@@ -31,30 +34,16 @@ export const RoleBasedDashboard = ({
   const { toast } = useToast();
   const [filters, setFilters] = useState<DashboardFiltersState>(defaultFilters);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { enabledSlugs } = useDashboardConfigForRole(role);
 
-  // Get unique clients from both request types
-  const clients = useMemo(() => {
-    const clientSet = new Set<string>();
-    labRequests.forEach(r => r.client && clientSet.add(r.client));
-    deliveryRequests.forEach(r => r.client && clientSet.add(r.client));
-    return Array.from(clientSet).sort();
-  }, [labRequests, deliveryRequests]);
+  // Use reference tables for filter options (agents, account managers, clients)
+  const { data: clientsData = [] } = useClients();
+  const { data: agentsData = [] } = useAgents();
+  const { data: accountManagersData = [] } = useAccountManagers();
 
-  // Get unique agent names from both request types
-  const agentNames = useMemo(() => {
-    const agentSet = new Set<string>();
-    labRequests.forEach(r => r.agentName && agentSet.add(r.agentName));
-    deliveryRequests.forEach(r => r.agentName && agentSet.add(r.agentName));
-    return Array.from(agentSet).sort();
-  }, [labRequests, deliveryRequests]);
-
-  // Get unique account managers from both request types
-  const accountManagers = useMemo(() => {
-    const amSet = new Set<string>();
-    labRequests.forEach(r => r.accountManager && amSet.add(r.accountManager));
-    deliveryRequests.forEach(r => r.accountManager && amSet.add(r.accountManager));
-    return Array.from(amSet).sort();
-  }, [labRequests, deliveryRequests]);
+  const clients = useMemo(() => clientsData.filter((c) => c.is_active).map((c) => c.name).sort(), [clientsData]);
+  const agentNames = useMemo(() => agentsData.filter((a) => a.is_active).map((a) => a.name).sort(), [agentsData]);
+  const accountManagers = useMemo(() => accountManagersData.filter((am) => am.is_active).map((am) => am.name).sort(), [accountManagersData]);
 
   // Apply filters to both request types
   const filteredLabRequests = useMemo(
@@ -186,8 +175,16 @@ export const RoleBasedDashboard = ({
     });
   }, [filteredLabRequests, filteredDeliveryRequests, toast]);
 
-  const renderDashboard = () => {
-    switch (role) {
+  const effectiveSlugs = enabledSlugs.length > 0 ? enabledSlugs : (role ? [role === 'admin' ? 'admin' : role === 'ops_lead' ? 'ops_lead' : role === 'finance' ? 'leadership' : 'ops'] : ['ops']) as DashboardSlug[];
+  const [selectedDashboardTab, setSelectedDashboardTab] = useState<string>(effectiveSlugs[0] ?? 'ops');
+  useEffect(() => {
+    if (effectiveSlugs.length > 0 && !effectiveSlugs.includes(selectedDashboardTab)) {
+      setSelectedDashboardTab(effectiveSlugs[0]);
+    }
+  }, [effectiveSlugs, selectedDashboardTab]);
+
+  const renderDashboardBySlug = (slug: DashboardSlug) => {
+    switch (slug) {
       case 'admin':
         return (
           <AdminDashboard 
@@ -206,7 +203,7 @@ export const RoleBasedDashboard = ({
             onNavigateToCalendar={onNavigateToCalendar}
           />
         );
-      case 'finance':
+      case 'leadership':
         return (
           <FinanceDashboard 
             labRequests={filteredLabRequests} 
@@ -214,7 +211,7 @@ export const RoleBasedDashboard = ({
             onNavigate={onNavigateToTab}
           />
         );
-      case 'ops_engineer':
+      case 'ops':
       default:
         return (
           <OpsEngineerDashboard 
@@ -225,6 +222,29 @@ export const RoleBasedDashboard = ({
           />
         );
     }
+  };
+
+  const renderDashboard = () => {
+    const slug = (selectedDashboardTab as DashboardSlug) || effectiveSlugs[0] || 'ops';
+    if (effectiveSlugs.length > 1) {
+      return (
+        <Tabs value={selectedDashboardTab} onValueChange={setSelectedDashboardTab} className="space-y-4">
+          <TabsList>
+            {(effectiveSlugs as DashboardSlug[]).map((s) => (
+              <TabsTrigger key={s} value={s}>
+                {s === 'ops' ? 'Ops' : s === 'leadership' ? 'Leadership' : s === 'ops_lead' ? 'Ops + Leadership' : 'Admin'}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {(effectiveSlugs as DashboardSlug[]).map((s) => (
+            <TabsContent key={s} value={s}>
+              {renderDashboardBySlug(s)}
+            </TabsContent>
+          ))}
+        </Tabs>
+      );
+    }
+    return renderDashboardBySlug(slug);
   };
 
   // Show skeleton during initial load

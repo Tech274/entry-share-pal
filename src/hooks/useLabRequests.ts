@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { LabRequest } from '@/types/labRequest';
-
+import { sampleLabRequests } from '@/lib/sampleData';
 
 // Helper to convert snake_case DB row to camelCase LabRequest
 const mapRowToLabRequest = (row: any): LabRequest => ({
@@ -11,13 +11,17 @@ const mapRowToLabRequest = (row: any): LabRequest => ({
   month: row.month,
   year: row.year,
   client: row.client,
+  clientId: row.client_id || null,
   cloud: row.cloud || '',
   cloudType: row.cloud_type || '',
   tpLabType: row.tp_lab_type || '',
   labName: row.lab_name || '',
   requester: row.requester || '',
+  requesterId: row.requester_id || null,
   agentName: row.agent_name || '',
+  agentId: row.agent_id || null,
   accountManager: row.account_manager || '',
+  accountManagerId: row.account_manager_id || null,
   receivedOn: row.received_on || '',
   labStartDate: row.lab_start_date || '',
   labEndDate: row.lab_end_date || '',
@@ -42,13 +46,17 @@ const mapLabRequestToRow = (request: Omit<LabRequest, 'id' | 'createdAt'>) => ({
   month: request.month,
   year: request.year,
   client: request.client,
+  client_id: request.clientId || null,
   cloud: request.cloud,
   cloud_type: request.cloudType,
   tp_lab_type: request.tpLabType,
   lab_name: request.labName,
   requester: request.requester,
+  requester_id: request.requesterId || null,
   agent_name: request.agentName,
+  agent_id: request.agentId || null,
   account_manager: request.accountManager,
+  account_manager_id: request.accountManagerId || null,
   received_on: request.receivedOn,
   lab_start_date: request.labStartDate,
   lab_end_date: request.labEndDate,
@@ -67,12 +75,12 @@ const mapLabRequestToRow = (request: Omit<LabRequest, 'id' | 'createdAt'>) => ({
 export const useLabRequests = () => {
   const [requests, setRequests] = useState<LabRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const fetchRef = useRef<() => Promise<void>>(() => Promise.resolve());
 
   // Fetch all requests on mount and subscribe to realtime changes
   useEffect(() => {
     fetchRequests();
 
-    // Subscribe to realtime changes
     const channel = supabase
       .channel('lab-requests-realtime')
       .on(
@@ -82,9 +90,7 @@ export const useLabRequests = () => {
           schema: 'public',
           table: 'lab_requests',
         },
-        (payload) => {
-          console.log('Lab requests realtime update:', payload.eventType);
-          // Refetch to get latest data
+        () => {
           fetchRequests();
         }
       )
@@ -93,6 +99,18 @@ export const useLabRequests = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+  }, []);
+
+  // Refetch when user returns to tab (keeps data in sync across pages/devices)
+  useEffect(() => {
+    fetchRef.current = fetchRequests;
+  });
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') fetchRef.current?.();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
   }, []);
 
   const fetchRequests = async () => {
@@ -117,7 +135,26 @@ export const useLabRequests = () => {
     }
   };
 
-  // Seed sample data function available for development/testing
+  const seedSampleData = async () => {
+    try {
+      const sampleRows = sampleLabRequests.map(mapLabRequestToRow);
+      const { data, error } = await supabase
+        .from('lab_requests')
+        .insert(sampleRows)
+        .select();
+
+      if (error) {
+        console.error('Error seeding sample data:', error);
+        return;
+      }
+
+      if (data) {
+        setRequests(data.map(mapRowToLabRequest));
+      }
+    } catch (error) {
+      console.error('Error seeding sample data:', error);
+    }
+  };
 
   const addRequest = async (data: Omit<LabRequest, 'id' | 'createdAt'>) => {
     try {
@@ -169,6 +206,10 @@ export const useLabRequests = () => {
       if (data.remarks !== undefined) updateData.remarks = data.remarks;
       if (data.lineOfBusiness !== undefined) updateData.line_of_business = data.lineOfBusiness;
       if (data.invoiceDetails !== undefined) updateData.invoice_details = data.invoiceDetails;
+      if (data.clientId !== undefined) updateData.client_id = data.clientId;
+      if (data.agentId !== undefined) updateData.agent_id = data.agentId;
+      if (data.accountManagerId !== undefined) updateData.account_manager_id = data.accountManagerId;
+      if (data.requesterId !== undefined) updateData.requester_id = data.requesterId;
 
       const { data: updatedRow, error } = await supabase
         .from('lab_requests')

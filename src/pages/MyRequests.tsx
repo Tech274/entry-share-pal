@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Home, Search, User, FileText, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,7 @@ interface RequestSummary {
 }
 
 const MyRequests = () => {
-  // Search term state removed - using emailFilter for lookups
+  const [searchTerm, setSearchTerm] = useState('');
   const [emailFilter, setEmailFilter] = useState('');
   const [requests, setRequests] = useState<RequestSummary[]>([]);
   const [isLoading, setIsLoading] = useState(false);

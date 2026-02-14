@@ -65,7 +65,7 @@ export function DataTable<T extends { id: string }>({
     return new Set(columns.filter(c => !c.hidden).map(c => c.id));
   });
 
-  const { canUndo, canRedo, undo, redo, undoStack, redoStack } = useUndoRedo();
+  const { canUndo, canRedo, recordEdit, undo, redo, undoStack, redoStack } = useUndoRedo();
   const { toast } = useToast();
 
   // Persist column visibility
@@ -89,7 +89,14 @@ export function DataTable<T extends { id: string }>({
 
   const isRowSelected = (id: string) => selectedRows.has(id);
 
-  // Cell update handler available for future use with inline editing
+  const handleCellUpdate = useCallback((id: string, field: keyof T, oldValue: any, newValue: any) => {
+    if (onUpdate) {
+      if (showUndoRedo) {
+        recordEdit(id, field as string, oldValue, newValue);
+      }
+      onUpdate(id, { [field]: newValue } as Partial<T>);
+    }
+  }, [onUpdate, showUndoRedo, recordEdit]);
 
   const handleUndo = useCallback(() => {
     const action = undo();

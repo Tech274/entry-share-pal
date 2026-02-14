@@ -11,9 +11,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DeliveryRequest, LAB_STATUS_OPTIONS, CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LINE_OF_BUSINESS_OPTIONS } from '@/types/deliveryRequest';
+import { useAgents, useAccountManagers, useClients, useDeliveryManagers } from '@/hooks/usePersonnel';
 import { CurrencyInput } from '@/components/CurrencyInput';
 import { IntegerInput } from '@/components/IntegerInput';
-
+import { formatINR } from '@/lib/formatUtils';
 import { Send, RotateCcw } from 'lucide-react';
 
 interface DeliveryRequestFormProps {
@@ -29,13 +30,17 @@ const initialFormState = {
   year: new Date().getFullYear(),
   receivedOn: '',
   client: '',
+  clientId: '' as string,
   cloud: '',
   cloudType: '',
   tpLabType: '',
   labName: '',
   requester: '',
+  requesterId: '' as string,
   agentName: '',
+  agentId: '' as string,
   accountManager: '',
+  accountManagerId: '' as string,
   labStatus: '',
   labType: '',
   startDate: '',
@@ -49,6 +54,11 @@ const initialFormState = {
 };
 
 export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
+  const { data: clients = [] } = useClients();
+  const { data: agents = [] } = useAgents();
+  const { data: accountManagers = [] } = useAccountManagers();
+  const { data: deliveryManagers = [] } = useDeliveryManagers();
+
   const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -56,6 +66,30 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
       
+      // Pre-fill account manager when client is selected
+      if (field === 'clientId' && typeof value === 'string') {
+        const client = clients.find((c) => c.id === value);
+        if (client?.account_manager_id) {
+          updated.accountManagerId = client.account_manager_id;
+          updated.accountManager = accountManagers.find((am) => am.id === client.account_manager_id)?.name ?? '';
+        }
+      }
+      if (field === 'clientId') {
+        const c = clients.find((x) => x.id === value);
+        updated.client = c?.name ?? '';
+      }
+      if (field === 'agentId') {
+        const a = agents.find((x) => x.id === value);
+        updated.agentName = a?.name ?? '';
+      }
+      if (field === 'accountManagerId') {
+        const am = accountManagers.find((x) => x.id === value);
+        updated.accountManager = am?.name ?? '';
+      }
+      if (field === 'requesterId') {
+        const dm = deliveryManagers.find((x) => x.id === value);
+        updated.requester = dm?.name ?? '';
+      }
       // Clear cloudType when cloud changes to non-Public Cloud
       if (field === 'cloud' && value !== 'Public Cloud') {
         updated.cloudType = '';
@@ -64,12 +98,11 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
       if (field === 'cloud' && value !== 'TP Labs') {
         updated.tpLabType = '';
       }
-      // Auto-calculate total when users or costs change
+      // Auto-calculate revenue when users or selling cost changes
       if (field === 'numberOfUsers' || field === 'inputCostPerUser' || field === 'sellingCostPerUser') {
         const users = field === 'numberOfUsers' ? Number(value) : updated.numberOfUsers;
-        const inputCost = field === 'inputCostPerUser' ? Number(value) : updated.inputCostPerUser;
         const sellingCost = field === 'sellingCostPerUser' ? Number(value) : updated.sellingCostPerUser;
-        updated.totalAmount = Math.round(users * (inputCost + sellingCost) * 100) / 100;
+        updated.totalAmount = Math.round(sellingCost * users * 100) / 100;
       }
       return updated;
     });
@@ -197,13 +230,20 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
             <Label htmlFor="client">
               Client <span className="text-destructive">*</span>
             </Label>
-            <Input
-              id="client"
-              value={formData.client}
-              onChange={e => handleChange('client', e.target.value)}
-              placeholder="Client name"
-              className={errors.client ? 'border-destructive' : ''}
-            />
+            <Select
+              value={formData.clientId || '__none__'}
+              onValueChange={v => handleChange('clientId', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger className={errors.client ? 'border-destructive' : ''}>
+                <SelectValue placeholder="Select client" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Select client</SelectItem>
+                {clients.filter((c) => c.is_active).map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.client && (
               <p className="text-sm text-destructive">{errors.client}</p>
             )}
@@ -268,31 +308,55 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
         <h3 className="form-section-title">Personnel</h3>
         <div className="form-grid">
           <div className="space-y-2">
-            <Label htmlFor="requester">Requester</Label>
-            <Input
-              id="requester"
-              value={formData.requester}
-              onChange={e => handleChange('requester', e.target.value)}
-              placeholder="Requester name"
-            />
+            <Label htmlFor="requester">Delivery Manager</Label>
+            <Select
+              value={formData.requesterId || '__none__'}
+              onValueChange={v => handleChange('requesterId', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select delivery manager" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Select delivery manager</SelectItem>
+                {deliveryManagers.filter((d) => d.is_active).map((d) => (
+                  <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="agentName">Agent Name</Label>
-            <Input
-              id="agentName"
-              value={formData.agentName}
-              onChange={e => handleChange('agentName', e.target.value)}
-              placeholder="Agent name"
-            />
+            <Label htmlFor="agentName">Agent</Label>
+            <Select
+              value={formData.agentId || '__none__'}
+              onValueChange={v => handleChange('agentId', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select agent" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Select agent</SelectItem>
+                {agents.filter((a) => a.is_active).map((a) => (
+                  <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="accountManager">Account Manager</Label>
-            <Input
-              id="accountManager"
-              value={formData.accountManager}
-              onChange={e => handleChange('accountManager', e.target.value)}
-              placeholder="Account manager"
-            />
+            <Select
+              value={formData.accountManagerId || '__none__'}
+              onValueChange={v => handleChange('accountManagerId', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select account manager" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Select account manager</SelectItem>
+                {accountManagers.filter((am) => am.is_active).map((am) => (
+                  <SelectItem key={am.id} value={am.id}>{am.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -442,7 +506,10 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Auto-calculated: (Input + Selling) × Users
+              Auto-calculated revenue: Selling × Users
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Profit formula: (Selling - Input) × Users
             </p>
           </div>
         </div>

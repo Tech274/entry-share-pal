@@ -1,4 +1,4 @@
-import { useDeliveryRequestsQuery } from '@/hooks/useDeliveryRequestsQuery';
+import { useDeliveryRequests } from '@/hooks/useDeliveryRequests';
 import { useSpreadsheetControls } from '@/hooks/useSpreadsheetControls';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
 import { useSpreadsheetKeyboardShortcuts } from '@/hooks/useSpreadsheetKeyboardShortcuts';
@@ -68,7 +68,7 @@ const parseDeliveryRequestRow = (row: Record<string, string | number>): Omit<Del
 };
 
 const DeliveryPreview = () => {
-  const { requests, updateRequest, deleteRequest, clearAll, bulkDelete, bulkUpdateStatus, bulkInsert } = useDeliveryRequestsQuery();
+  const { requests, updateRequest, deleteRequest, clearAll, bulkDelete, bulkUpdateStatus, bulkInsert } = useDeliveryRequests();
   const { toast } = useToast();
   
   const {

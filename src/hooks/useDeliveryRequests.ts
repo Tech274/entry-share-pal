@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { sampleDeliveryRequests } from '@/lib/sampleData';
@@ -14,13 +14,17 @@ const mapRowToDeliveryRequest = (row: any): DeliveryRequest => ({
   year: row.year,
   receivedOn: row.received_on || '',
   client: row.client,
+  clientId: row.client_id || null,
   cloud: row.cloud || '',
   cloudType: row.cloud_type || '',
   tpLabType: row.tp_lab_type || '',
   labName: row.lab_name || '',
   requester: row.requester || '',
+  requesterId: row.requester_id || null,
   agentName: row.agent_name || '',
+  agentId: row.agent_id || null,
   accountManager: row.account_manager || '',
+  accountManagerId: row.account_manager_id || null,
   labStatus: row.lab_status || 'Pending',
   labType: row.lab_type || '',
   startDate: row.start_date || '',
@@ -45,13 +49,17 @@ const mapDeliveryRequestToRow = (request: Omit<DeliveryRequest, 'id' | 'createdA
   year: request.year,
   received_on: request.receivedOn,
   client: request.client,
+  client_id: request.clientId || null,
   cloud: request.cloud,
   cloud_type: request.cloudType,
   tp_lab_type: request.tpLabType,
   lab_name: request.labName,
   requester: request.requester,
+  requester_id: request.requesterId || null,
   agent_name: request.agentName,
+  agent_id: request.agentId || null,
   account_manager: request.accountManager,
+  account_manager_id: request.accountManagerId || null,
   lab_status: request.labStatus,
   lab_type: request.labType,
   start_date: request.startDate,
@@ -67,12 +75,12 @@ const mapDeliveryRequestToRow = (request: Omit<DeliveryRequest, 'id' | 'createdA
 export const useDeliveryRequests = () => {
   const [requests, setRequests] = useState<DeliveryRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const fetchRef = useRef<() => Promise<void>>(() => Promise.resolve());
 
   // Fetch all requests on mount and subscribe to realtime changes
   useEffect(() => {
     fetchRequests();
 
-    // Subscribe to realtime changes
     const channel = supabase
       .channel('delivery-requests-realtime')
       .on(
@@ -82,9 +90,7 @@ export const useDeliveryRequests = () => {
           schema: 'public',
           table: 'delivery_requests',
         },
-        (payload) => {
-          console.log('Delivery requests realtime update:', payload.eventType);
-          // Refetch to get latest data
+        () => {
           fetchRequests();
         }
       )
@@ -93,6 +99,18 @@ export const useDeliveryRequests = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+  }, []);
+
+  // Refetch when user returns to tab (keeps data in sync across pages/devices)
+  useEffect(() => {
+    fetchRef.current = fetchRequests;
+  });
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') fetchRef.current?.();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
   }, []);
 
   const fetchRequests = async () => {
@@ -192,6 +210,10 @@ export const useDeliveryRequests = () => {
       if (data.lineOfBusiness !== undefined) updateData.line_of_business = data.lineOfBusiness;
       if (data.totalAmount !== undefined) updateData.total_amount = data.totalAmount;
       if (data.invoiceDetails !== undefined) updateData.invoice_details = data.invoiceDetails;
+      if (data.clientId !== undefined) updateData.client_id = data.clientId;
+      if (data.agentId !== undefined) updateData.agent_id = data.agentId;
+      if (data.accountManagerId !== undefined) updateData.account_manager_id = data.accountManagerId;
+      if (data.requesterId !== undefined) updateData.requester_id = data.requesterId;
 
       const { data: updatedRow, error } = await supabase
         .from('delivery_requests')

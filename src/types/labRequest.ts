@@ -5,13 +5,17 @@ export interface LabRequest {
   month: string;
   year: number;
   client: string;
+  clientId?: string | null;
   cloud: string;
   cloudType: string;
   tpLabType: string;
   labName: string;
   requester: string;
+  requesterId?: string | null;
   agentName: string;
+  agentId?: string | null;
   accountManager: string;
+  accountManagerId?: string | null;
   receivedOn: string;
   labStartDate: string;
   labEndDate: string;
@@ -32,7 +36,8 @@ export interface LabRequest {
 export const CLOUD_OPTIONS = ['Public Cloud', 'Private Cloud', 'TP Labs'];
 export const CLOUD_TYPE_OPTIONS = ['AWS', 'Azure', 'GCP'];
 export const TP_LAB_TYPE_OPTIONS = ['SAP', 'Oracle', 'OEM'];
-export const STATUS_OPTIONS = ['Solution Pending', 'Solution Sent'];
+export const SOLUTION_STATUS_OPTIONS = ['Solution Pending', 'Solution Sent', 'POC In-Progress', 'Lost Closed'] as const;
+export const STATUS_OPTIONS = [...SOLUTION_STATUS_OPTIONS]; // Legacy alias
 export const LOB_OPTIONS = ['Standalone', 'VILT', 'Integrated'];
 export const MONTH_OPTIONS = [
   'January', 'February', 'March', 'April', 'May', 'June',

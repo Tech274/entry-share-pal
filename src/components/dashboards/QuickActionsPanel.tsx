@@ -6,7 +6,8 @@ import {
   FileText, 
   ArrowRight,
   ClipboardList,
-  Truck
+  Truck,
+  CheckCircle
 } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
@@ -24,7 +25,7 @@ export function QuickActionsPanel({
 }: QuickActionsPanelProps) {
   const pendingSolutions = labRequests.filter(r => r.status === 'Solution Pending').length;
   const pendingDeliveries = deliveryRequests.filter(r => r.labStatus === 'Pending').length;
-  const inProgressDeliveries = deliveryRequests.filter(r => r.labStatus === 'In Progress' || r.labStatus === 'Delivery In-Progress').length;
+  const inProgressDeliveries = deliveryRequests.filter(r => r.labStatus === 'Delivery In-Progress' || r.labStatus === 'Work-in-Progress').length;
   
   // Expiring labs (within 7 days)
   const today = new Date();
@@ -45,7 +46,7 @@ export function QuickActionsPanel({
       count: pendingSolutions,
       icon: Clock,
       color: 'text-amber-600 bg-amber-50 hover:bg-amber-100 border-amber-200',
-      onClick: () => onNavigate('solutions', 'pending'),
+      onClick: () => onNavigate('solutions', 'Solution Pending'),
       show: pendingSolutions > 0,
     },
     {
@@ -53,7 +54,7 @@ export function QuickActionsPanel({
       count: pendingDeliveries,
       icon: Truck,
       color: 'text-blue-600 bg-blue-50 hover:bg-blue-100 border-blue-200',
-      onClick: () => onNavigate('delivery', 'pending'),
+      onClick: () => onNavigate('delivery', 'Pending'),
       show: pendingDeliveries > 0,
     },
     {
@@ -61,7 +62,7 @@ export function QuickActionsPanel({
       count: inProgressDeliveries,
       icon: ClipboardList,
       color: 'text-purple-600 bg-purple-50 hover:bg-purple-100 border-purple-200',
-      onClick: () => onNavigate('delivery', 'in-progress'),
+      onClick: () => onNavigate('delivery', 'Delivery In-Progress'),
       show: inProgressDeliveries > 0,
     },
     {

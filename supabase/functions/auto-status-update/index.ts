@@ -14,9 +14,6 @@ interface StatusTransition {
   client: string;
 }
 
-// Cron secret for authorized scheduled invocations
-const CRON_SECRET = Deno.env.get('CRON_SECRET');
-
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -24,22 +21,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify cron authorization
-    // Accept either: 1) CRON_SECRET header, 2) Service role key in Authorization header
-    const cronHeader = req.headers.get('X-Cron-Secret');
-    const authHeader = req.headers.get('Authorization');
-    
-    const isValidCronSecret = CRON_SECRET && cronHeader === CRON_SECRET;
-    const isServiceRoleAuth = authHeader?.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '');
-    
-    if (!isValidCronSecret && !isServiceRoleAuth) {
-      console.error('Unauthorized cron invocation attempt');
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - This endpoint is for scheduled cron jobs only' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     

@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,7 +6,9 @@ const corsHeaders = {
 };
 
 // Expected field schema for delivery requests - Listed in priority order for matching
+// IMPORTANT: Entries at the top have higher priority when there are ambiguous matches
 const EXPECTED_FIELDS: [string, string[]][] = [
+  // Highest priority - specific field names first
   ['potentialId', ['potential id', 'potentialid', 'potential_id', 'pid', 'pot id']],
   ['freshDeskTicketNumber', ['freshdesk ticket number', 'freshdesk ticket', 'ticket number', 'ticket #', 'ticket no', 'fd ticket']],
   ['trainingName', ['training name', 'trainingname', 'training', 'course name', 'course', 'program name']],
@@ -16,25 +17,38 @@ const EXPECTED_FIELDS: [string, string[]][] = [
   ['month', ['month', 'billing month', 'delivery month', 'mon']],
   ['year', ['year', 'billing year', 'delivery year', 'yr']],
   ['receivedOn', ['received on', 'receivedon', 'received date', 'request date', 'created date', 'date received']],
+  
+  // Lab-related fields - labName should match "lab" before cloud
   ['labName', ['lab name', 'labname', 'lab title', 'lab']],
   ['labStatus', ['lab status', 'labstatus', 'status', 'delivery status', 'current status']],
   ['labSetupRequirement', ['lab setup requirement', 'setup requirement', 'requirements', 'setup']],
+  
+  // Cloud/infra fields - should only match specific terms
   ['cloud', ['lab type', 'infra type', 'infrastructure', 'platform type', 'type', 'cloud']],
   ['cloudType', ['cloud provider', 'provider', 'cloud type', 'cloudtype']],
   ['tpLabType', ['tp lab type', 'tplabtype', 'third party lab', 'tp type', '3rd party', 'third party']],
+  
+  // Financial fields - put BEFORE people fields to prevent "am" matching "amount"
   ['totalAmount', ['total amount', 'totalamount', 'amount', 'total', 'revenue', 'total cost', 'total value']],
   ['inputCostPerUser', ['input cost per user', 'input cost', 'cost per user', 'unit cost', 'base cost', 'cost in']],
   ['sellingCostPerUser', ['selling cost per user', 'selling cost', 'sell price', 'unit price', 'price per user', 'cost out']],
+  
+  // People fields - removed 'am' from accountManager to prevent false positives
   ['requester', ['requester', 'requested by', 'requester name', 'requestor', 'person', 'contact']],
   ['agentName', ['agent name', 'agentname', 'agent', 'sales agent', 'rep']],
   ['accountManager', ['account manager', 'accountmanager', 'acct manager', 'a.m.']],
+  
+  // Date fields
   ['startDate', ['start date', 'startdate', 'lab start date', 'begin date', 'from date']],
   ['endDate', ['end date', 'enddate', 'lab end date', 'finish date', 'to date']],
+  
+  // Other
   ['lineOfBusiness', ['line of business', 'lineofbusiness', 'lob', 'business line', 'segment']],
   ['invoiceDetails', ['invoice details', 'invoicedetails', 'invoice', 'invoice number', 'invoice no', 'billing details']],
 ];
 
-const VALID_STATUSES: Record<string, string> = {
+// Valid status values
+const VALID_STATUSES = {
   'pending': 'Pending',
   'work-in-progress': 'Work-in-Progress',
   'wip': 'Work-in-Progress',
@@ -51,7 +65,8 @@ const VALID_STATUSES: Record<string, string> = {
   'canceled': 'Cancelled',
 };
 
-const VALID_CLOUD_TYPES: Record<string, string> = {
+// Valid cloud/lab types
+const VALID_CLOUD_TYPES = {
   'public cloud': 'Public Cloud',
   'publiccloud': 'Public Cloud',
   'public': 'Public Cloud',
@@ -70,7 +85,8 @@ const VALID_CLOUD_TYPES: Record<string, string> = {
   'oem': 'TP Labs',
 };
 
-const VALID_PROVIDERS: Record<string, string> = {
+// Valid cloud types (providers)
+const VALID_PROVIDERS = {
   'aws': 'AWS',
   'amazon': 'AWS',
   'amazon web services': 'AWS',
@@ -83,13 +99,15 @@ const VALID_PROVIDERS: Record<string, string> = {
   'google cloud platform': 'GCP',
 };
 
-const VALID_TP_TYPES: Record<string, string> = {
+// Valid TP Lab types
+const VALID_TP_TYPES = {
   'sap': 'SAP',
   'oracle': 'Oracle',
   'oem': 'OEM',
 };
 
-const VALID_LOB: Record<string, string> = {
+// Valid LOB values
+const VALID_LOB = {
   'standalone': 'Standalone',
   'stand alone': 'Standalone',
   'stand-alone': 'Standalone',
@@ -100,6 +118,7 @@ const VALID_LOB: Record<string, string> = {
   'integration': 'Integrated',
 };
 
+// Month normalization
 const MONTH_MAP: Record<string, string> = {
   'jan': 'January', 'january': 'January', '1': 'January', '01': 'January',
   'feb': 'February', 'february': 'February', '2': 'February', '02': 'February',
@@ -145,8 +164,26 @@ interface CorrectedRow {
   totalAmount: number;
   lineOfBusiness: string;
   invoiceDetails: string;
+  clientId?: string | null;
+  agentId?: string | null;
+  accountManagerId?: string | null;
+  requesterId?: string | null;
 }
 
+interface NamedReference {
+  id: string;
+  name: string;
+}
+
+interface ReferenceData {
+  clients?: NamedReference[];
+  agents?: NamedReference[];
+  accountManagers?: NamedReference[];
+  solutionManagers?: NamedReference[];
+  deliveryManagers?: NamedReference[];
+}
+
+// Find best matching field from CSV headers
 function findMatchingField(header: string, fieldAliases: string[]): boolean {
   const normalizedHeader = header.toLowerCase().trim().replace(/[_\-\s]+/g, ' ');
   return fieldAliases.some(alias => {
@@ -157,12 +194,16 @@ function findMatchingField(header: string, fieldAliases: string[]): boolean {
   });
 }
 
+// Create header mapping from CSV headers to expected fields
+// Uses priority order from EXPECTED_FIELDS array - first match wins per header
 function createHeaderMapping(csvHeaders: string[]): Record<string, string> {
   const mapping: Record<string, string> = {};
   const usedFields = new Set<string>();
   
   for (const header of csvHeaders) {
+    // Try each field in priority order
     for (const [field, aliases] of EXPECTED_FIELDS) {
+      // Skip if this field is already mapped
       if (usedFields.has(field)) continue;
       
       if (findMatchingField(header, aliases)) {
@@ -176,47 +217,63 @@ function createHeaderMapping(csvHeaders: string[]): Record<string, string> {
   return mapping;
 }
 
+// Normalize status value
 function normalizeStatus(value: string): string {
   const normalized = value.toLowerCase().trim();
-  return VALID_STATUSES[normalized] || 'Pending';
+  return VALID_STATUSES[normalized as keyof typeof VALID_STATUSES] || 'Pending';
 }
 
+// Normalize cloud/lab type value
 function normalizeCloud(value: string): string {
   const normalized = value.toLowerCase().trim();
-  return VALID_CLOUD_TYPES[normalized] || '';
+  return VALID_CLOUD_TYPES[normalized as keyof typeof VALID_CLOUD_TYPES] || '';
 }
 
+// Normalize cloud provider
 function normalizeProvider(value: string): string {
   const normalized = value.toLowerCase().trim();
-  return VALID_PROVIDERS[normalized] || '';
+  return VALID_PROVIDERS[normalized as keyof typeof VALID_PROVIDERS] || '';
 }
 
+// Normalize TP lab type
 function normalizeTPType(value: string): string {
   const normalized = value.toLowerCase().trim();
-  return VALID_TP_TYPES[normalized] || '';
+  return VALID_TP_TYPES[normalized as keyof typeof VALID_TP_TYPES] || '';
 }
 
+// Normalize LOB value
 function normalizeLOB(value: string): string {
   const normalized = value.toLowerCase().trim();
-  return VALID_LOB[normalized] || '';
+  return VALID_LOB[normalized as keyof typeof VALID_LOB] || '';
 }
 
+// Normalize month value
 function normalizeMonth(value: string): string {
   const normalized = value.toLowerCase().trim();
   return MONTH_MAP[normalized] || new Date().toLocaleString('default', { month: 'long' });
 }
 
+// Parse number safely
 function parseNumber(value: string | number | undefined): number {
   if (value === undefined || value === null || value === '') return 0;
   if (typeof value === 'number') return value;
+  // Remove currency symbols and commas
   const cleaned = value.replace(/[₹$,\s]/g, '').replace(/[^\d.-]/g, '');
   const parsed = parseFloat(cleaned);
   return isNaN(parsed) ? 0 : parsed;
 }
 
+function resolveIdByName(list: NamedReference[] | undefined, name: string): string | null {
+  if (!list?.length || !name?.trim()) return null;
+  const target = name.trim().toLowerCase();
+  return list.find((item) => item.name?.trim().toLowerCase() === target)?.id ?? null;
+}
+
+// Correct a single row
 function correctRow(row: RowData, headerMapping: Record<string, string>): CorrectedRow {
   const mappedRow: Record<string, string | number> = {};
   
+  // Map CSV values to expected fields
   for (const [originalHeader, value] of Object.entries(row)) {
     const normalizedHeader = originalHeader.toLowerCase();
     const mappedField = headerMapping[normalizedHeader];
@@ -225,8 +282,10 @@ function correctRow(row: RowData, headerMapping: Record<string, string>): Correc
     }
   }
   
+  // Get current date for defaults
   const now = new Date();
   
+  // Build corrected row with all normalizations
   const corrected: CorrectedRow = {
     potentialId: String(mappedRow.potentialId || ''),
     freshDeskTicketNumber: String(mappedRow.freshDeskTicketNumber || ''),
@@ -255,6 +314,7 @@ function correctRow(row: RowData, headerMapping: Record<string, string>): Correc
     invoiceDetails: String(mappedRow.invoiceDetails || ''),
   };
   
+  // Auto-detect cloud type from other fields if not set
   if (!corrected.cloud && corrected.cloudType) {
     if (['AWS', 'Azure', 'GCP'].includes(corrected.cloudType)) {
       corrected.cloud = 'Public Cloud';
@@ -268,44 +328,18 @@ function correctRow(row: RowData, headerMapping: Record<string, string>): Correc
 }
 
 serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    // Authentication check - require valid JWT
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      console.error('Missing or invalid Authorization header');
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - Missing authentication token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
-
-    // Validate the JWT token
-    const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    
-    if (claimsError || !claimsData?.claims) {
-      console.error('JWT validation failed:', claimsError?.message);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - Invalid authentication token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const userId = claimsData.claims.sub;
-    console.log(`Authenticated CSV autocorrect request from user: ${userId}`);
-
-    const { headers, rows } = await req.json();
+    const { headers, rows, requestType, referenceData } = await req.json() as {
+      headers: string[];
+      rows: RowData[];
+      requestType?: 'solutions' | 'delivery';
+      referenceData?: ReferenceData;
+    };
     
     if (!headers || !rows || !Array.isArray(rows)) {
       return new Response(
@@ -317,9 +351,11 @@ serve(async (req) => {
     console.log(`Processing ${rows.length} rows with ${headers.length} columns`);
     console.log('Headers:', headers);
 
+    // Create header mapping
     const headerMapping = createHeaderMapping(headers);
     console.log('Header mapping:', headerMapping);
 
+    // Track unmapped headers for AI enhancement
     const unmappedHeaders = headers.filter(
       (h: string) => !headerMapping[h.toLowerCase()]
     );
@@ -328,8 +364,22 @@ serve(async (req) => {
       console.log('Unmapped headers (will be ignored):', unmappedHeaders);
     }
 
-    const correctedRows = rows.map((row: RowData) => correctRow(row, headerMapping));
+    // Correct all rows
+    const correctedRows = rows.map((row: RowData) => {
+      const corrected = correctRow(row, headerMapping);
+      const requesterSource =
+        requestType === 'solutions'
+          ? referenceData?.solutionManagers
+          : referenceData?.deliveryManagers;
 
+      corrected.clientId = resolveIdByName(referenceData?.clients, corrected.client);
+      corrected.agentId = resolveIdByName(referenceData?.agents, corrected.agentName);
+      corrected.accountManagerId = resolveIdByName(referenceData?.accountManagers, corrected.accountManager);
+      corrected.requesterId = resolveIdByName(requesterSource, corrected.requester);
+      return corrected;
+    });
+
+    // Generate summary of corrections
     const corrections: string[] = [];
     const mappedFields = Object.values(headerMapping);
     if (mappedFields.length < headers.length) {
@@ -339,6 +389,7 @@ serve(async (req) => {
       corrections.push(`Ignored unmapped columns: ${unmappedHeaders.join(', ')}`);
     }
 
+    // Count normalized values
     let statusNormalized = 0;
     let cloudNormalized = 0;
     let lobNormalized = 0;

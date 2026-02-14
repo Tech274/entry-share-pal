@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Progress } from '@/components/ui/progress';
-import { useEngineers } from '@/hooks/useEngineers';
+import { useEngineers, Engineer } from '@/hooks/useEngineers';
 import { useAssignment } from '@/hooks/useAssignment';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -32,7 +32,7 @@ export function AssigneeDropdown({
   compact = false,
 }: AssigneeDropdownProps) {
   const { user } = useAuth();
-  const { engineers, loading, getWorkloadColor } = useEngineers();
+  const { engineers, loading, getWorkloadColor, getWorkloadBgColor } = useEngineers();
   const { assignRequest, assignToMe } = useAssignment();
   const [isAssigning, setIsAssigning] = useState(false);
 

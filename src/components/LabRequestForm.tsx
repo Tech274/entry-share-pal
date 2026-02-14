@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, STATUS_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS, LOB_OPTIONS, LabRequest } from '@/types/labRequest';
+import { useAgents, useAccountManagers, useClients, useSolutionManagers } from '@/hooks/usePersonnel';
 import { CurrencyInput } from '@/components/CurrencyInput';
 import { IntegerInput } from '@/components/IntegerInput';
 import { PercentageInput } from '@/components/PercentageInput';
@@ -39,13 +40,17 @@ const initialFormState = {
   month: '',
   year: new Date().getFullYear(),
   client: '',
+  clientId: '' as string,
   cloud: '',
   cloudType: '',
   tpLabType: '',
   labName: '',
   requester: '',
+  requesterId: '' as string,
   agentName: '',
+  agentId: '' as string,
   accountManager: '',
+  accountManagerId: '' as string,
   receivedOn: '',
   labStartDate: '',
   labEndDate: '',
@@ -62,14 +67,44 @@ const initialFormState = {
 };
 
 export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
+  const { data: clients = [] } = useClients();
+  const { data: agents = [] } = useAgents();
+  const { data: accountManagers = [] } = useAccountManagers();
+  const { data: solutionManagers = [] } = useSolutionManagers();
+
   const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [_touched, setTouched] = useState<Set<string>>(new Set());
+  const [touched, setTouched] = useState<Set<string>>(new Set());
 
   const handleChange = (field: string, value: string | number) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
       
+      // Pre-fill account manager when client is selected
+      if (field === 'clientId' && typeof value === 'string') {
+        const client = clients.find((c) => c.id === value);
+        if (client?.account_manager_id) {
+          updated.accountManagerId = client.account_manager_id;
+          updated.accountManager = accountManagers.find((am) => am.id === client.account_manager_id)?.name ?? '';
+        }
+      }
+      // Sync display names when IDs change
+      if (field === 'clientId') {
+        const c = clients.find((x) => x.id === value);
+        updated.client = c?.name ?? '';
+      }
+      if (field === 'agentId') {
+        const a = agents.find((x) => x.id === value);
+        updated.agentName = a?.name ?? '';
+      }
+      if (field === 'accountManagerId') {
+        const am = accountManagers.find((x) => x.id === value);
+        updated.accountManager = am?.name ?? '';
+      }
+      if (field === 'requesterId') {
+        const sm = solutionManagers.find((x) => x.id === value);
+        updated.requester = sm?.name ?? '';
+      }
       // Clear cloudType when cloud changes to non-Public Cloud
       if (field === 'cloud' && value !== 'Public Cloud') {
         updated.cloudType = '';
@@ -303,13 +338,20 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
               Client
               <span className="text-destructive ml-1">*</span>
             </Label>
-            <Input
-              id="client"
-              value={formData.client}
-              onChange={e => handleChange('client', e.target.value)}
-              placeholder="Client name"
-              className={errors.client ? 'border-destructive' : ''}
-            />
+            <Select
+              value={formData.clientId || '__none__'}
+              onValueChange={v => handleChange('clientId', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger className={errors.client ? 'border-destructive' : ''}>
+                <SelectValue placeholder="Select client" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Select client</SelectItem>
+                {clients.filter((c) => c.is_active).map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.client && <p className="text-sm text-destructive">{errors.client}</p>}
           </div>
           <div className="space-y-2">
@@ -372,31 +414,55 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
         <h3 className="form-section-title">Personnel</h3>
         <div className="form-grid">
           <div className="space-y-2">
-            <Label htmlFor="requester">Requester</Label>
-            <Input
-              id="requester"
-              value={formData.requester}
-              onChange={e => handleChange('requester', e.target.value)}
-              placeholder="Requester name"
-            />
+            <Label htmlFor="requester">Solution Manager</Label>
+            <Select
+              value={formData.requesterId || '__none__'}
+              onValueChange={v => handleChange('requesterId', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select solution manager" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Select solution manager</SelectItem>
+                {solutionManagers.filter((s) => s.is_active).map((s) => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="agentName">Agent Name</Label>
-            <Input
-              id="agentName"
-              value={formData.agentName}
-              onChange={e => handleChange('agentName', e.target.value)}
-              placeholder="Agent name"
-            />
+            <Label htmlFor="agentName">Agent</Label>
+            <Select
+              value={formData.agentId || '__none__'}
+              onValueChange={v => handleChange('agentId', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select agent" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Select agent</SelectItem>
+                {agents.filter((a) => a.is_active).map((a) => (
+                  <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="accountManager">Account Manager</Label>
-            <Input
-              id="accountManager"
-              value={formData.accountManager}
-              onChange={e => handleChange('accountManager', e.target.value)}
-              placeholder="Account manager"
-            />
+            <Select
+              value={formData.accountManagerId || '__none__'}
+              onValueChange={v => handleChange('accountManagerId', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select account manager" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Select account manager</SelectItem>
+                {accountManagers.filter((am) => am.is_active).map((am) => (
+                  <SelectItem key={am.id} value={am.id}>{am.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
