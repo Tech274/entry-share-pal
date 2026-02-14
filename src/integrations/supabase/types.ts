@@ -128,7 +128,6 @@ export type Database = {
         }
         Relationships: []
       }
-      New
       clients: {
         Row: {
           account_manager_id: string | null
@@ -248,112 +247,6 @@ export type Database = {
           is_enabled?: boolean | null
           role?: string
           updated_at?: string | null
-      agents: {
-        Row: {
-          id: string
-          name: string
-          email: string | null
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          email?: string | null
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          email?: string | null
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      account_managers: {
-        Row: {
-          id: string
-          name: string
-          email: string | null
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          email?: string | null
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          email?: string | null
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      clients: {
-        Row: {
-          id: string
-          name: string
-          account_manager_id: string | null
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          account_manager_id?: string | null
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          account_manager_id?: string | null
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      solution_managers: {
-        Row: {
-          id: string
-          name: string
-          email: string | null
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          email?: string | null
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          email?: string | null
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-          main
         }
         Relationships: []
       }
@@ -393,7 +286,6 @@ export type Database = {
           account_manager_id: string | null
           agent_id: string | null
           agent_name: string | null
-          agent_id: string | null
           assigned_to: string | null
           client: string
           client_id: string | null
@@ -415,7 +307,6 @@ export type Database = {
           potential_id: string | null
           received_on: string | null
           requester: string | null
-          requester_id: string | null
           selling_cost_per_user: number | null
           start_date: string | null
           total_amount: number | null
@@ -429,7 +320,6 @@ export type Database = {
           account_manager_id?: string | null
           agent_id?: string | null
           agent_name?: string | null
-          agent_id?: string | null
           assigned_to?: string | null
           client: string
           client_id?: string | null
@@ -451,7 +341,6 @@ export type Database = {
           potential_id?: string | null
           received_on?: string | null
           requester?: string | null
-          requester_id?: string | null
           selling_cost_per_user?: number | null
           start_date?: string | null
           total_amount?: number | null
@@ -465,7 +354,6 @@ export type Database = {
           account_manager_id?: string | null
           agent_id?: string | null
           agent_name?: string | null
-          agent_id?: string | null
           assigned_to?: string | null
           client?: string
           client_id?: string | null
@@ -487,7 +375,6 @@ export type Database = {
           potential_id?: string | null
           received_on?: string | null
           requester?: string | null
-          requester_id?: string | null
           selling_cost_per_user?: number | null
           start_date?: string | null
           total_amount?: number | null
@@ -700,7 +587,6 @@ export type Database = {
           account_manager_id: string | null
           agent_id: string | null
           agent_name: string | null
-          agent_id: string | null
           assigned_to: string | null
           client: string
           client_id: string | null
@@ -722,7 +608,6 @@ export type Database = {
           received_on: string | null
           remarks: string | null
           requester: string | null
-          requester_id: string | null
           selling_cost_per_user: number | null
           status: string | null
           total_amount_for_training: number | null
@@ -736,7 +621,6 @@ export type Database = {
           account_manager_id?: string | null
           agent_id?: string | null
           agent_name?: string | null
-          agent_id?: string | null
           assigned_to?: string | null
           client: string
           client_id?: string | null
@@ -758,7 +642,6 @@ export type Database = {
           received_on?: string | null
           remarks?: string | null
           requester?: string | null
-          requester_id?: string | null
           selling_cost_per_user?: number | null
           status?: string | null
           total_amount_for_training?: number | null
@@ -772,7 +655,6 @@ export type Database = {
           account_manager_id?: string | null
           agent_id?: string | null
           agent_name?: string | null
-          agent_id?: string | null
           assigned_to?: string | null
           client?: string
           client_id?: string | null
@@ -794,7 +676,6 @@ export type Database = {
           received_on?: string | null
           remarks?: string | null
           requester?: string | null
-          requester_id?: string | null
           selling_cost_per_user?: number | null
           status?: string | null
           total_amount_for_training?: number | null
@@ -857,33 +738,24 @@ export type Database = {
         }
         Relationships: []
       }
-      report_access_config: {
+      rate_limit_log: {
         Row: {
           created_at: string
-          display_order: number
-          enabled: boolean
+          endpoint: string
           id: string
-          report_slug: string
-          role: string
-          updated_at: string
+          ip_address: string
         }
         Insert: {
           created_at?: string
-          display_order?: number
-          enabled?: boolean
+          endpoint: string
           id?: string
-          report_slug: string
-          role: string
-          updated_at?: string
+          ip_address: string
         }
         Update: {
           created_at?: string
-          display_order?: number
-          enabled?: boolean
+          endpoint?: string
           id?: string
-          report_slug?: string
-          role?: string
-          updated_at?: string
+          ip_address?: string
         }
         Relationships: []
       }
@@ -976,6 +848,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_rate_limits: { Args: never; Returns: undefined }
       get_engineer_workload: { Args: { engineer_id: string }; Returns: number }
       get_user_role: {
         Args: { _user_id: string }
