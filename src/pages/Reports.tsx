@@ -176,67 +176,137 @@ const Reports = () => {
                   Open Delivery Dashboard
                 </Button>
               </div>
-              <div className="grid gap-6 md:grid-cols-2">
-                <Card>
-                  <CardHeader className="bg-blue-500 text-white py-3 px-4 rounded-t-lg">
-                    <CardTitle className="text-base">Solutions Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Total Solutions</span>
-                        <span className="font-bold">{labRequests.length}</span>
-                      </div>
-                      {['Solution Pending', 'Solution Sent', 'POC In-Progress', 'Lost Closed'].map((status) => (
-                        <div key={status} className="flex justify-between">
-                          <span>{status}</span>
-                          <span className="font-medium">{labRequests.filter((r: LabRequest) => r.status === status).length}</span>
-                        </div>
-                      ))}
-                      <div className="flex justify-between pt-2 border-t">
-                        <span>Total Revenue</span>
-                        <span className="font-bold">₹{labRequests.reduce((s, r) => s + (r.totalAmountForTraining || 0), 0).toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="bg-green-500 text-white py-3 px-4 rounded-t-lg">
-                    <CardTitle className="text-base">Delivery Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Total Deliveries</span>
-                        <span className="font-bold">{deliveryRequests.length}</span>
-                      </div>
-                      {['Pending', 'Work-in-Progress', 'Test Credentials Shared', 'Delivery In-Progress', 'Delivery Completed'].map((status) => (
-                        <div key={status} className="flex justify-between">
-                          <span>{status}</span>
-                          <span className="font-medium">{deliveryRequests.filter((r) => r.labStatus === status).length}</span>
-                        </div>
-                      ))}
-                      <div className="flex justify-between pt-2 border-t">
-                        <span>Total Learners</span>
-                        <span className="font-bold">{deliveryRequests.reduce((s, r) => s + (r.numberOfUsers || 0), 0).toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
 
-              <div className="grid gap-6">
-                <TimeBucketMetricsPanel
-                  title="Solutions Time Summary"
-                  subtitle="Automated submission-time metrics grouped by daily, weekly, monthly, and overall buckets."
-                  entries={solutionEntries}
-                />
-                <TimeBucketMetricsPanel
-                  title="Delivery Time Summary"
-                  subtitle="Same calculations and dimensions for delivery requests with status and agent visibility."
-                  entries={deliveryEntries}
-                />
-              </div>
+              <Tabs defaultValue="solutions-summary" className="space-y-4">
+                <TabsList className="grid w-full max-w-md grid-cols-2">
+                  <TabsTrigger value="solutions-summary" className="gap-2">
+                    <BarChart3 className="w-4 h-4" />
+                    Solutions
+                  </TabsTrigger>
+                  <TabsTrigger value="delivery-summary" className="gap-2">
+                    <Layers className="w-4 h-4" />
+                    Delivery
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="solutions-summary" className="space-y-6">
+                  <Card>
+                    <CardHeader className="bg-blue-500 text-white py-3 px-4 rounded-t-lg">
+                      <CardTitle className="text-base">Solutions Summary</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between"><span>Total Solutions</span><span className="font-bold">{labRequests.length}</span></div>
+                        {['Solution Pending', 'Solution Sent', 'POC In-Progress', 'Lost Closed'].map((status) => (
+                          <div key={status} className="flex justify-between">
+                            <span>{status}</span>
+                            <span className="font-medium">{labRequests.filter((r: LabRequest) => r.status === status).length}</span>
+                          </div>
+                        ))}
+                        <div className="border-t pt-2 space-y-2">
+                          <div className="flex justify-between"><span>Total Revenue</span><span className="font-bold">₹{labRequests.reduce((s, r) => s + (r.totalAmountForTraining || 0), 0).toLocaleString()}</span></div>
+                          <div className="flex justify-between"><span>Total Margin</span><span className="font-bold">₹{labRequests.reduce((s, r) => s + (r.margin || 0), 0).toLocaleString()}</span></div>
+                          <div className="flex justify-between"><span>Total Users</span><span className="font-bold">{labRequests.reduce((s, r) => s + (r.userCount || 0), 0).toLocaleString()}</span></div>
+                          <div className="flex justify-between"><span>Avg Duration (days)</span><span className="font-bold">{labRequests.length ? Math.round(labRequests.reduce((s, r) => s + (r.durationInDays || 0), 0) / labRequests.length) : 0}</span></div>
+                          <div className="flex justify-between"><span>Avg Input Cost/User</span><span className="font-bold">₹{labRequests.length ? Math.round(labRequests.reduce((s, r) => s + (r.inputCostPerUser || 0), 0) / labRequests.length).toLocaleString() : 0}</span></div>
+                          <div className="flex justify-between"><span>Avg Selling Cost/User</span><span className="font-bold">₹{labRequests.length ? Math.round(labRequests.reduce((s, r) => s + (r.sellingCostPerUser || 0), 0) / labRequests.length).toLocaleString() : 0}</span></div>
+                        </div>
+                        <div className="border-t pt-2 space-y-2">
+                          <div className="flex justify-between"><span>Unique Clients</span><span className="font-bold">{new Set(labRequests.map(r => r.client)).size}</span></div>
+                          <div className="flex justify-between"><span>Unique Agents</span><span className="font-bold">{new Set(labRequests.map(r => r.agentName).filter(Boolean)).size}</span></div>
+                          <div className="flex justify-between"><span>Unique Account Managers</span><span className="font-bold">{new Set(labRequests.map(r => r.accountManager).filter(Boolean)).size}</span></div>
+                        </div>
+                        <div className="border-t pt-2 space-y-2">
+                          <p className="font-medium text-muted-foreground">By Line of Business</p>
+                          {['Standalone', 'VILT', 'Integrated'].map((lob) => {
+                            const count = labRequests.filter(r => r.lineOfBusiness === lob).length;
+                            return count > 0 ? (
+                              <div key={lob} className="flex justify-between"><span>{lob}</span><span className="font-medium">{count}</span></div>
+                            ) : null;
+                          })}
+                        </div>
+                        <div className="border-t pt-2 space-y-2">
+                          <p className="font-medium text-muted-foreground">By Lab Type</p>
+                          {['Public Cloud', 'Private Cloud', 'TP Labs'].map((cloud) => {
+                            const count = labRequests.filter(r => r.cloud === cloud).length;
+                            return count > 0 ? (
+                              <div key={cloud} className="flex justify-between"><span>{cloud}</span><span className="font-medium">{count}</span></div>
+                            ) : null;
+                          })}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <TimeBucketMetricsPanel
+                    title="Solutions Time Summary"
+                    subtitle="Automated submission-time metrics grouped by daily, weekly, monthly, and overall buckets."
+                    entries={solutionEntries}
+                  />
+                </TabsContent>
+
+                <TabsContent value="delivery-summary" className="space-y-6">
+                  <Card>
+                    <CardHeader className="bg-green-500 text-white py-3 px-4 rounded-t-lg">
+                      <CardTitle className="text-base">Delivery Summary</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between"><span>Total Deliveries</span><span className="font-bold">{deliveryRequests.length}</span></div>
+                        {['Pending', 'Work-in-Progress', 'Test Credentials Shared', 'Delivery In-Progress', 'Delivery Completed', 'Cancelled'].map((status) => (
+                          <div key={status} className="flex justify-between">
+                            <span>{status}</span>
+                            <span className="font-medium">{deliveryRequests.filter((r) => r.labStatus === status).length}</span>
+                          </div>
+                        ))}
+                        <div className="border-t pt-2 space-y-2">
+                          <div className="flex justify-between"><span>Total Learners</span><span className="font-bold">{deliveryRequests.reduce((s, r) => s + (r.numberOfUsers || 0), 0).toLocaleString()}</span></div>
+                          <div className="flex justify-between"><span>Total Amount</span><span className="font-bold">₹{deliveryRequests.reduce((s, r) => s + (r.totalAmount || 0), 0).toLocaleString()}</span></div>
+                          <div className="flex justify-between"><span>Delivery Margin</span><span className="font-bold">₹{deliveryRequests.reduce((s, r) => s + ((r.sellingCostPerUser || 0) * (r.numberOfUsers || 0) - (r.inputCostPerUser || 0) * (r.numberOfUsers || 0)), 0).toLocaleString()}</span></div>
+                          <div className="flex justify-between"><span>Avg Input Cost/User</span><span className="font-bold">₹{deliveryRequests.length ? Math.round(deliveryRequests.reduce((s, r) => s + (r.inputCostPerUser || 0), 0) / deliveryRequests.length).toLocaleString() : 0}</span></div>
+                          <div className="flex justify-between"><span>Avg Selling Cost/User</span><span className="font-bold">₹{deliveryRequests.length ? Math.round(deliveryRequests.reduce((s, r) => s + (r.sellingCostPerUser || 0), 0) / deliveryRequests.length).toLocaleString() : 0}</span></div>
+                        </div>
+                        <div className="border-t pt-2 space-y-2">
+                          <div className="flex justify-between"><span>Unique Clients</span><span className="font-bold">{new Set(deliveryRequests.map(r => r.client)).size}</span></div>
+                          <div className="flex justify-between"><span>Unique Agents</span><span className="font-bold">{new Set(deliveryRequests.map(r => r.agentName).filter(Boolean)).size}</span></div>
+                          <div className="flex justify-between"><span>Unique Account Managers</span><span className="font-bold">{new Set(deliveryRequests.map(r => r.accountManager).filter(Boolean)).size}</span></div>
+                        </div>
+                        <div className="border-t pt-2 space-y-2">
+                          <p className="font-medium text-muted-foreground">By Line of Business</p>
+                          {['Standalone', 'VILT', 'Integrated'].map((lob) => {
+                            const count = deliveryRequests.filter(r => r.lineOfBusiness === lob).length;
+                            return count > 0 ? (
+                              <div key={lob} className="flex justify-between"><span>{lob}</span><span className="font-medium">{count}</span></div>
+                            ) : null;
+                          })}
+                        </div>
+                        <div className="border-t pt-2 space-y-2">
+                          <p className="font-medium text-muted-foreground">By Lab Type</p>
+                          {['Cloud', 'On-Premise', 'Hybrid', 'Virtual'].map((type) => {
+                            const count = deliveryRequests.filter(r => r.labType === type).length;
+                            return count > 0 ? (
+                              <div key={type} className="flex justify-between"><span>{type}</span><span className="font-medium">{count}</span></div>
+                            ) : null;
+                          })}
+                        </div>
+                        <div className="border-t pt-2 space-y-2">
+                          <p className="font-medium text-muted-foreground">By Lab Status</p>
+                          {['Public Cloud', 'Private Cloud', 'TP Labs'].map((cloud) => {
+                            const count = deliveryRequests.filter(r => r.cloud === cloud).length;
+                            return count > 0 ? (
+                              <div key={cloud} className="flex justify-between"><span>{cloud}</span><span className="font-medium">{count}</span></div>
+                            ) : null;
+                          })}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <TimeBucketMetricsPanel
+                    title="Delivery Time Summary"
+                    subtitle="Same calculations and dimensions for delivery requests with status and agent visibility."
+                    entries={deliveryEntries}
+                  />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
             )}
           </Tabs>
