@@ -204,17 +204,8 @@ const Reports = () => {
                           </div>
                         ))}
                         <div className="border-t pt-2 space-y-2">
-                          <div className="flex justify-between"><span>Total Revenue</span><span className="font-bold">₹{labRequests.reduce((s, r) => s + (r.totalAmountForTraining || 0), 0).toLocaleString()}</span></div>
-                          <div className="flex justify-between"><span>Total Margin</span><span className="font-bold">₹{labRequests.reduce((s, r) => s + (r.margin || 0), 0).toLocaleString()}</span></div>
                           <div className="flex justify-between"><span>Total Users</span><span className="font-bold">{labRequests.reduce((s, r) => s + (r.userCount || 0), 0).toLocaleString()}</span></div>
                           <div className="flex justify-between"><span>Avg Duration (days)</span><span className="font-bold">{labRequests.length ? Math.round(labRequests.reduce((s, r) => s + (r.durationInDays || 0), 0) / labRequests.length) : 0}</span></div>
-                          <div className="flex justify-between"><span>Avg Input Cost/User</span><span className="font-bold">₹{labRequests.length ? Math.round(labRequests.reduce((s, r) => s + (r.inputCostPerUser || 0), 0) / labRequests.length).toLocaleString() : 0}</span></div>
-                          <div className="flex justify-between"><span>Avg Selling Cost/User</span><span className="font-bold">₹{labRequests.length ? Math.round(labRequests.reduce((s, r) => s + (r.sellingCostPerUser || 0), 0) / labRequests.length).toLocaleString() : 0}</span></div>
-                        </div>
-                        <div className="border-t pt-2 space-y-2">
-                          <div className="flex justify-between"><span>Unique Clients</span><span className="font-bold">{new Set(labRequests.map(r => r.client)).size}</span></div>
-                          <div className="flex justify-between"><span>Unique Agents</span><span className="font-bold">{new Set(labRequests.map(r => r.agentName).filter(Boolean)).size}</span></div>
-                          <div className="flex justify-between"><span>Unique Account Managers</span><span className="font-bold">{new Set(labRequests.map(r => r.accountManager).filter(Boolean)).size}</span></div>
                         </div>
                         <div className="border-t pt-2 space-y-2">
                           <p className="font-medium text-muted-foreground">By Line of Business</p>
@@ -260,15 +251,6 @@ const Reports = () => {
                         ))}
                         <div className="border-t pt-2 space-y-2">
                           <div className="flex justify-between"><span>Total Learners</span><span className="font-bold">{deliveryRequests.reduce((s, r) => s + (r.numberOfUsers || 0), 0).toLocaleString()}</span></div>
-                          <div className="flex justify-between"><span>Total Amount</span><span className="font-bold">₹{deliveryRequests.reduce((s, r) => s + (r.totalAmount || 0), 0).toLocaleString()}</span></div>
-                          <div className="flex justify-between"><span>Delivery Margin</span><span className="font-bold">₹{deliveryRequests.reduce((s, r) => s + ((r.sellingCostPerUser || 0) * (r.numberOfUsers || 0) - (r.inputCostPerUser || 0) * (r.numberOfUsers || 0)), 0).toLocaleString()}</span></div>
-                          <div className="flex justify-between"><span>Avg Input Cost/User</span><span className="font-bold">₹{deliveryRequests.length ? Math.round(deliveryRequests.reduce((s, r) => s + (r.inputCostPerUser || 0), 0) / deliveryRequests.length).toLocaleString() : 0}</span></div>
-                          <div className="flex justify-between"><span>Avg Selling Cost/User</span><span className="font-bold">₹{deliveryRequests.length ? Math.round(deliveryRequests.reduce((s, r) => s + (r.sellingCostPerUser || 0), 0) / deliveryRequests.length).toLocaleString() : 0}</span></div>
-                        </div>
-                        <div className="border-t pt-2 space-y-2">
-                          <div className="flex justify-between"><span>Unique Clients</span><span className="font-bold">{new Set(deliveryRequests.map(r => r.client)).size}</span></div>
-                          <div className="flex justify-between"><span>Unique Agents</span><span className="font-bold">{new Set(deliveryRequests.map(r => r.agentName).filter(Boolean)).size}</span></div>
-                          <div className="flex justify-between"><span>Unique Account Managers</span><span className="font-bold">{new Set(deliveryRequests.map(r => r.accountManager).filter(Boolean)).size}</span></div>
                         </div>
                         <div className="border-t pt-2 space-y-2">
                           <p className="font-medium text-muted-foreground">By Line of Business</p>
