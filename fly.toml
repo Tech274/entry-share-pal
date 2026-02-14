@@ -1,23 +1,23 @@
-app = "entry-share-pal"
-primary_region = "lax"
+# fly.toml app configuration file generated for entry-share-pal on 2026-02-14T16:30:10Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'entry-share-pal'
+primary_region = 'iad'
 
 [build]
-  builder = "heroku"
-
-[env]
-  NODE_ENV = "production"
 
 [http_service]
-  internal_port = 3000
+  internal_port = 80
   force_https = true
-  auto_stop_machines = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
 
-[[services]]
-  protocol = "tcp"
-  internal_port = 3000
-
-  [services.concurrency]
-    type = "connections"
-    hard_limit = 1000
-    soft_limit = 100
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 1024
