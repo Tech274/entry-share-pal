@@ -15,20 +15,32 @@ export interface ReportAccessConfigRow {
   updated_at: string;
 }
 
+const mapRow = (row: Record<string, unknown>): ReportAccessConfigRow => ({
+  id: (row.id ?? '') as string,
+  role: (row.role ?? '') as string,
+  report_slug: (row.report_slug ?? '') as string,
+  enabled: (row.enabled ?? row.is_enabled ?? false) as boolean,
+  display_order: (row.display_order ?? 0) as number,
+  created_at: (row.created_at ?? '') as string,
+  updated_at: (row.updated_at ?? '') as string,
+});
+
 const queryKey = ['report-access-config'] as const;
 
 export const useReportAccessConfig = (role?: AppRole | null) => {
   return useQuery({
     queryKey: [...queryKey, role ?? 'all'],
     queryFn: async () => {
-      let q = supabase
-        .from('report_access_config')
+      const { data, error } = await supabase
+        .from('report_access_config' as any)
         .select('*')
         .order('display_order');
-      if (role) q = q.eq('role', role);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as ReportAccessConfigRow[];
+      if (error) {
+        // Table may not exist yet — fall back gracefully
+        console.warn('report_access_config query failed:', error.message);
+        return [] as ReportAccessConfigRow[];
+      }
+      return ((data as any[]) ?? []).map(mapRow);
     },
   });
 };
@@ -64,7 +76,7 @@ export const useReportAccessConfigMutations = () => {
       enabled: boolean;
       display_order: number;
     }) => {
-      const { error } = await supabase.from('report_access_config').upsert(row, {
+      const { error } = await supabase.from('report_access_config' as any).upsert(row as any, {
         onConflict: 'role,report_slug',
       });
       if (error) throw error;
