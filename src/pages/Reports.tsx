@@ -21,7 +21,7 @@ import { CloudBillingDashboard } from '@/components/dashboards/CloudBillingDashb
 import { TimeBucketMetricsPanel } from '@/components/dashboards/TimeBucketMetricsPanel';
 import { normalizeDeliveryEntries, normalizeSolutionEntries } from '@/lib/reportTimeMetrics';
 import { useState, useMemo } from 'react';
-import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from 'date-fns';
+import { format, isWithinInterval, parseISO, startOfDay, endOfDay, startOfMonth, endOfMonth, subDays, startOfQuarter, endOfQuarter } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -203,21 +203,46 @@ const Reports = () => {
             <TabsContent value="summary" className="space-y-6">
               {/* Date Range Picker + Actions */}
               <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Quick Date Presets */}
+                  {[
+                    { label: 'All Time', getRange: () => undefined },
+                    { label: 'This Month', getRange: () => ({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) }) },
+                    { label: 'Last 30 Days', getRange: () => ({ from: subDays(new Date(), 30), to: new Date() }) },
+                    { label: 'This Quarter', getRange: () => ({ from: startOfQuarter(new Date()), to: endOfQuarter(new Date()) }) },
+                  ].map((preset) => {
+                    const isActive = preset.label === 'All Time'
+                      ? !dateRange?.from
+                      : (() => {
+                          const r = preset.getRange();
+                          return r && dateRange?.from && dateRange?.to
+                            && format(dateRange.from, 'yyyy-MM-dd') === format(r.from, 'yyyy-MM-dd')
+                            && format(dateRange.to, 'yyyy-MM-dd') === format(r.to, 'yyyy-MM-dd');
+                        })();
+                    return (
+                      <Button
+                        key={preset.label}
+                        variant={isActive ? 'default' : 'outline'}
+                        size="sm"
+                        className="h-8"
+                        onClick={() => setDateRange(preset.getRange() as DateRange | undefined)}
+                      >
+                        {preset.label}
+                      </Button>
+                    );
+                  })}
+
+                  {/* Custom Date Range Picker */}
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("justify-start text-left font-normal min-w-[260px]", !dateRange?.from && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
+                      <Button variant="outline" size="sm" className={cn("h-8 justify-start text-left font-normal min-w-[200px]", !dateRange?.from && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-3.5 w-3.5" />
                         {dateRange?.from ? (
                           dateRange.to ? (
-                            <>
-                              {format(dateRange.from, "dd MMM yyyy")} – {format(dateRange.to, "dd MMM yyyy")}
-                            </>
-                          ) : (
-                            format(dateRange.from, "dd MMM yyyy")
-                          )
+                            <>{format(dateRange.from, "dd MMM yyyy")} – {format(dateRange.to, "dd MMM yyyy")}</>
+                          ) : format(dateRange.from, "dd MMM yyyy")
                         ) : (
-                          <span>All Time</span>
+                          <span>Custom Range</span>
                         )}
                       </Button>
                     </PopoverTrigger>
@@ -232,11 +257,6 @@ const Reports = () => {
                       />
                     </PopoverContent>
                   </Popover>
-                  {dateRange?.from && (
-                    <Button variant="ghost" size="sm" onClick={() => setDateRange(undefined)}>
-                      Clear
-                    </Button>
-                  )}
                 </div>
                 <Button variant="outline" size="sm" onClick={() => navigate('/delivery-dashboard')}>
                   Open Delivery Dashboard
