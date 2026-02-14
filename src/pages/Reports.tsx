@@ -18,6 +18,8 @@ import { ArrowLeft, BarChart3, PieChart, Users, IndianRupee, Layers, Cloud } fro
 import { Button } from '@/components/ui/button';
 import { LabRequest } from '@/types/labRequest';
 import { CloudBillingDashboard } from '@/components/dashboards/CloudBillingDashboard';
+import { TimeBucketMetricsPanel } from '@/components/dashboards/TimeBucketMetricsPanel';
+import { normalizeDeliveryEntries, normalizeSolutionEntries } from '@/lib/reportTimeMetrics';
 
 const Reports = () => {
   const { requests: labRequests, loading: labLoading } = useLabRequests();
@@ -52,6 +54,8 @@ const Reports = () => {
   }
 
   const isLoading = labLoading || deliveryLoading;
+  const solutionEntries = normalizeSolutionEntries(labRequests);
+  const deliveryEntries = normalizeDeliveryEntries(deliveryRequests);
 
   return (
     <div className="min-h-screen bg-background">
@@ -167,6 +171,11 @@ const Reports = () => {
 
             {allowedSlugs.includes('summary') && (
             <TabsContent value="summary" className="space-y-6">
+              <div className="flex items-center justify-end">
+                <Button variant="outline" size="sm" onClick={() => navigate('/delivery-dashboard')}>
+                  Open Delivery Dashboard
+                </Button>
+              </div>
               <div className="grid gap-6 md:grid-cols-2">
                 <Card>
                   <CardHeader className="bg-blue-500 text-white py-3 px-4 rounded-t-lg">
@@ -214,6 +223,19 @@ const Reports = () => {
                     </div>
                   </CardContent>
                 </Card>
+              </div>
+
+              <div className="grid gap-6">
+                <TimeBucketMetricsPanel
+                  title="Solutions Time Summary"
+                  subtitle="Automated submission-time metrics grouped by daily, weekly, monthly, and overall buckets."
+                  entries={solutionEntries}
+                />
+                <TimeBucketMetricsPanel
+                  title="Delivery Time Summary"
+                  subtitle="Same calculations and dimensions for delivery requests with status and agent visibility."
+                  entries={deliveryEntries}
+                />
               </div>
             </TabsContent>
             )}
