@@ -14,12 +14,18 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, BarChart3, PieChart, Users, IndianRupee, Layers, Cloud } from 'lucide-react';
+import { ArrowLeft, BarChart3, PieChart, Users, IndianRupee, Layers, Cloud, CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LabRequest } from '@/types/labRequest';
 import { CloudBillingDashboard } from '@/components/dashboards/CloudBillingDashboard';
 import { TimeBucketMetricsPanel } from '@/components/dashboards/TimeBucketMetricsPanel';
 import { normalizeDeliveryEntries, normalizeSolutionEntries } from '@/lib/reportTimeMetrics';
+import { useState, useMemo } from 'react';
+import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { DateRange } from 'react-day-picker';
 
 const Reports = () => {
   const { requests: labRequests, loading: labLoading } = useLabRequests();
@@ -28,8 +34,32 @@ const Reports = () => {
   const navigate = useNavigate();
   const { role } = useAuth();
   const { canAccess, allowedSlugs } = useReportAccessForRole(role);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   useRealtimeSync();
+
+  // Filter data by date range
+  const filteredLabRequests = useMemo(() => {
+    if (!dateRange?.from) return labRequests;
+    return labRequests.filter(r => {
+      const d = r.receivedOn ? parseISO(r.receivedOn) : r.createdAt ? parseISO(r.createdAt) : null;
+      if (!d) return true;
+      const from = startOfDay(dateRange.from!);
+      const to = dateRange.to ? endOfDay(dateRange.to) : endOfDay(dateRange.from!);
+      return isWithinInterval(d, { start: from, end: to });
+    });
+  }, [labRequests, dateRange]);
+
+  const filteredDeliveryRequests = useMemo(() => {
+    if (!dateRange?.from) return deliveryRequests;
+    return deliveryRequests.filter(r => {
+      const d = r.receivedOn ? parseISO(r.receivedOn) : r.createdAt ? parseISO(r.createdAt) : null;
+      if (!d) return true;
+      const from = startOfDay(dateRange.from!);
+      const to = dateRange.to ? endOfDay(dateRange.to) : endOfDay(dateRange.from!);
+      return isWithinInterval(d, { start: from, end: to });
+    });
+  }, [deliveryRequests, dateRange]);
 
   const handleExportCSV = () => {
     exportToCSV(labRequests);
@@ -54,8 +84,8 @@ const Reports = () => {
   }
 
   const isLoading = labLoading || deliveryLoading;
-  const solutionEntries = normalizeSolutionEntries(labRequests);
-  const deliveryEntries = normalizeDeliveryEntries(deliveryRequests);
+  const solutionEntries = normalizeSolutionEntries(filteredLabRequests);
+  const deliveryEntries = normalizeDeliveryEntries(filteredDeliveryRequests);
 
   return (
     <div className="min-h-screen bg-background">
@@ -171,124 +201,141 @@ const Reports = () => {
 
             {allowedSlugs.includes('summary') && (
             <TabsContent value="summary" className="space-y-6">
-              <div className="flex items-center justify-end">
+              {/* Date Range Picker + Actions */}
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("justify-start text-left font-normal min-w-[260px]", !dateRange?.from && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange?.from ? (
+                          dateRange.to ? (
+                            <>
+                              {format(dateRange.from, "dd MMM yyyy")} – {format(dateRange.to, "dd MMM yyyy")}
+                            </>
+                          ) : (
+                            format(dateRange.from, "dd MMM yyyy")
+                          )
+                        ) : (
+                          <span>All Time</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="range"
+                        selected={dateRange}
+                        onSelect={setDateRange}
+                        numberOfMonths={2}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {dateRange?.from && (
+                    <Button variant="ghost" size="sm" onClick={() => setDateRange(undefined)}>
+                      Clear
+                    </Button>
+                  )}
+                </div>
                 <Button variant="outline" size="sm" onClick={() => navigate('/delivery-dashboard')}>
                   Open Delivery Dashboard
                 </Button>
               </div>
 
-              <Tabs defaultValue="solutions-summary" className="space-y-4">
-                <TabsList className="grid w-full max-w-md grid-cols-2">
-                  <TabsTrigger value="solutions-summary" className="gap-2">
-                    <BarChart3 className="w-4 h-4" />
-                    Solutions
-                  </TabsTrigger>
-                  <TabsTrigger value="delivery-summary" className="gap-2">
-                    <Layers className="w-4 h-4" />
-                    Delivery
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="solutions-summary" className="space-y-6">
-                  <Card>
-                    <CardHeader className="bg-blue-500 text-white py-3 px-4 rounded-t-lg">
-                      <CardTitle className="text-base">Solutions Summary</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between"><span>Total Solutions</span><span className="font-bold">{labRequests.length}</span></div>
-                        {['Solution Pending', 'Solution Sent', 'POC In-Progress', 'Lost Closed'].map((status) => (
-                          <div key={status} className="flex justify-between">
-                            <span>{status}</span>
-                            <span className="font-medium">{labRequests.filter((r: LabRequest) => r.status === status).length}</span>
-                          </div>
-                        ))}
-                        <div className="border-t pt-2 space-y-2">
-                          <div className="flex justify-between"><span>Total Users</span><span className="font-bold">{labRequests.reduce((s, r) => s + (r.userCount || 0), 0).toLocaleString()}</span></div>
-                          <div className="flex justify-between"><span>Avg Duration (days)</span><span className="font-bold">{labRequests.length ? Math.round(labRequests.reduce((s, r) => s + (r.durationInDays || 0), 0) / labRequests.length) : 0}</span></div>
+              {/* Unified Summary Dashboard */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Solutions Card */}
+                <Card>
+                  <CardHeader className="bg-primary text-primary-foreground py-3 px-4 rounded-t-lg">
+                    <CardTitle className="text-base">Solutions ({filteredLabRequests.length})</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="space-y-2 text-sm">
+                      {['Solution Pending', 'Solution Sent', 'POC In-Progress', 'Lost Closed'].map((status) => (
+                        <div key={status} className="flex justify-between">
+                          <span>{status}</span>
+                          <span className="font-medium">{filteredLabRequests.filter((r: LabRequest) => r.status === status).length}</span>
                         </div>
-                        <div className="border-t pt-2 space-y-2">
-                          <p className="font-medium text-muted-foreground">By Line of Business</p>
-                          {['Standalone', 'VILT', 'Integrated'].map((lob) => {
-                            const count = labRequests.filter(r => r.lineOfBusiness === lob).length;
-                            return count > 0 ? (
-                              <div key={lob} className="flex justify-between"><span>{lob}</span><span className="font-medium">{count}</span></div>
-                            ) : null;
-                          })}
-                        </div>
-                        <div className="border-t pt-2 space-y-2">
-                          <p className="font-medium text-muted-foreground">By Lab Type</p>
-                          {['Public Cloud', 'Private Cloud', 'TP Labs'].map((cloud) => {
-                            const count = labRequests.filter(r => r.cloud === cloud).length;
-                            return count > 0 ? (
-                              <div key={cloud} className="flex justify-between"><span>{cloud}</span><span className="font-medium">{count}</span></div>
-                            ) : null;
-                          })}
-                        </div>
+                      ))}
+                      <div className="border-t pt-2 space-y-2">
+                        <div className="flex justify-between"><span>Total Users</span><span className="font-bold">{filteredLabRequests.reduce((s, r) => s + (r.userCount || 0), 0).toLocaleString()}</span></div>
+                        <div className="flex justify-between"><span>Avg Duration (days)</span><span className="font-bold">{filteredLabRequests.length ? Math.round(filteredLabRequests.reduce((s, r) => s + (r.durationInDays || 0), 0) / filteredLabRequests.length) : 0}</span></div>
                       </div>
-                    </CardContent>
-                  </Card>
-                  <TimeBucketMetricsPanel
-                    title="Solutions Time Summary"
-                    subtitle="Automated submission-time metrics grouped by daily, weekly, monthly, and overall buckets."
-                    entries={solutionEntries}
-                  />
-                </TabsContent>
-
-                <TabsContent value="delivery-summary" className="space-y-6">
-                  <Card>
-                    <CardHeader className="bg-green-500 text-white py-3 px-4 rounded-t-lg">
-                      <CardTitle className="text-base">Delivery Summary</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between"><span>Total Deliveries</span><span className="font-bold">{deliveryRequests.length}</span></div>
-                        {['Pending', 'Work-in-Progress', 'Test Credentials Shared', 'Delivery In-Progress', 'Delivery Completed', 'Cancelled'].map((status) => (
-                          <div key={status} className="flex justify-between">
-                            <span>{status}</span>
-                            <span className="font-medium">{deliveryRequests.filter((r) => r.labStatus === status).length}</span>
-                          </div>
-                        ))}
-                        <div className="border-t pt-2 space-y-2">
-                          <div className="flex justify-between"><span>Total Learners</span><span className="font-bold">{deliveryRequests.reduce((s, r) => s + (r.numberOfUsers || 0), 0).toLocaleString()}</span></div>
-                        </div>
-                        <div className="border-t pt-2 space-y-2">
-                          <p className="font-medium text-muted-foreground">By Line of Business</p>
-                          {['Standalone', 'VILT', 'Integrated'].map((lob) => {
-                            const count = deliveryRequests.filter(r => r.lineOfBusiness === lob).length;
-                            return count > 0 ? (
-                              <div key={lob} className="flex justify-between"><span>{lob}</span><span className="font-medium">{count}</span></div>
-                            ) : null;
-                          })}
-                        </div>
-                        <div className="border-t pt-2 space-y-2">
-                          <p className="font-medium text-muted-foreground">By Lab Type</p>
-                          {['Cloud', 'On-Premise', 'Hybrid', 'Virtual'].map((type) => {
-                            const count = deliveryRequests.filter(r => r.labType === type).length;
-                            return count > 0 ? (
-                              <div key={type} className="flex justify-between"><span>{type}</span><span className="font-medium">{count}</span></div>
-                            ) : null;
-                          })}
-                        </div>
-                        <div className="border-t pt-2 space-y-2">
-                          <p className="font-medium text-muted-foreground">By Lab Status</p>
-                          {['Public Cloud', 'Private Cloud', 'TP Labs'].map((cloud) => {
-                            const count = deliveryRequests.filter(r => r.cloud === cloud).length;
-                            return count > 0 ? (
-                              <div key={cloud} className="flex justify-between"><span>{cloud}</span><span className="font-medium">{count}</span></div>
-                            ) : null;
-                          })}
-                        </div>
+                      <div className="border-t pt-2 space-y-2">
+                        <p className="font-medium text-muted-foreground">By Line of Business</p>
+                        {['Standalone', 'VILT', 'Integrated'].map((lob) => {
+                          const count = filteredLabRequests.filter(r => r.lineOfBusiness === lob).length;
+                          return count > 0 ? (
+                            <div key={lob} className="flex justify-between"><span>{lob}</span><span className="font-medium">{count}</span></div>
+                          ) : null;
+                        })}
                       </div>
-                    </CardContent>
-                  </Card>
-                  <TimeBucketMetricsPanel
-                    title="Delivery Time Summary"
-                    subtitle="Same calculations and dimensions for delivery requests with status and agent visibility."
-                    entries={deliveryEntries}
-                  />
-                </TabsContent>
-              </Tabs>
+                      <div className="border-t pt-2 space-y-2">
+                        <p className="font-medium text-muted-foreground">By Lab Type</p>
+                        {['Public Cloud', 'Private Cloud', 'TP Labs'].map((cloud) => {
+                          const count = filteredLabRequests.filter(r => r.cloud === cloud).length;
+                          return count > 0 ? (
+                            <div key={cloud} className="flex justify-between"><span>{cloud}</span><span className="font-medium">{count}</span></div>
+                          ) : null;
+                        })}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Delivery Card */}
+                <Card>
+                  <CardHeader className="bg-accent text-accent-foreground py-3 px-4 rounded-t-lg">
+                    <CardTitle className="text-base">Delivery ({filteredDeliveryRequests.length})</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="space-y-2 text-sm">
+                      {['Pending', 'Work-in-Progress', 'Test Credentials Shared', 'Delivery In-Progress', 'Delivery Completed', 'Cancelled'].map((status) => (
+                        <div key={status} className="flex justify-between">
+                          <span>{status}</span>
+                          <span className="font-medium">{filteredDeliveryRequests.filter((r) => r.labStatus === status).length}</span>
+                        </div>
+                      ))}
+                      <div className="border-t pt-2 space-y-2">
+                        <div className="flex justify-between"><span>Total Learners</span><span className="font-bold">{filteredDeliveryRequests.reduce((s, r) => s + (r.numberOfUsers || 0), 0).toLocaleString()}</span></div>
+                      </div>
+                      <div className="border-t pt-2 space-y-2">
+                        <p className="font-medium text-muted-foreground">By Line of Business</p>
+                        {['Standalone', 'VILT', 'Integrated'].map((lob) => {
+                          const count = filteredDeliveryRequests.filter(r => r.lineOfBusiness === lob).length;
+                          return count > 0 ? (
+                            <div key={lob} className="flex justify-between"><span>{lob}</span><span className="font-medium">{count}</span></div>
+                          ) : null;
+                        })}
+                      </div>
+                      <div className="border-t pt-2 space-y-2">
+                        <p className="font-medium text-muted-foreground">By Lab Type</p>
+                        {['Public Cloud', 'Private Cloud', 'TP Labs'].map((cloud) => {
+                          const count = filteredDeliveryRequests.filter(r => r.cloud === cloud).length;
+                          return count > 0 ? (
+                            <div key={cloud} className="flex justify-between"><span>{cloud}</span><span className="font-medium">{count}</span></div>
+                          ) : null;
+                        })}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Time Summaries side by side */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <TimeBucketMetricsPanel
+                  title="Solutions Time Summary"
+                  subtitle="Submission-time metrics by daily, weekly, monthly, and overall buckets."
+                  entries={solutionEntries}
+                />
+                <TimeBucketMetricsPanel
+                  title="Delivery Time Summary"
+                  subtitle="Delivery request metrics with status and agent visibility."
+                  entries={deliveryEntries}
+                />
+              </div>
             </TabsContent>
             )}
           </Tabs>
