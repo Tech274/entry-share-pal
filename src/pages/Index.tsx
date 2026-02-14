@@ -344,10 +344,15 @@ const Index = () => {
                       Revenue, Lab Type, Learners, Summary, and Cloud Billing. Open the full Reports page for filters and detailed breakdowns.
                     </p>
                   </div>
-                  <Button onClick={() => navigate('/reports')} className="gap-2 shrink-0 w-full sm:w-auto" size="lg">
-                    <Database className="w-4 h-4" />
-                    Open Reports
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <Button onClick={() => navigate('/reports')} className="gap-2 shrink-0 w-full sm:w-auto" size="lg">
+                      <Database className="w-4 h-4" />
+                      Open Reports
+                    </Button>
+                    <Button onClick={() => navigate('/delivery-dashboard')} variant="outline" className="shrink-0 w-full sm:w-auto" size="lg">
+                      Open Delivery Dashboard
+                    </Button>
+                  </div>
                 </div>
               </div>
             </TabsContent>
