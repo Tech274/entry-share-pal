@@ -178,7 +178,7 @@ export const RoleBasedDashboard = ({
   const effectiveSlugs = enabledSlugs.length > 0 ? enabledSlugs : (role ? [role === 'admin' ? 'admin' : role === 'ops_lead' ? 'ops_lead' : role === 'finance' ? 'leadership' : 'ops'] : ['ops']) as DashboardSlug[];
   const [selectedDashboardTab, setSelectedDashboardTab] = useState<string>(effectiveSlugs[0] ?? 'ops');
   useEffect(() => {
-    if (effectiveSlugs.length > 0 && !(effectiveSlugs as string[]).includes(selectedDashboardTab)) {
+    if (effectiveSlugs.length > 0 && !effectiveSlugs.includes(selectedDashboardTab)) {
       setSelectedDashboardTab(effectiveSlugs[0]);
     }
   }, [effectiveSlugs, selectedDashboardTab]);

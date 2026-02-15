@@ -14,7 +14,6 @@ import Preview from "./pages/Preview";
 import DeliveryPreview from "./pages/DeliveryPreview";
 import MasterDataSheet from "./pages/MasterDataSheet";
 import Reports from "./pages/Reports";
-import DeliveryDashboard from "./pages/DeliveryDashboard";
 import Auth from "./pages/Auth";
 import Docs from "./pages/Docs";
 import LabCatalog from "./pages/LabCatalog";
@@ -81,14 +80,6 @@ const App = () => (
                   <Reports />
                 </ProtectedRoute>
               } 
-            />
-            <Route
-              path="/delivery-dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['admin', 'finance', 'ops_lead']}>
-                  <DeliveryDashboard />
-                </ProtectedRoute>
-              }
             />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

@@ -14,18 +14,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, BarChart3, PieChart, Users, IndianRupee, Layers, Cloud, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, BarChart3, PieChart, Users, IndianRupee, Layers, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LabRequest } from '@/types/labRequest';
 import { CloudBillingDashboard } from '@/components/dashboards/CloudBillingDashboard';
-import { TimeBucketMetricsPanel } from '@/components/dashboards/TimeBucketMetricsPanel';
-import { normalizeDeliveryEntries, normalizeSolutionEntries } from '@/lib/reportTimeMetrics';
-import { useState, useMemo } from 'react';
-import { format, isWithinInterval, parseISO, startOfDay, endOfDay, startOfMonth, endOfMonth, subDays, startOfQuarter, endOfQuarter } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { DateRange } from 'react-day-picker';
 
 const Reports = () => {
   const { requests: labRequests, loading: labLoading } = useLabRequests();
@@ -34,32 +26,8 @@ const Reports = () => {
   const navigate = useNavigate();
   const { role } = useAuth();
   const { canAccess, allowedSlugs } = useReportAccessForRole(role);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   useRealtimeSync();
-
-  // Filter data by date range
-  const filteredLabRequests = useMemo(() => {
-    if (!dateRange?.from) return labRequests;
-    return labRequests.filter(r => {
-      const d = r.receivedOn ? parseISO(r.receivedOn) : r.createdAt ? parseISO(r.createdAt) : null;
-      if (!d) return true;
-      const from = startOfDay(dateRange.from!);
-      const to = dateRange.to ? endOfDay(dateRange.to) : endOfDay(dateRange.from!);
-      return isWithinInterval(d, { start: from, end: to });
-    });
-  }, [labRequests, dateRange]);
-
-  const filteredDeliveryRequests = useMemo(() => {
-    if (!dateRange?.from) return deliveryRequests;
-    return deliveryRequests.filter(r => {
-      const d = r.receivedOn ? parseISO(r.receivedOn) : r.createdAt ? parseISO(r.createdAt) : null;
-      if (!d) return true;
-      const from = startOfDay(dateRange.from!);
-      const to = dateRange.to ? endOfDay(dateRange.to) : endOfDay(dateRange.from!);
-      return isWithinInterval(d, { start: from, end: to });
-    });
-  }, [deliveryRequests, dateRange]);
 
   const handleExportCSV = () => {
     exportToCSV(labRequests);
@@ -84,8 +52,6 @@ const Reports = () => {
   }
 
   const isLoading = labLoading || deliveryLoading;
-  const solutionEntries = normalizeSolutionEntries(filteredLabRequests);
-  const deliveryEntries = normalizeDeliveryEntries(filteredDeliveryRequests);
 
   return (
     <div className="min-h-screen bg-background">
@@ -201,170 +167,54 @@ const Reports = () => {
 
             {allowedSlugs.includes('summary') && (
             <TabsContent value="summary" className="space-y-6">
-              {/* Date Range Picker + Actions */}
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {/* Quick Date Presets */}
-                  {[
-                    { label: 'All Time', getRange: () => undefined },
-                    { label: 'This Month', getRange: () => ({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) }) },
-                    { label: 'Last 30 Days', getRange: () => ({ from: subDays(new Date(), 30), to: new Date() }) },
-                    { label: 'This Quarter', getRange: () => ({ from: startOfQuarter(new Date()), to: endOfQuarter(new Date()) }) },
-                  ].map((preset) => {
-                    const isActive = preset.label === 'All Time'
-                      ? !dateRange?.from
-                      : (() => {
-                          const r = preset.getRange();
-                          return r && dateRange?.from && dateRange?.to
-                            && format(dateRange.from, 'yyyy-MM-dd') === format(r.from, 'yyyy-MM-dd')
-                            && format(dateRange.to, 'yyyy-MM-dd') === format(r.to, 'yyyy-MM-dd');
-                        })();
-                    return (
-                      <Button
-                        key={preset.label}
-                        variant={isActive ? 'default' : 'outline'}
-                        size="sm"
-                        className="h-8"
-                        onClick={() => setDateRange(preset.getRange() as DateRange | undefined)}
-                      >
-                        {preset.label}
-                      </Button>
-                    );
-                  })}
-
-                  {/* Custom Date Range Picker */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className={cn("h-8 justify-start text-left font-normal min-w-[200px]", !dateRange?.from && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-                        {dateRange?.from ? (
-                          dateRange.to ? (
-                            <>{format(dateRange.from, "dd MMM yyyy")} – {format(dateRange.to, "dd MMM yyyy")}</>
-                          ) : format(dateRange.from, "dd MMM yyyy")
-                        ) : (
-                          <span>Custom Range</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="range"
-                        selected={dateRange}
-                        onSelect={setDateRange}
-                        numberOfMonths={2}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => navigate('/delivery-dashboard')}>
-                  Open Delivery Dashboard
-                </Button>
+              <div className="grid gap-6 md:grid-cols-2">
+                <Card>
+                  <CardHeader className="bg-blue-500 text-white py-3 px-4 rounded-t-lg">
+                    <CardTitle className="text-base">Solutions Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Total Solutions</span>
+                        <span className="font-bold">{labRequests.length}</span>
+                      </div>
+                      {['Solution Pending', 'Solution Sent', 'POC In-Progress', 'Lost Closed'].map((status) => (
+                        <div key={status} className="flex justify-between">
+                          <span>{status}</span>
+                          <span className="font-medium">{labRequests.filter((r: LabRequest) => r.status === status).length}</span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between pt-2 border-t">
+                        <span>Total Revenue</span>
+                        <span className="font-bold">₹{labRequests.reduce((s, r) => s + (r.totalAmountForTraining || 0), 0).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="bg-green-500 text-white py-3 px-4 rounded-t-lg">
+                    <CardTitle className="text-base">Delivery Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Total Deliveries</span>
+                        <span className="font-bold">{deliveryRequests.length}</span>
+                      </div>
+                      {['Pending', 'Work-in-Progress', 'Test Credentials Shared', 'Delivery In-Progress', 'Delivery Completed'].map((status) => (
+                        <div key={status} className="flex justify-between">
+                          <span>{status}</span>
+                          <span className="font-medium">{deliveryRequests.filter((r) => r.labStatus === status).length}</span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between pt-2 border-t">
+                        <span>Total Learners</span>
+                        <span className="font-bold">{deliveryRequests.reduce((s, r) => s + (r.numberOfUsers || 0), 0).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-
-              {/* Solutions / Delivery Sub-Tabs */}
-              <Tabs defaultValue="solutions" className="space-y-4">
-                <TabsList className="grid w-full max-w-md grid-cols-2 gap-1">
-                  <TabsTrigger value="solutions" className="gap-2">
-                    <Layers className="w-4 h-4" />
-                    Solutions ({filteredLabRequests.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="delivery" className="gap-2">
-                    <Users className="w-4 h-4" />
-                    Delivery ({filteredDeliveryRequests.length})
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="solutions" className="space-y-6">
-                  <Card>
-                    <CardHeader className="bg-primary text-primary-foreground py-3 px-4 rounded-t-lg">
-                      <CardTitle className="text-base">Solutions Overview</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="space-y-2 text-sm">
-                        {['Solution Pending', 'Solution Sent', 'POC In-Progress', 'Lost Closed'].map((status) => (
-                          <div key={status} className="flex justify-between">
-                            <span>{status}</span>
-                            <span className="font-medium">{filteredLabRequests.filter((r: LabRequest) => r.status === status).length}</span>
-                          </div>
-                        ))}
-                        <div className="border-t pt-2 space-y-2">
-                          <div className="flex justify-between"><span>Total Users</span><span className="font-bold">{filteredLabRequests.reduce((s, r) => s + (r.userCount || 0), 0).toLocaleString()}</span></div>
-                          <div className="flex justify-between"><span>Avg Duration (days)</span><span className="font-bold">{filteredLabRequests.length ? Math.round(filteredLabRequests.reduce((s, r) => s + (r.durationInDays || 0), 0) / filteredLabRequests.length) : 0}</span></div>
-                        </div>
-                        <div className="border-t pt-2 space-y-2">
-                          <p className="font-medium text-muted-foreground">By Line of Business</p>
-                          {['Standalone', 'VILT', 'Integrated'].map((lob) => {
-                            const count = filteredLabRequests.filter(r => r.lineOfBusiness === lob).length;
-                            return count > 0 ? (
-                              <div key={lob} className="flex justify-between"><span>{lob}</span><span className="font-medium">{count}</span></div>
-                            ) : null;
-                          })}
-                        </div>
-                        <div className="border-t pt-2 space-y-2">
-                          <p className="font-medium text-muted-foreground">By Lab Type</p>
-                          {['Public Cloud', 'Private Cloud', 'TP Labs'].map((cloud) => {
-                            const count = filteredLabRequests.filter(r => r.cloud === cloud).length;
-                            return count > 0 ? (
-                              <div key={cloud} className="flex justify-between"><span>{cloud}</span><span className="font-medium">{count}</span></div>
-                            ) : null;
-                          })}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <TimeBucketMetricsPanel
-                    title="Solutions Time Summary"
-                    subtitle="Submission-time metrics by daily, weekly, monthly, and overall buckets."
-                    entries={solutionEntries}
-                  />
-                </TabsContent>
-
-                <TabsContent value="delivery" className="space-y-6">
-                  <Card>
-                    <CardHeader className="bg-accent text-accent-foreground py-3 px-4 rounded-t-lg">
-                      <CardTitle className="text-base">Delivery Overview</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="space-y-2 text-sm">
-                        {['Pending', 'Work-in-Progress', 'Test Credentials Shared', 'Delivery In-Progress', 'Delivery Completed', 'Cancelled'].map((status) => (
-                          <div key={status} className="flex justify-between">
-                            <span>{status}</span>
-                            <span className="font-medium">{filteredDeliveryRequests.filter((r) => r.labStatus === status).length}</span>
-                          </div>
-                        ))}
-                        <div className="border-t pt-2 space-y-2">
-                          <div className="flex justify-between"><span>Total Learners</span><span className="font-bold">{filteredDeliveryRequests.reduce((s, r) => s + (r.numberOfUsers || 0), 0).toLocaleString()}</span></div>
-                        </div>
-                        <div className="border-t pt-2 space-y-2">
-                          <p className="font-medium text-muted-foreground">By Line of Business</p>
-                          {['Standalone', 'VILT', 'Integrated'].map((lob) => {
-                            const count = filteredDeliveryRequests.filter(r => r.lineOfBusiness === lob).length;
-                            return count > 0 ? (
-                              <div key={lob} className="flex justify-between"><span>{lob}</span><span className="font-medium">{count}</span></div>
-                            ) : null;
-                          })}
-                        </div>
-                        <div className="border-t pt-2 space-y-2">
-                          <p className="font-medium text-muted-foreground">By Lab Type</p>
-                          {['Public Cloud', 'Private Cloud', 'TP Labs'].map((cloud) => {
-                            const count = filteredDeliveryRequests.filter(r => r.cloud === cloud).length;
-                            return count > 0 ? (
-                              <div key={cloud} className="flex justify-between"><span>{cloud}</span><span className="font-medium">{count}</span></div>
-                            ) : null;
-                          })}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <TimeBucketMetricsPanel
-                    title="Delivery Time Summary"
-                    subtitle="Delivery request metrics with status and agent visibility."
-                    entries={deliveryEntries}
-                  />
-                </TabsContent>
-              </Tabs>
             </TabsContent>
             )}
           </Tabs>

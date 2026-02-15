@@ -25,17 +25,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
-import { exportCloudBillingToCSV, exportCloudBillingToXLS, type CloudBillingExportRow } from '@/lib/exportUtils';
 import { useCloudBillingDetails, useCloudBillingMutations, SAMPLE_CLOUD_BILLING_DATA, type CloudBillingDetail, type CloudProvider } from '@/hooks/useCloudBillingDetails';
-import { Plus, Pencil, Trash2, Cloud, AlertCircle, Database, Download } from 'lucide-react';
+import { Plus, Pencil, Trash2, Cloud, AlertCircle, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const PROVIDERS: { id: CloudProvider; label: string }[] = [
@@ -300,21 +293,6 @@ export function CloudBillingDashboard() {
     return map;
   }, [details]);
 
-  const fullExportRows = useMemo<CloudBillingExportRow[]>(
-    () =>
-      details.map((detail) => ({
-        provider: detail.provider,
-        vendor_name: detail.vendor_name,
-        month: detail.month,
-        year: detail.year,
-        overall_business: detail.overall_business,
-        cloud_cost: detail.cloud_cost,
-        invoiced_to_customer: detail.invoiced_to_customer,
-        yet_to_be_billed: detail.yet_to_be_billed,
-      })),
-    [details]
-  );
-
   if (isError) {
     const msg = error instanceof Error ? error.message : String(error);
     const missingTable = /does not exist|relation|schema/i.test(msg);
@@ -354,16 +332,6 @@ export function CloudBillingDashboard() {
     });
   };
 
-  const handleExportCSV = () => {
-    exportCloudBillingToCSV(fullExportRows, 'cloud-billing-full-page');
-    toast.success('Cloud Billing exported as CSV.');
-  };
-
-  const handleExportXLS = () => {
-    exportCloudBillingToXLS(fullExportRows, 'cloud-billing-full-page');
-    toast.success('Cloud Billing exported as XLS.');
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -371,24 +339,10 @@ export function CloudBillingDashboard() {
           <Cloud className="w-4 h-4" />
           <span>Month-on-month invoiced to customer, cloud spend vs cloud sales, and % margins by provider.</span>
         </div>
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="default" size="sm" disabled={fullExportRows.length === 0}>
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleExportCSV}>Export entire page as CSV</DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExportXLS}>Export entire page as XLS</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button variant="outline" size="sm" onClick={loadSample} disabled={mutations.bulkInsert.isPending} className="gap-2">
-            <Database className="w-4 h-4" />
-            {mutations.bulkInsert.isPending ? 'Loading…' : 'Load sample data'}
-          </Button>
-        </div>
+        <Button variant="outline" size="sm" onClick={loadSample} disabled={mutations.bulkInsert.isPending} className="gap-2">
+          <Database className="w-4 h-4" />
+          {mutations.bulkInsert.isPending ? 'Loading…' : 'Load sample data'}
+        </Button>
       </div>
 
       {PROVIDERS.map(({ id }) => (
