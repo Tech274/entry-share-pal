@@ -175,7 +175,14 @@ export const RoleBasedDashboard = ({
     });
   }, [filteredLabRequests, filteredDeliveryRequests, toast]);
 
-  const effectiveSlugs = enabledSlugs.length > 0 ? enabledSlugs : (role ? [role === 'admin' ? 'admin' : role === 'ops_lead' ? 'ops_lead' : role === 'finance' ? 'leadership' : 'ops'] : ['ops']) as DashboardSlug[];
+  // For admin role, AdminDashboard has its own internal tabs (Overview, User Management, etc.)
+  // The dashboard_config entries for admin are sub-tab configs, not dashboard-type selectors.
+  const isAdminRole = role === 'admin';
+  const effectiveSlugs = isAdminRole 
+    ? ['admin' as DashboardSlug]
+    : enabledSlugs.length > 0 
+      ? enabledSlugs 
+      : (role ? [role === 'ops_lead' ? 'ops_lead' : role === 'finance' ? 'leadership' : 'ops'] : ['ops']) as DashboardSlug[];
   const [selectedDashboardTab, setSelectedDashboardTab] = useState<string>(effectiveSlugs[0] ?? 'ops');
   useEffect(() => {
     if (effectiveSlugs.length > 0 && !effectiveSlugs.includes(selectedDashboardTab as DashboardSlug)) {
