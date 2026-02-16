@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import type { AppRole } from '@/types/roles';
 import type { ReportSlug } from '@/lib/reportAccessMatrix';
 import { getAllowedReportSlugs } from '@/lib/reportAccessMatrix';
@@ -17,19 +16,15 @@ export interface ReportAccessConfigRow {
 
 const queryKey = ['report-access-config'] as const;
 
-export const useReportAccessConfig = (role?: AppRole | null) => {
+// report_access_config table doesn't exist in DB yet — return empty via useQuery to preserve hook count
+export const useReportAccessConfig = (_role?: AppRole | null) => {
   return useQuery({
-    queryKey: [...queryKey, role ?? 'all'],
+    queryKey: [...queryKey, _role ?? 'all'],
     queryFn: async () => {
-      let q = supabase
-        .from('report_access_config')
-        .select('*')
-        .order('display_order');
-      if (role) q = q.eq('role', role);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as ReportAccessConfigRow[];
+      // Table doesn't exist yet, return empty array
+      return [] as ReportAccessConfigRow[];
     },
+    staleTime: Infinity,
   });
 };
 
@@ -58,16 +53,14 @@ export const useReportAccessConfigMutations = () => {
   const queryClient = useQueryClient();
 
   const upsert = useMutation({
-    mutationFn: async (row: {
+    mutationFn: async (_row: {
       role: string;
       report_slug: string;
       enabled: boolean;
       display_order: number;
     }) => {
-      const { error } = await supabase.from('report_access_config').upsert(row, {
-        onConflict: 'role,report_slug',
-      });
-      if (error) throw error;
+      // No-op until report_access_config table is created
+      console.warn('report_access_config table not available');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
