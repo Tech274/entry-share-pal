@@ -15,6 +15,17 @@ export interface DashboardConfigRow {
   updated_at: string;
 }
 
+// Map DB row to our interface
+const mapRow = (row: any): DashboardConfigRow => ({
+  id: row.id,
+  role: row.role,
+  dashboard_slug: row.dashboard_key,
+  enabled: row.is_enabled ?? true,
+  display_order: row.display_order ?? 0,
+  created_at: row.created_at,
+  updated_at: row.updated_at,
+});
+
 const queryKey = ['dashboard-config'] as const;
 
 export const useDashboardConfig = (role?: AppRole | null) => {
@@ -30,7 +41,7 @@ export const useDashboardConfig = (role?: AppRole | null) => {
       }
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []) as DashboardConfigRow[];
+      return (data ?? []).map(mapRow);
     },
   });
 };
@@ -52,7 +63,7 @@ export const useAllDashboardConfig = () => {
         .order('role')
         .order('display_order');
       if (error) throw error;
-      return (data ?? []) as DashboardConfigRow[];
+      return (data ?? []).map(mapRow);
     },
   });
 };
@@ -69,8 +80,8 @@ export const useDashboardConfigMutations = () => {
       enabled?: boolean;
       display_order?: number;
     }) => {
-      const payload: Partial<DashboardConfigRow> = {};
-      if (enabled !== undefined) payload.enabled = enabled;
+      const payload: Record<string, any> = {};
+      if (enabled !== undefined) payload.is_enabled = enabled;
       if (display_order !== undefined) payload.display_order = display_order;
       const { error } = await supabase.from('dashboard_config').update(payload).eq('id', id);
       if (error) throw error;
@@ -86,8 +97,13 @@ export const useDashboardConfigMutations = () => {
       enabled: boolean;
       display_order: number;
     }) => {
-      const { error } = await supabase.from('dashboard_config').upsert(row, {
-        onConflict: 'role,dashboard_slug',
+      const { error } = await supabase.from('dashboard_config').upsert({
+        role: row.role,
+        dashboard_key: row.dashboard_slug,
+        is_enabled: row.enabled,
+        display_order: row.display_order,
+      } as any, {
+        onConflict: 'role,dashboard_key',
       });
       if (error) throw error;
     },

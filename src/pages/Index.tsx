@@ -1,3 +1,4 @@
+// Dashboard page - main operational hub
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RoleBasedDashboard } from '@/components/RoleBasedDashboard';
 import { SolutionsTabContent } from '@/components/SolutionsTabContent';
