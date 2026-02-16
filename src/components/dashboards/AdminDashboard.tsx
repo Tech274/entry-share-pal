@@ -104,15 +104,18 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
 
   return (
     <Tabs defaultValue="overview" className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Admin Dashboard</h2>
-        <div className="flex items-center gap-4">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Admin Dashboard</h2>
+          <Badge variant="secondary" className="bg-red-100 text-red-800">Admin</Badge>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => navigate('/reports')} className="gap-2">
             <BarChart2 className="w-4 h-4" />
             Reports
           </Button>
           <DashboardExport labRequests={labRequests} deliveryRequests={deliveryRequests} />
-          <TabsList>
+          <TabsList className="flex flex-wrap h-auto gap-1">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Activity className="w-4 h-4" />
               Overview
@@ -138,7 +141,6 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
               Report Access
             </TabsTrigger>
           </TabsList>
-          <Badge variant="secondary" className="bg-red-100 text-red-800">Admin</Badge>
         </div>
       </div>
       
