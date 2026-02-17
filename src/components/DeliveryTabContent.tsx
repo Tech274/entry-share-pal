@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { DeliveryRequestForm } from '@/components/DeliveryRequestForm';
 import { DeliveryTable } from '@/components/DeliveryTable';
@@ -157,34 +157,50 @@ export const DeliveryTabContent = ({
   );
 
   return (
-    <Tabs value={mainTab} onValueChange={setMainTab} className="space-y-6">
-      <TabsList className="grid w-full max-w-md grid-cols-2">
-        <TabsTrigger value="form" className="gap-2">
+    <div className="space-y-6">
+      <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground grid w-full max-w-md grid-cols-2">
+        <button
+          onClick={() => setMainTab('form')}
+          className={cn(
+            'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            mainTab === 'form' ? 'bg-primary text-primary-foreground shadow-sm' : ''
+          )}
+        >
           <FileText className="w-4 h-4" />
           Entry Form
-        </TabsTrigger>
-        <TabsTrigger value="list" className="gap-2">
+        </button>
+        <button
+          onClick={() => setMainTab('list')}
+          className={cn(
+            'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            mainTab === 'list' ? 'bg-primary text-primary-foreground shadow-sm' : ''
+          )}
+        >
           <Truck className="w-4 h-4" />
           Requests List ({activeRequests.length})
-        </TabsTrigger>
-      </TabsList>
+        </button>
+      </div>
 
-      <TabsContent value="form" className="space-y-6">
-        <DeliveryRequestForm onSubmit={onSubmit} />
-      </TabsContent>
+      {mainTab === 'form' && (
+        <div className="space-y-6">
+          <DeliveryRequestForm onSubmit={onSubmit} />
+        </div>
+      )}
 
-      <TabsContent value="list" className="space-y-4">
-        <LabTypeSubTabs 
-          requests={activeRequests} 
-          onDelete={onDelete}
-          onStatusChange={onStatusChange}
-          onUpdate={onUpdate}
-          label="Active Requests"
-          showStatusBreakdown={true}
-          initialFilter={initialFilter}
-          onFilterChange={onFilterChange}
-        />
-      </TabsContent>
-    </Tabs>
+      {mainTab === 'list' && (
+        <div className="space-y-4">
+          <LabTypeSubTabs 
+            requests={activeRequests} 
+            onDelete={onDelete}
+            onStatusChange={onStatusChange}
+            onUpdate={onUpdate}
+            label="Active Requests"
+            showStatusBreakdown={true}
+            initialFilter={initialFilter}
+            onFilterChange={onFilterChange}
+          />
+        </div>
+      )}
+    </div>
   );
 };

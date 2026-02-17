@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { LabRequestForm } from '@/components/LabRequestForm';
 import { RequestsTable } from '@/components/RequestsTable';
 import { LabRequest } from '@/types/labRequest';
@@ -73,97 +73,113 @@ export const SolutionsTabContent = ({
   };
 
   return (
-    <Tabs value={mainTab} onValueChange={setMainTab} className="space-y-6">
-      <TabsList className="grid w-full max-w-md grid-cols-2">
-        <TabsTrigger value="form" className="gap-2">
+    <div className="space-y-6">
+      <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground grid w-full max-w-md grid-cols-2">
+        <button
+          onClick={() => setMainTab('form')}
+          className={cn(
+            'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            mainTab === 'form' ? 'bg-primary text-primary-foreground shadow-sm' : ''
+          )}
+        >
           <FileText className="w-4 h-4" />
           Entry Form
-        </TabsTrigger>
-        <TabsTrigger value="list" className="gap-2">
+        </button>
+        <button
+          onClick={() => setMainTab('list')}
+          className={cn(
+            'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            mainTab === 'list' ? 'bg-primary text-primary-foreground shadow-sm' : ''
+          )}
+        >
           <ClipboardList className="w-4 h-4" />
           Requests List ({requests.length})
-        </TabsTrigger>
-      </TabsList>
+        </button>
+      </div>
 
-      <TabsContent value="form" className="space-y-6">
-        <LabRequestForm onSubmit={onSubmit} />
-      </TabsContent>
-
-      <TabsContent value="list" className="space-y-4">
-        {/* Sub-tabs for filtering by status */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-muted-foreground mr-2">
-            <ListFilter className="w-4 h-4 inline mr-1" />
-            Filter:
-          </span>
-          <Button
-            variant={listSubTab === 'all' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => handleSubTabChange('all')}
-            className="gap-2"
-          >
-            All
-            <Badge variant="secondary" className="ml-1">
-              {requests.length}
-            </Badge>
-          </Button>
-          <Button
-            variant={listSubTab === 'pending' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => handleSubTabChange('pending')}
-            className="gap-2"
-          >
-            <Clock className="w-4 h-4" />
-            Pending
-            <Badge variant="secondary" className="ml-1">
-              {pendingRequests.length}
-            </Badge>
-          </Button>
-          <Button
-            variant={listSubTab === 'sent' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => handleSubTabChange('sent')}
-            className="gap-2"
-          >
-            <CheckCircle className="w-4 h-4" />
-            Sent
-            <Badge variant="secondary" className="ml-1">
-              {sentRequests.length}
-            </Badge>
-          </Button>
-          <Button
-            variant={listSubTab === 'pocInProgress' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => handleSubTabChange('pocInProgress')}
-            className="gap-2"
-          >
-            <Beaker className="w-4 h-4" />
-            POC In-Progress
-            <Badge variant="secondary" className="ml-1">
-              {pocInProgressRequests.length}
-            </Badge>
-          </Button>
-          <Button
-            variant={listSubTab === 'lostClosed' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => handleSubTabChange('lostClosed')}
-            className="gap-2"
-          >
-            <XCircle className="w-4 h-4" />
-            Lost Closed
-            <Badge variant="secondary" className="ml-1">
-              {lostClosedRequests.length}
-            </Badge>
-          </Button>
+      {mainTab === 'form' && (
+        <div className="space-y-6">
+          <LabRequestForm onSubmit={onSubmit} />
         </div>
+      )}
 
-        <RequestsTable 
-          requests={getFilteredRequests()} 
-          onDelete={onDelete}
-          onConvertToDelivery={onConvertToDelivery}
-          onUpdate={onUpdate}
-        />
-      </TabsContent>
-    </Tabs>
+      {mainTab === 'list' && (
+        <div className="space-y-4">
+          {/* Sub-tabs for filtering by status */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium text-muted-foreground mr-2">
+              <ListFilter className="w-4 h-4 inline mr-1" />
+              Filter:
+            </span>
+            <Button
+              variant={listSubTab === 'all' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleSubTabChange('all')}
+              className="gap-2"
+            >
+              All
+              <Badge variant="secondary" className="ml-1">
+                {requests.length}
+              </Badge>
+            </Button>
+            <Button
+              variant={listSubTab === 'pending' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleSubTabChange('pending')}
+              className="gap-2"
+            >
+              <Clock className="w-4 h-4" />
+              Pending
+              <Badge variant="secondary" className="ml-1">
+                {pendingRequests.length}
+              </Badge>
+            </Button>
+            <Button
+              variant={listSubTab === 'sent' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleSubTabChange('sent')}
+              className="gap-2"
+            >
+              <CheckCircle className="w-4 h-4" />
+              Sent
+              <Badge variant="secondary" className="ml-1">
+                {sentRequests.length}
+              </Badge>
+            </Button>
+            <Button
+              variant={listSubTab === 'pocInProgress' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleSubTabChange('pocInProgress')}
+              className="gap-2"
+            >
+              <Beaker className="w-4 h-4" />
+              POC In-Progress
+              <Badge variant="secondary" className="ml-1">
+                {pocInProgressRequests.length}
+              </Badge>
+            </Button>
+            <Button
+              variant={listSubTab === 'lostClosed' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleSubTabChange('lostClosed')}
+              className="gap-2"
+            >
+              <XCircle className="w-4 h-4" />
+              Lost Closed
+              <Badge variant="secondary" className="ml-1">
+                {lostClosedRequests.length}
+              </Badge>
+            </Button>
+          </div>
+
+          <RequestsTable 
+            requests={getFilteredRequests()} 
+            onDelete={onDelete}
+            onConvertToDelivery={onConvertToDelivery}
+            onUpdate={onUpdate}
+          />
+        </div>
+      )}
+    </div>
   );
 };

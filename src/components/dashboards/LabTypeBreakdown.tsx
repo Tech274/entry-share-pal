@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { Cloud, Server, Building, Layers, IndianRupee, ArrowRight } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
@@ -224,27 +224,30 @@ export const LabTypeBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-3 h-9">
-            <TabsTrigger value="overview" className="flex items-center gap-1 text-xs px-2">
-              <Layers className="w-3 h-3" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="public" className="flex items-center gap-1 text-xs px-2">
-              <Cloud className="w-3 h-3" />
-              Public
-            </TabsTrigger>
-            <TabsTrigger value="private" className="flex items-center gap-1 text-xs px-2">
-              <Server className="w-3 h-3" />
-              Private
-            </TabsTrigger>
-            <TabsTrigger value="tp" className="flex items-center gap-1 text-xs px-2">
-              <Building className="w-3 h-3" />
-              TP Labs
-            </TabsTrigger>
-          </TabsList>
+        <div className="w-full">
+          <div className="inline-flex h-9 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground grid w-full grid-cols-4 mb-3">
+            {[
+              { value: 'overview', label: 'Overview', icon: Layers },
+              { value: 'public', label: 'Public', icon: Cloud },
+              { value: 'private', label: 'Private', icon: Server },
+              { value: 'tp', label: 'TP Labs', icon: Building },
+            ].map(({ value, label, icon: Icon }) => (
+              <button
+                key={value}
+                onClick={() => setActiveTab(value)}
+                className={cn(
+                  'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-2 py-1 text-xs font-medium ring-offset-background transition-all gap-1 focus-visible:outline-none',
+                  activeTab === value ? 'bg-primary text-primary-foreground shadow-sm' : ''
+                )}
+              >
+                <Icon className="w-3 h-3" />
+                {label}
+              </button>
+            ))}
+          </div>
           
-          <TabsContent value="overview" className="mt-0">
+          {activeTab === 'overview' && (
+            <div>
             <div className="flex gap-4 items-start">
               {/* Chart Section */}
               <div className="flex-shrink-0 w-[180px]">
@@ -335,9 +338,11 @@ export const LabTypeBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
                 ))}
               </div>
             </div>
-          </TabsContent>
+            </div>
+          )}
           
-          <TabsContent value="public" className="mt-0">
+          {activeTab === 'public' && (
+            <div>
             {cloudTypePieData.length > 0 ? (
               <div className="flex gap-4 items-start">
                 <div className="flex-shrink-0 w-[180px]">
@@ -420,9 +425,10 @@ export const LabTypeBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
                 No Public Cloud data available
               </div>
             )}
-          </TabsContent>
+            </div>
+          )}
           
-          <TabsContent value="private" className="mt-0">
+          {activeTab === 'private' && (
             <div 
               className="h-[180px] flex flex-col items-center justify-center text-center p-4 cursor-pointer hover:bg-muted/50 rounded-lg transition-colors group"
               onClick={() => handleLegendClick('Private Cloud')}
@@ -445,9 +451,10 @@ export const LabTypeBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
                 }
               </div>
             </div>
-          </TabsContent>
+          )}
           
-          <TabsContent value="tp" className="mt-0">
+          {activeTab === 'tp' && (
+            <div>
             {tpLabTypePieData.length > 0 ? (
               <div className="flex gap-4 items-start">
                 <div className="flex-shrink-0 w-[180px]">
@@ -530,8 +537,9 @@ export const LabTypeBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
                 No TP Labs data available
               </div>
             )}
-          </TabsContent>
-        </Tabs>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

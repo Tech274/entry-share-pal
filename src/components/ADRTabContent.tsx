@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -73,59 +73,59 @@ const LabTypeSubTabs = ({
   showMasterSheetButton?: boolean;
   canPreview?: boolean;
 }) => {
+  const [activeLabType, setActiveLabType] = useState('all');
   const publicCloudRequests = requests.filter(r => r.cloud === 'Public Cloud');
   const privateCloudRequests = requests.filter(r => r.cloud === 'Private Cloud');
   const tpLabsRequests = requests.filter(r => r.cloud === 'TP Labs');
 
+  const labTypeTabs = [
+    { value: 'all', label: `All (${requests.length})`, icon: Building2 },
+    { value: 'public', label: `Public Cloud (${publicCloudRequests.length})`, icon: Cloud },
+    { value: 'private', label: `Private Cloud (${privateCloudRequests.length})`, icon: Server },
+    { value: 'tp-labs', label: `TP Labs (${tpLabsRequests.length})`, icon: Building2 },
+  ];
+
+  const getRequests = () => {
+    switch (activeLabType) {
+      case 'public': return publicCloudRequests;
+      case 'private': return privateCloudRequests;
+      case 'tp-labs': return tpLabsRequests;
+      default: return requests;
+    }
+  };
+
   return (
-    <Tabs defaultValue="all" className="space-y-4">
-      <TabsList className="grid w-full max-w-2xl grid-cols-4">
-        <TabsTrigger value="all" className="gap-2">
-          <Building2 className="w-4 h-4" />
-          All ({requests.length})
-        </TabsTrigger>
-        <TabsTrigger value="public" className="gap-2">
-          <Cloud className="w-4 h-4" />
-          Public Cloud ({publicCloudRequests.length})
-        </TabsTrigger>
-        <TabsTrigger value="private" className="gap-2">
-          <Server className="w-4 h-4" />
-          Private Cloud ({privateCloudRequests.length})
-        </TabsTrigger>
-        <TabsTrigger value="tp-labs" className="gap-2">
-          <Building2 className="w-4 h-4" />
-          TP Labs ({tpLabsRequests.length})
-        </TabsTrigger>
-      </TabsList>
+    <div className="space-y-4">
+      <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground grid w-full max-w-2xl grid-cols-4">
+        {labTypeTabs.map(({ value, label, icon: Icon }) => (
+          <button
+            key={value}
+            onClick={() => setActiveLabType(value)}
+            className={cn(
+              'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+              activeLabType === value ? 'bg-primary text-primary-foreground shadow-sm' : ''
+            )}
+          >
+            <Icon className="w-4 h-4" />
+            {label}
+          </button>
+        ))}
+      </div>
 
-      <TabsContent value="all">
-        <div className="space-y-4">
-          {showMasterSheetButton && canPreview && (
-            <div className="flex justify-end">
-              <Link to="/master-data-sheet">
-                <Button variant="secondary" className="gap-2">
-                  <Eye className="w-4 h-4" />
-                  Preview Master Data Sheet
-                </Button>
-              </Link>
-            </div>
-          )}
-          <DeliveryTable requests={requests} onDelete={onDelete} onUpdate={onUpdate} />
-        </div>
-      </TabsContent>
-
-      <TabsContent value="public">
-        <DeliveryTable requests={publicCloudRequests} onDelete={onDelete} onUpdate={onUpdate} />
-      </TabsContent>
-
-      <TabsContent value="private">
-        <DeliveryTable requests={privateCloudRequests} onDelete={onDelete} onUpdate={onUpdate} />
-      </TabsContent>
-
-      <TabsContent value="tp-labs">
-        <DeliveryTable requests={tpLabsRequests} onDelete={onDelete} onUpdate={onUpdate} />
-      </TabsContent>
-    </Tabs>
+      <div className="space-y-4">
+        {activeLabType === 'all' && showMasterSheetButton && canPreview && (
+          <div className="flex justify-end">
+            <Link to="/master-data-sheet">
+              <Button variant="secondary" className="gap-2">
+                <Eye className="w-4 h-4" />
+                Preview Master Data Sheet
+              </Button>
+            </Link>
+          </div>
+        )}
+        <DeliveryTable requests={getRequests()} onDelete={onDelete} onUpdate={onUpdate} />
+      </div>
+    </div>
   );
 };
 
@@ -152,13 +152,11 @@ export const ADRTabContent = ({
   useEffect(() => {
     if (initialFilter) {
       setActiveFilter(initialFilter);
-      // Map filter to appropriate main tab
       if (initialFilter === 'Delivery Completed' || initialFilter === 'Completed') {
         setMainTab('completed');
       } else if (initialFilter === 'Delivery In-Progress') {
         setMainTab('in-progress');
       } else {
-        // For lab type filters, stay on current tab
         setMainTab('all-records');
       }
     }
@@ -169,7 +167,6 @@ export const ADRTabContent = ({
     onFilterChange?.(undefined);
   };
 
-  // Filter delivery requests by status categories
   const deliveryInProgressRequests = deliveryRequests.filter(r => 
     r.labStatus === 'Delivery In-Progress'
   );
@@ -178,7 +175,6 @@ export const ADRTabContent = ({
     r.labStatus === 'Completed' || r.labStatus === 'Delivery Completed'
   );
 
-  // All ADR records (Delivery In-Progress + Completed)
   const allAdrRequests = deliveryRequests.filter(r => 
     r.labStatus === 'Delivery In-Progress' || 
     r.labStatus === 'Completed' || 
@@ -204,7 +200,6 @@ export const ADRTabContent = ({
     fileInputRef.current?.click();
   };
 
-  // Helper to parse CSV line with quote handling
   const parseCSVLine = (line: string): string[] => {
     const result: string[] = [];
     let current = '';
@@ -262,7 +257,6 @@ export const ADRTabContent = ({
         return;
       }
 
-      // Parse headers and rows
       const headers = lines[0].split(',').map(h => h.trim());
       const rows: Record<string, string>[] = [];
 
@@ -275,7 +269,6 @@ export const ADRTabContent = ({
         rows.push(row);
       }
 
-      // Call AI autocorrect edge function
       const { data: aiResult, error: aiError } = await supabase.functions.invoke('ai-csv-autocorrect', {
         body: { headers, rows }
       });
@@ -288,7 +281,6 @@ export const ADRTabContent = ({
       let recordsToInsert: Omit<DeliveryRequest, 'id' | 'createdAt'>[];
 
       if (aiResult?.success && aiResult?.correctedRows) {
-        // Use AI-corrected data
         recordsToInsert = aiResult.correctedRows.map((row: CorrectedRow) => ({
           potentialId: row.potentialId || '',
           freshDeskTicketNumber: row.freshDeskTicketNumber || '',
@@ -317,7 +309,6 @@ export const ADRTabContent = ({
           invoiceDetails: row.invoiceDetails || '',
         }));
 
-        // Show AI corrections summary
         if (aiResult.corrections && aiResult.corrections.length > 0) {
           toast({
             title: 'AI Auto-Corrections Applied',
@@ -344,16 +335,21 @@ export const ADRTabContent = ({
       });
     } finally {
       setIsProcessing(false);
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
   };
 
+  const mainTabs = [
+    { value: 'in-progress', label: `Delivery In-Progress (${deliveryInProgressRequests.length})`, icon: PackageCheck },
+    { value: 'completed', label: `Completed (${completedRequests.length})`, icon: CheckCircle },
+    { value: 'all-records', label: `All Records (${allAdrRequests.length})`, icon: Database },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Breadcrumb Navigation - shown when navigated from dashboard */}
+      {/* Breadcrumb Navigation */}
       {activeFilter && (
         <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/20 animate-fade-in">
           <button 
@@ -438,49 +434,56 @@ export const ADRTabContent = ({
         recordCount={allAdrRequests.length}
       />
 
-      {/* Main Status Tabs */}
-      <Tabs value={mainTab} onValueChange={setMainTab} className="space-y-6">
-        <TabsList className="grid w-full max-w-2xl grid-cols-3">
-          <TabsTrigger value="in-progress" className="gap-2">
-            <PackageCheck className="w-4 h-4" />
-            Delivery In-Progress ({deliveryInProgressRequests.length})
-          </TabsTrigger>
-          <TabsTrigger value="completed" className="gap-2">
-            <CheckCircle className="w-4 h-4" />
-            Completed ({completedRequests.length})
-          </TabsTrigger>
-          <TabsTrigger value="all-records" className="gap-2">
-            <Database className="w-4 h-4" />
-            All Records ({allAdrRequests.length})
-          </TabsTrigger>
-        </TabsList>
+      {/* Main Status Tabs - state-based */}
+      <div className="space-y-6">
+        <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground grid w-full max-w-2xl grid-cols-3">
+          {mainTabs.map(({ value, label, icon: Icon }) => (
+            <button
+              key={value}
+              onClick={() => setMainTab(value)}
+              className={cn(
+                'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                mainTab === value ? 'bg-primary text-primary-foreground shadow-sm' : ''
+              )}
+            >
+              <Icon className="w-4 h-4" />
+              {label}
+            </button>
+          ))}
+        </div>
 
-        <TabsContent value="in-progress" className="space-y-4">
-          <LabTypeSubTabs 
-            requests={deliveryInProgressRequests} 
-            onDelete={onDeliveryDelete}
-            onUpdate={onUpdate}
-          />
-        </TabsContent>
+        {mainTab === 'in-progress' && (
+          <div className="space-y-4">
+            <LabTypeSubTabs 
+              requests={deliveryInProgressRequests} 
+              onDelete={onDeliveryDelete}
+              onUpdate={onUpdate}
+            />
+          </div>
+        )}
 
-        <TabsContent value="completed" className="space-y-4">
-          <LabTypeSubTabs 
-            requests={completedRequests} 
-            onDelete={onDeliveryDelete}
-            onUpdate={onUpdate}
-          />
-        </TabsContent>
+        {mainTab === 'completed' && (
+          <div className="space-y-4">
+            <LabTypeSubTabs 
+              requests={completedRequests} 
+              onDelete={onDeliveryDelete}
+              onUpdate={onUpdate}
+            />
+          </div>
+        )}
 
-        <TabsContent value="all-records" className="space-y-4">
-          <LabTypeSubTabs 
-            requests={allAdrRequests} 
-            onDelete={onDeliveryDelete}
-            onUpdate={onUpdate}
-            showMasterSheetButton={true}
-            canPreview={canPreview}
-          />
-        </TabsContent>
-      </Tabs>
+        {mainTab === 'all-records' && (
+          <div className="space-y-4">
+            <LabTypeSubTabs 
+              requests={allAdrRequests} 
+              onDelete={onDeliveryDelete}
+              onUpdate={onUpdate}
+              showMasterSheetButton={true}
+              canPreview={canPreview}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
