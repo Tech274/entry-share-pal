@@ -1,5 +1,5 @@
 // Dashboard page - main operational hub
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { RoleBasedDashboard } from '@/components/RoleBasedDashboard';
 import { SolutionsTabContent } from '@/components/SolutionsTabContent';
 import { DeliveryTabContent } from '@/components/DeliveryTabContent';
@@ -241,102 +241,150 @@ const Index = () => {
       />
 
       <main className="container mx-auto px-4 py-6">
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList
+        <div className="space-y-6">
+          {/* Custom tab bar to avoid Radix Tabs removeChild DOM conflict */}
+          <div
             className={`grid w-full ${
               isFinance ? 'max-w-md grid-cols-2' : (isOpsLead || isAdmin) ? 'max-w-4xl grid-cols-6' : 'max-w-3xl grid-cols-5'
-            }`}
+            } inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground`}
           >
-            <TabsTrigger value="dashboard" className="gap-2">
+            <button
+              onClick={() => handleTabChange('dashboard')}
+              className={cn(
+                'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                activeTab === 'dashboard' ? 'bg-primary text-primary-foreground shadow-sm' : ''
+              )}
+            >
               <LayoutDashboard className="w-4 h-4" />
               Dashboard
-            </TabsTrigger>
+            </button>
             {showOperationalTabs && (
-              <>
-                <TabsTrigger value="solutions" className="gap-2">
-                  <ClipboardList className="w-4 h-4" />
-                  Solutions
-                </TabsTrigger>
-                <TabsTrigger value="delivery" className="gap-2">
-                  <Truck className="w-4 h-4" />
-                  Delivery
-                </TabsTrigger>
-                <TabsTrigger value="adr" className="gap-2">
-                  <Database className="w-4 h-4" />
-                  ADR
-                </TabsTrigger>
-                <TabsTrigger value="calendar" className="gap-2">
-                  <Calendar className="w-4 h-4" />
-                  Calendar
-                </TabsTrigger>
-              </>
+              <button
+                onClick={() => handleTabChange('solutions')}
+                className={cn(
+                  'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                  activeTab === 'solutions' ? 'bg-primary text-primary-foreground shadow-sm' : ''
+                )}
+              >
+                <ClipboardList className="w-4 h-4" />
+                Solutions
+              </button>
+            )}
+            {showOperationalTabs && (
+              <button
+                onClick={() => handleTabChange('delivery')}
+                className={cn(
+                  'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                  activeTab === 'delivery' ? 'bg-primary text-primary-foreground shadow-sm' : ''
+                )}
+              >
+                <Truck className="w-4 h-4" />
+                Delivery
+              </button>
+            )}
+            {showOperationalTabs && (
+              <button
+                onClick={() => handleTabChange('adr')}
+                className={cn(
+                  'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                  activeTab === 'adr' ? 'bg-primary text-primary-foreground shadow-sm' : ''
+                )}
+              >
+                <Database className="w-4 h-4" />
+                ADR
+              </button>
+            )}
+            {showOperationalTabs && (
+              <button
+                onClick={() => handleTabChange('calendar')}
+                className={cn(
+                  'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                  activeTab === 'calendar' ? 'bg-primary text-primary-foreground shadow-sm' : ''
+                )}
+              >
+                <Calendar className="w-4 h-4" />
+                Calendar
+              </button>
             )}
             {(isFinance || isOpsLead || isAdmin) && canAccessReports && (
-              <TabsTrigger value="reports" className="gap-2">
+              <button
+                onClick={() => handleTabChange('reports')}
+                className={cn(
+                  'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                  activeTab === 'reports' ? 'bg-primary text-primary-foreground shadow-sm' : ''
+                )}
+              >
                 <Database className="w-4 h-4" />
                 Reports
-              </TabsTrigger>
+              </button>
             )}
-          </TabsList>
+          </div>
 
-          <TabsContent value="dashboard" className="space-y-6">
-            <RoleBasedDashboard 
-              labRequests={requests} 
-              deliveryRequests={deliveryRequests}
-              isLoading={labLoading || deliveryLoading}
-              onRefresh={handleDashboardRefresh}
-              onNavigateToTab={handleNavigateToTab}
-              onNavigateToCalendar={handleNavigateToCalendar}
-            />
-          </TabsContent>
-
-          {showOperationalTabs && (
-            <>
-              <TabsContent value="solutions" className="space-y-6">
-                <SolutionsTabContent
-                  requests={requests}
-                  onSubmit={handleSubmit}
-                  onDelete={handleDelete}
-                  onConvertToDelivery={handleConvertToDelivery}
-                  onUpdate={updateLabRequest}
-                  initialFilter={solutionsFilter}
-                  onFilterChange={setSolutionsFilter}
-                />
-              </TabsContent>
-
-              <TabsContent value="delivery" className="space-y-6">
-                <DeliveryTabContent
-                  requests={deliveryRequests}
-                  onSubmit={handleDeliverySubmit}
-                  onDelete={handleDeliveryDelete}
-                  onStatusChange={handleDeliveryStatusChange}
-                  onUpdate={updateDeliveryRequest}
-                  initialFilter={deliveryFilter}
-                  onFilterChange={setDeliveryFilter}
-                />
-              </TabsContent>
-
-              <TabsContent value="adr" className="space-y-6">
-                <ADRTabContent
-                  deliveryRequests={deliveryRequests}
-                  onDeliveryDelete={handleDeliveryDelete}
-                  onUpdate={updateDeliveryRequest}
-                  onBulkInsert={bulkInsertDelivery}
-                  onRefetch={refetchDeliveryRequests}
-                  initialFilter={adrFilter}
-                  onFilterChange={setAdrFilter}
-                  onNavigateToDashboard={handleNavigateToDashboard}
-                />
-              </TabsContent>
-
-              <TabsContent value="calendar" className="space-y-6">
-                <CalendarView labRequests={requests} deliveryRequests={deliveryRequests} />
-              </TabsContent>
-            </>
+          {/* Tab content panels */}
+          {activeTab === 'dashboard' && (
+            <div className="space-y-6">
+              <RoleBasedDashboard 
+                labRequests={requests} 
+                deliveryRequests={deliveryRequests}
+                isLoading={labLoading || deliveryLoading}
+                onRefresh={handleDashboardRefresh}
+                onNavigateToTab={handleNavigateToTab}
+                onNavigateToCalendar={handleNavigateToCalendar}
+              />
+            </div>
           )}
 
-          {(isFinance || isOpsLead || isAdmin) && canAccessReports && (
-            <TabsContent value="reports" className="space-y-6">
+          {activeTab === 'solutions' && showOperationalTabs && (
+            <div className="space-y-6">
+              <SolutionsTabContent
+                requests={requests}
+                onSubmit={handleSubmit}
+                onDelete={handleDelete}
+                onConvertToDelivery={handleConvertToDelivery}
+                onUpdate={updateLabRequest}
+                initialFilter={solutionsFilter}
+                onFilterChange={setSolutionsFilter}
+              />
+            </div>
+          )}
+
+          {activeTab === 'delivery' && showOperationalTabs && (
+            <div className="space-y-6">
+              <DeliveryTabContent
+                requests={deliveryRequests}
+                onSubmit={handleDeliverySubmit}
+                onDelete={handleDeliveryDelete}
+                onStatusChange={handleDeliveryStatusChange}
+                onUpdate={updateDeliveryRequest}
+                initialFilter={deliveryFilter}
+                onFilterChange={setDeliveryFilter}
+              />
+            </div>
+          )}
+
+          {activeTab === 'adr' && showOperationalTabs && (
+            <div className="space-y-6">
+              <ADRTabContent
+                deliveryRequests={deliveryRequests}
+                onDeliveryDelete={handleDeliveryDelete}
+                onUpdate={updateDeliveryRequest}
+                onBulkInsert={bulkInsertDelivery}
+                onRefetch={refetchDeliveryRequests}
+                initialFilter={adrFilter}
+                onFilterChange={setAdrFilter}
+                onNavigateToDashboard={handleNavigateToDashboard}
+              />
+            </div>
+          )}
+
+          {activeTab === 'calendar' && showOperationalTabs && (
+            <div className="space-y-6">
+              <CalendarView labRequests={requests} deliveryRequests={deliveryRequests} />
+            </div>
+          )}
+
+          {activeTab === 'reports' && (isFinance || isOpsLead || isAdmin) && canAccessReports && (
+            <div className="space-y-6">
               <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
@@ -351,9 +399,9 @@ const Index = () => {
                   </Button>
                 </div>
               </div>
-            </TabsContent>
+            </div>
           )}
-        </Tabs>
+        </div>
       </main>
 
       {/* AI Assistant */}
