@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import { useState } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Users, AlertTriangle, TrendingUp, IndianRupee, Activity, UserCog, Layers, ClipboardList, Truck, Info, Wallet, BarChart2, UserPlus, LayoutDashboard } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
@@ -102,8 +103,19 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
     avgMarginPercentage < 20 && { type: 'error', message: `Average margin below 20% (${formatPercentage(avgMarginPercentage)})` },
   ].filter(Boolean);
 
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const tabItems = [
+    { value: 'overview', label: 'Overview', icon: Activity },
+    { value: 'users', label: 'User Management', icon: UserCog },
+    { value: 'catalog', label: 'Lab Catalog', icon: Layers },
+    { value: 'personnel', label: 'Personnel & Clients', icon: UserPlus },
+    { value: 'dashboardConfig', label: 'Dashboard Config', icon: LayoutDashboard },
+    { value: 'reportAccessConfig', label: 'Report Access', icon: BarChart2 },
+  ];
+
   return (
-    <Tabs defaultValue="overview" className="space-y-6">
+    <div className="space-y-6">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Admin Dashboard</h2>
@@ -115,36 +127,26 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
             Reports
           </Button>
           <DashboardExport labRequests={labRequests} deliveryRequests={deliveryRequests} />
-          <TabsList className="flex flex-wrap h-auto gap-1">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <Activity className="w-4 h-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <UserCog className="w-4 h-4" />
-              User Management
-            </TabsTrigger>
-            <TabsTrigger value="catalog" className="flex items-center gap-2">
-              <Layers className="w-4 h-4" />
-              Lab Catalog
-            </TabsTrigger>
-            <TabsTrigger value="personnel" className="flex items-center gap-2">
-              <UserPlus className="w-4 h-4" />
-              Personnel & Clients
-            </TabsTrigger>
-            <TabsTrigger value="dashboardConfig" className="flex items-center gap-2">
-              <LayoutDashboard className="w-4 h-4" />
-              Dashboard Config
-            </TabsTrigger>
-            <TabsTrigger value="reportAccessConfig" className="flex items-center gap-2">
-              <BarChart2 className="w-4 h-4" />
-              Report Access
-            </TabsTrigger>
-          </TabsList>
+          <div className="inline-flex flex-wrap h-auto gap-1 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
+            {tabItems.map(({ value, label, icon: Icon }) => (
+              <button
+                key={value}
+                onClick={() => setActiveTab(value)}
+                className={cn(
+                  'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                  activeTab === value ? 'bg-primary text-primary-foreground shadow-sm' : ''
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       
-      <TabsContent value="overview" className="space-y-6">
+      {activeTab === 'overview' && (
+      <div className="space-y-6">
         {/* Solutions KPI Cards */}
         <Card>
           <CardHeader className="bg-blue-500 text-white py-3 px-4 rounded-t-lg">
@@ -533,26 +535,14 @@ export const AdminDashboard = ({ labRequests, deliveryRequests, onNavigate, onNa
             </CardContent>
           </Card>
         )}
-      </TabsContent>
+      </div>
+      )}
 
-      <TabsContent value="users">
-        <UserManagement />
-      </TabsContent>
-
-      <TabsContent value="catalog">
-        <LabCatalogManagement />
-      </TabsContent>
-
-      <TabsContent value="personnel">
-        <PersonnelManagement />
-      </TabsContent>
-
-      <TabsContent value="dashboardConfig">
-        <DashboardConfigManagement />
-      </TabsContent>
-      <TabsContent value="reportAccessConfig">
-        <ReportAccessConfigManagement />
-      </TabsContent>
-    </Tabs>
+      {activeTab === 'users' && <UserManagement />}
+      {activeTab === 'catalog' && <LabCatalogManagement />}
+      {activeTab === 'personnel' && <PersonnelManagement />}
+      {activeTab === 'dashboardConfig' && <DashboardConfigManagement />}
+      {activeTab === 'reportAccessConfig' && <ReportAccessConfigManagement />}
+    </div>
   );
 };
