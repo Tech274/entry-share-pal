@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { IndianRupee, Calendar, Building2, ArrowRight, Briefcase, Layers } from 'lucide-react';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
@@ -134,27 +134,30 @@ export const RevenueBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-4">
-            <TabsTrigger value="month" className="flex items-center gap-1 text-xs">
-              <Calendar className="w-3 h-3" />
-              Month
-            </TabsTrigger>
-            <TabsTrigger value="client" className="flex items-center gap-1 text-xs">
-              <Building2 className="w-3 h-3" />
-              Client
-            </TabsTrigger>
-            <TabsTrigger value="lob" className="flex items-center gap-1 text-xs">
-              <Briefcase className="w-3 h-3" />
-              LOB
-            </TabsTrigger>
-            <TabsTrigger value="labType" className="flex items-center gap-1 text-xs">
-              <Layers className="w-3 h-3" />
-              Lab Type
-            </TabsTrigger>
-          </TabsList>
+        <div className="w-full">
+          <div className="inline-flex h-9 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground grid w-full grid-cols-4 mb-4">
+            {[
+              { value: 'month', label: 'Month', icon: Calendar },
+              { value: 'client', label: 'Client', icon: Building2 },
+              { value: 'lob', label: 'LOB', icon: Briefcase },
+              { value: 'labType', label: 'Lab Type', icon: Layers },
+            ].map(({ value, label, icon: Icon }) => (
+              <button
+                key={value}
+                onClick={() => setActiveTab(value)}
+                className={cn(
+                  'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1 text-xs font-medium ring-offset-background transition-all gap-1 focus-visible:outline-none',
+                  activeTab === value ? 'bg-primary text-primary-foreground shadow-sm' : ''
+                )}
+              >
+                <Icon className="w-3 h-3" />
+                {label}
+              </button>
+            ))}
+          </div>
           
-          <TabsContent value="month">
+          {activeTab === 'month' && (
+            <div>
             {monthlyData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart 
@@ -229,9 +232,11 @@ export const RevenueBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
                 <ArrowRight className="w-3 h-3" />
               </div>
             )}
-          </TabsContent>
+            </div>
+          )}
           
-          <TabsContent value="client">
+          {activeTab === 'client' && (
+            <div>
             {clientData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart 
@@ -312,9 +317,11 @@ export const RevenueBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
                 <ArrowRight className="w-3 h-3" />
               </div>
             )}
-          </TabsContent>
+            </div>
+          )}
 
-          <TabsContent value="lob">
+          {activeTab === 'lob' && (
+            <div>
             {lobData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart key={`lob-${animationKey}`} data={lobData} layout="vertical" margin={{ left: 50 }} className="cursor-pointer">
@@ -339,9 +346,11 @@ export const RevenueBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
               <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">No LOB data available</div>
             )}
             {lobData.length > 0 && <div className="mt-2 flex items-center justify-center gap-1 text-xs text-muted-foreground"><span>Click bars to navigate</span><ArrowRight className="w-3 h-3" /></div>}
-          </TabsContent>
+            </div>
+          )}
 
-          <TabsContent value="labType">
+          {activeTab === 'labType' && (
+            <div>
             {labTypeData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart key={`labType-${animationKey}`} data={labTypeData} layout="vertical" margin={{ left: 50 }} className="cursor-pointer">
@@ -366,8 +375,9 @@ export const RevenueBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
               <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">No lab type data available</div>
             )}
             {labTypeData.length > 0 && <div className="mt-2 flex items-center justify-center gap-1 text-xs text-muted-foreground"><span>Click bars to navigate</span><ArrowRight className="w-3 h-3" /></div>}
-          </TabsContent>
-        </Tabs>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

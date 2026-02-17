@@ -320,22 +320,20 @@ const Index = () => {
             )}
           </div>
 
-          {/* Tab content panels */}
-          {activeTab === 'dashboard' && (
-            <div className="space-y-6">
-              <RoleBasedDashboard 
-                labRequests={requests} 
-                deliveryRequests={deliveryRequests}
-                isLoading={labLoading || deliveryLoading}
-                onRefresh={handleDashboardRefresh}
-                onNavigateToTab={handleNavigateToTab}
-                onNavigateToCalendar={handleNavigateToCalendar}
-              />
-            </div>
-          )}
+          {/* Tab content panels - use display:none instead of conditional rendering to avoid removeChild crashes from Radix components */}
+          <div className="space-y-6" style={{ display: activeTab === 'dashboard' ? 'block' : 'none' }}>
+            <RoleBasedDashboard 
+              labRequests={requests} 
+              deliveryRequests={deliveryRequests}
+              isLoading={labLoading || deliveryLoading}
+              onRefresh={handleDashboardRefresh}
+              onNavigateToTab={handleNavigateToTab}
+              onNavigateToCalendar={handleNavigateToCalendar}
+            />
+          </div>
 
-          {activeTab === 'solutions' && showOperationalTabs && (
-            <div className="space-y-6">
+          {showOperationalTabs && (
+            <div className="space-y-6" style={{ display: activeTab === 'solutions' ? 'block' : 'none' }}>
               <SolutionsTabContent
                 requests={requests}
                 onSubmit={handleSubmit}
@@ -348,8 +346,8 @@ const Index = () => {
             </div>
           )}
 
-          {activeTab === 'delivery' && showOperationalTabs && (
-            <div className="space-y-6">
+          {showOperationalTabs && (
+            <div className="space-y-6" style={{ display: activeTab === 'delivery' ? 'block' : 'none' }}>
               <DeliveryTabContent
                 requests={deliveryRequests}
                 onSubmit={handleDeliverySubmit}
@@ -362,8 +360,8 @@ const Index = () => {
             </div>
           )}
 
-          {activeTab === 'adr' && showOperationalTabs && (
-            <div className="space-y-6">
+          {showOperationalTabs && (
+            <div className="space-y-6" style={{ display: activeTab === 'adr' ? 'block' : 'none' }}>
               <ADRTabContent
                 deliveryRequests={deliveryRequests}
                 onDeliveryDelete={handleDeliveryDelete}
@@ -377,14 +375,14 @@ const Index = () => {
             </div>
           )}
 
-          {activeTab === 'calendar' && showOperationalTabs && (
-            <div className="space-y-6">
+          {showOperationalTabs && (
+            <div className="space-y-6" style={{ display: activeTab === 'calendar' ? 'block' : 'none' }}>
               <CalendarView labRequests={requests} deliveryRequests={deliveryRequests} />
             </div>
           )}
 
-          {activeTab === 'reports' && (isFinance || isOpsLead || isAdmin) && canAccessReports && (
-            <div className="space-y-6">
+          {(isFinance || isOpsLead || isAdmin) && canAccessReports && (
+            <div className="space-y-6" style={{ display: activeTab === 'reports' ? 'block' : 'none' }}>
               <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>

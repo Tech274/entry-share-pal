@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Plus, Pencil, Trash2, Users, UserCheck, Building2, ClipboardList, Truck, AlertCircle } from 'lucide-react';
@@ -487,6 +487,7 @@ function AccountNameTab() {
 }
 
 export const PersonnelManagement = () => {
+  const [personnelTab, setPersonnelTab] = useState('agents');
   const { data: agents = [], isLoading: agentsLoading, isError: agentsError, error: agentsErrorDetail } = useAgents();
   const { data: accountManagers = [] } = useAccountManagers();
   const { data: solutionManagers = [] } = useSolutionManagers();
@@ -534,86 +535,45 @@ export const PersonnelManagement = () => {
           </AlertDescription>
         </Alert>
       )}
-      <Tabs defaultValue="agents" className="space-y-4">
-      <TabsList>
-        <TabsTrigger value="agents" className="flex items-center gap-2">
-          <Users className="w-4 h-4" />
-          Agents
-        </TabsTrigger>
-        <TabsTrigger value="accountManagers" className="flex items-center gap-2">
-          <UserCheck className="w-4 h-4" />
-          Account Managers
-        </TabsTrigger>
-        <TabsTrigger value="clients" className="flex items-center gap-2">
-          <Building2 className="w-4 h-4" />
-          Clients
-        </TabsTrigger>
-        <TabsTrigger value="accountName" className="flex items-center gap-2">
-          <Building2 className="w-4 h-4" />
-          Account Name
-        </TabsTrigger>
-        <TabsTrigger value="solutionManagers" className="flex items-center gap-2">
-          <ClipboardList className="w-4 h-4" />
-          Solution Managers
-        </TabsTrigger>
-        <TabsTrigger value="deliveryManagers" className="flex items-center gap-2">
-          <Truck className="w-4 h-4" />
-          Delivery Managers
-        </TabsTrigger>
-      </TabsList>
+      <div className="space-y-4">
+        <div className="inline-flex flex-wrap h-auto gap-1 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
+          {[
+            { value: 'agents', label: 'Agents', icon: Users },
+            { value: 'accountManagers', label: 'Account Managers', icon: UserCheck },
+            { value: 'clients', label: 'Clients', icon: Building2 },
+            { value: 'accountName', label: 'Account Name', icon: Building2 },
+            { value: 'solutionManagers', label: 'Solution Managers', icon: ClipboardList },
+            { value: 'deliveryManagers', label: 'Delivery Managers', icon: Truck },
+          ].map(({ value, label, icon: Icon }) => (
+            <button
+              key={value}
+              onClick={() => setPersonnelTab(value)}
+              className={cn(
+                'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                personnelTab === value ? 'bg-primary text-primary-foreground shadow-sm' : ''
+              )}
+            >
+              <Icon className="w-4 h-4" />
+              {label}
+            </button>
+          ))}
+        </div>
 
-      <TabsContent value="agents">
-        <SimplePersonnelCRUD
-          title="Agents"
-          icon={Users}
-          data={agents}
-          isLoading={agentsLoading}
-          mutations={useAgentMutations()}
-          queryKey="agents"
-        />
-      </TabsContent>
-
-      <TabsContent value="accountManagers">
-        <SimplePersonnelCRUD
-          title="Account Managers"
-          icon={UserCheck}
-          data={accountManagers}
-          isLoading={false}
-          mutations={useAccountManagerMutations()}
-          queryKey="accountManagers"
-        />
-      </TabsContent>
-
-      <TabsContent value="clients">
-        <ClientsCRUD />
-      </TabsContent>
-
-      <TabsContent value="accountName">
-        <AccountNameTab />
-      </TabsContent>
-
-      <TabsContent value="solutionManagers">
-        <SimplePersonnelCRUD
-          title="Solution Managers"
-          icon={ClipboardList}
-          data={solutionManagers}
-          isLoading={false}
-          mutations={useSolutionManagerMutations()}
-          queryKey="solutionManagers"
-        />
-      </TabsContent>
-
-      <TabsContent value="deliveryManagers">
-        <SimplePersonnelCRUD
-          title="Delivery Managers"
-          icon={Truck}
-          data={deliveryManagers}
-          isLoading={false}
-          mutations={useDeliveryManagerMutations()}
-          queryKey="deliveryManagers"
-        />
-      </TabsContent>
-    </Tabs>
+        {personnelTab === 'agents' && (
+          <SimplePersonnelCRUD title="Agents" icon={Users} data={agents} isLoading={agentsLoading} mutations={useAgentMutations()} queryKey="agents" />
+        )}
+        {personnelTab === 'accountManagers' && (
+          <SimplePersonnelCRUD title="Account Managers" icon={UserCheck} data={accountManagers} isLoading={false} mutations={useAccountManagerMutations()} queryKey="accountManagers" />
+        )}
+        {personnelTab === 'clients' && <ClientsCRUD />}
+        {personnelTab === 'accountName' && <AccountNameTab />}
+        {personnelTab === 'solutionManagers' && (
+          <SimplePersonnelCRUD title="Solution Managers" icon={ClipboardList} data={solutionManagers} isLoading={false} mutations={useSolutionManagerMutations()} queryKey="solutionManagers" />
+        )}
+        {personnelTab === 'deliveryManagers' && (
+          <SimplePersonnelCRUD title="Delivery Managers" icon={Truck} data={deliveryManagers} isLoading={false} mutations={useDeliveryManagerMutations()} queryKey="deliveryManagers" />
+        )}
+      </div>
     </div>
   );
 };

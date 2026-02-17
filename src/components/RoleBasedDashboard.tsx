@@ -8,7 +8,7 @@ import { FinanceDashboard } from './dashboards/FinanceDashboard';
 import { AdminDashboard } from './dashboards/AdminDashboard';
 import { DashboardFilters, DashboardFiltersState, defaultFilters, applyDashboardFilters } from './dashboards/DashboardFilters';
 import { FullDashboardSkeleton } from './dashboards/DashboardSkeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { LabRequest } from '@/types/labRequest';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { useToast } from '@/hooks/use-toast';
@@ -235,20 +235,23 @@ export const RoleBasedDashboard = ({
     const slug = (selectedDashboardTab as DashboardSlug) || effectiveSlugs[0] || 'ops';
     if (effectiveSlugs.length > 1) {
       return (
-        <Tabs value={selectedDashboardTab} onValueChange={setSelectedDashboardTab} className="space-y-4">
-          <TabsList>
+        <div className="space-y-4">
+          <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
             {(effectiveSlugs as DashboardSlug[]).map((s) => (
-              <TabsTrigger key={s} value={s}>
+              <button
+                key={s}
+                onClick={() => setSelectedDashboardTab(s)}
+                className={cn(
+                  'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                  selectedDashboardTab === s ? 'bg-primary text-primary-foreground shadow-sm' : ''
+                )}
+              >
                 {s === 'ops' ? 'Ops' : s === 'leadership' ? 'Leadership' : s === 'ops_lead' ? 'Ops + Leadership' : 'Admin'}
-              </TabsTrigger>
+              </button>
             ))}
-          </TabsList>
-          {(effectiveSlugs as DashboardSlug[]).map((s) => (
-            <TabsContent key={s} value={s}>
-              {renderDashboardBySlug(s)}
-            </TabsContent>
-          ))}
-        </Tabs>
+          </div>
+          {renderDashboardBySlug(selectedDashboardTab as DashboardSlug)}
+        </div>
       );
     }
     return renderDashboardBySlug(slug);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { Users, Calendar, Building2, ArrowRight } from 'lucide-react';
 import { DeliveryRequest } from '@/types/deliveryRequest';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -78,19 +78,32 @@ export const LearnersBreakdown = ({ deliveryRequests, onNavigateToTab }: Learner
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="month" className="flex items-center gap-1 text-xs">
+        <div className="w-full">
+          <div className="inline-flex h-9 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground grid w-full grid-cols-2 mb-4">
+            <button
+              onClick={() => setActiveTab('month')}
+              className={cn(
+                'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1 text-xs font-medium ring-offset-background transition-all gap-1 focus-visible:outline-none',
+                activeTab === 'month' ? 'bg-primary text-primary-foreground shadow-sm' : ''
+              )}
+            >
               <Calendar className="w-3 h-3" />
               By Month
-            </TabsTrigger>
-            <TabsTrigger value="client" className="flex items-center gap-1 text-xs">
+            </button>
+            <button
+              onClick={() => setActiveTab('client')}
+              className={cn(
+                'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1 text-xs font-medium ring-offset-background transition-all gap-1 focus-visible:outline-none',
+                activeTab === 'client' ? 'bg-primary text-primary-foreground shadow-sm' : ''
+              )}
+            >
               <Building2 className="w-3 h-3" />
               By Client
-            </TabsTrigger>
-          </TabsList>
+            </button>
+          </div>
           
-          <TabsContent value="month">
+          {activeTab === 'month' && (
+            <div>
             {monthlyData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart 
@@ -149,9 +162,11 @@ export const LearnersBreakdown = ({ deliveryRequests, onNavigateToTab }: Learner
                 <ArrowRight className="w-3 h-3" />
               </div>
             )}
-          </TabsContent>
+            </div>
+          )}
           
-          <TabsContent value="client">
+          {activeTab === 'client' && (
+            <div>
             {clientData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart 
@@ -213,8 +228,9 @@ export const LearnersBreakdown = ({ deliveryRequests, onNavigateToTab }: Learner
                 <ArrowRight className="w-3 h-3" />
               </div>
             )}
-          </TabsContent>
-        </Tabs>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

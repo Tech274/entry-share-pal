@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Pencil, Trash2, Layers, Upload, Download, Tag, Tags, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -21,7 +21,6 @@ import { LabelManagement } from '@/components/catalog/LabelManagement';
 import { LabelMultiSelect } from '@/components/catalog/LabelMultiSelect';
 import { BulkLabelAssignDialog } from '@/components/catalog/BulkLabelAssignDialog';
 import { useEntryLabels, useManageEntryLabels, useAllEntryLabels } from '@/hooks/useEntryLabels';
-import { cn } from '@/lib/utils';
 import { useLabLabels } from '@/hooks/useLabLabels';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
 
@@ -365,25 +364,31 @@ export const LabCatalogManagement = () => {
       color: el.lab_catalog_labels.color,
     }));
   };
+  const [catalogTab, setCatalogTab] = useState('templates');
 
   return (
-    <Tabs defaultValue="templates" className="space-y-4">
-      <TabsList>
-        <TabsTrigger value="templates" className="flex items-center gap-2">
-          <Layers className="w-4 h-4" />
-          Lab Templates
-        </TabsTrigger>
-        <TabsTrigger value="categories" className="flex items-center gap-2">
-          <Tag className="w-4 h-4" />
-          Categories
-        </TabsTrigger>
-        <TabsTrigger value="labels" className="flex items-center gap-2">
-          <Tags className="w-4 h-4" />
-          Labels
-        </TabsTrigger>
-      </TabsList>
+    <div className="space-y-4">
+      <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
+        {[
+          { value: 'templates', label: 'Lab Templates', icon: Layers },
+          { value: 'categories', label: 'Categories', icon: Tag },
+          { value: 'labels', label: 'Labels', icon: Tags },
+        ].map(({ value, label, icon: Icon }) => (
+          <button
+            key={value}
+            onClick={() => setCatalogTab(value)}
+            className={cn(
+              'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+              catalogTab === value ? 'bg-primary text-primary-foreground shadow-sm' : ''
+            )}
+          >
+            <Icon className="w-4 h-4" />
+            {label}
+          </button>
+        ))}
+      </div>
 
-      <TabsContent value="templates">
+      {catalogTab === 'templates' && (
         <Card>
           <CardHeader className="bg-primary text-primary-foreground py-3 px-4 rounded-t-lg">
             <CardTitle className="text-base flex items-center justify-between">
@@ -683,15 +688,10 @@ export const LabCatalogManagement = () => {
             />
           </CardContent>
         </Card>
-      </TabsContent>
+      )}
 
-      <TabsContent value="categories">
-        <CategoryManagement />
-      </TabsContent>
-
-      <TabsContent value="labels">
-        <LabelManagement />
-      </TabsContent>
-    </Tabs>
+      {catalogTab === 'categories' && <CategoryManagement />}
+      {catalogTab === 'labels' && <LabelManagement />}
+    </div>
   );
 };
