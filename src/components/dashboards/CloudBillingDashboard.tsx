@@ -176,7 +176,6 @@ export function CloudBillingDashboard() {
     overall_business: 0,
     cloud_cost: 0,
     invoiced_to_customer: 0,
-    yet_to_be_billed: 0,
   });
   const [form, setForm] = formState;
 
@@ -191,7 +190,6 @@ export function CloudBillingDashboard() {
       overall_business: 0,
       cloud_cost: 0,
       invoiced_to_customer: 0,
-      yet_to_be_billed: 0,
     });
     setDialogOpen(false);
   };
@@ -206,7 +204,6 @@ export function CloudBillingDashboard() {
       overall_business: 0,
       cloud_cost: 0,
       invoiced_to_customer: 0,
-      yet_to_be_billed: 0,
     });
     setEditing(null);
     setDialogOpen(true);
@@ -223,14 +220,12 @@ export function CloudBillingDashboard() {
       overall_business: r.overall_business,
       cloud_cost: r.cloud_cost,
       invoiced_to_customer: r.invoiced_to_customer,
-      yet_to_be_billed: r.yet_to_be_billed,
     });
     setDialogOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const ytb = form.yet_to_be_billed ?? (form.overall_business - form.invoiced_to_customer);
     if (editing) {
       mutations.update.mutate(
         {
@@ -243,7 +238,7 @@ export function CloudBillingDashboard() {
             overall_business: form.overall_business,
             cloud_cost: form.cloud_cost,
             invoiced_to_customer: form.invoiced_to_customer,
-            yet_to_be_billed: Math.max(0, ytb),
+            // yet_to_be_billed is a generated column — DB computes it automatically
           },
         },
         {
@@ -264,7 +259,7 @@ export function CloudBillingDashboard() {
           overall_business: form.overall_business,
           cloud_cost: form.cloud_cost,
           invoiced_to_customer: form.invoiced_to_customer,
-          yet_to_be_billed: Math.max(0, ytb),
+          // yet_to_be_billed is a generated column — DB computes it automatically
         },
         {
           onSuccess: () => {
@@ -276,6 +271,7 @@ export function CloudBillingDashboard() {
       );
     }
   };
+
 
   const handleDelete = (r: CloudBillingDetail) => {
     if (!confirm(`Delete ${r.month} ${r.year} for ${r.provider.toUpperCase()}?`)) return;
@@ -450,20 +446,8 @@ export function CloudBillingDashboard() {
                 }
               />
             </div>
-            <div>
-              <Label>Yet to be Billed (₹)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={form.yet_to_be_billed || ''}
-                placeholder={(form.overall_business - form.invoiced_to_customer).toFixed(2)}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, yet_to_be_billed: parseFloat(e.target.value) || 0 }))
-                }
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Leave empty to auto-calc: Overall Business − Invoiced
-              </p>
+            <div className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+              <span className="font-medium">Yet to be Billed (₹)</span> is auto-calculated by the database as <em>Overall Business − Invoiced to Customer</em>.
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
