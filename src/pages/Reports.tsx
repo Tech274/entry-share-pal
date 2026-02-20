@@ -30,6 +30,7 @@ const REPORT_TABS: { slug: ReportSlug; label: string; icon: React.ReactNode }[] 
 
 const Reports = () => {
   const { requests: labRequests, loading: labLoading } = useLabRequests();
+  const [activeReportTab, setActiveReportTab] = useState<ReportSlug>('revenue');
   const { requests: deliveryRequests, loading: deliveryLoading } = useDeliveryRequests();
   const { toast } = useToast();
   const navigate = useNavigate();
