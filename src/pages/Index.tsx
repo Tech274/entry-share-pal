@@ -175,15 +175,25 @@ const Index = () => {
 
   // Tab navigation state
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  // Lazy-mount tracker: only mount a panel after it's first visited.
+  // This avoids having all Radix portals active simultaneously on initial load
+  // which causes the removeChild DOM reconciliation crash.
+  const [mountedTabs, setMountedTabs] = useState<Set<string>>(new Set(['dashboard']));
   
   // Filter persistence for navigation from KPI cards
   const [solutionsFilter, setSolutionsFilter] = useState<string | undefined>(undefined);
   const [deliveryFilter, setDeliveryFilter] = useState<string | undefined>(undefined);
   const [adrFilter, setAdrFilter] = useState<string | undefined>(undefined);
 
+  const activateTab = useCallback((tab: string) => {
+    setActiveTab(tab);
+    setMountedTabs(prev => new Set([...prev, tab]));
+  }, []);
+
   // Handle navigation from dashboard quick actions with filter persistence
   const handleNavigateToTab = useCallback((tab: string, filter?: string) => {
-    setActiveTab(tab);
+    activateTab(tab);
     
     // Set the appropriate filter based on destination tab
     if (tab === 'solutions') {
@@ -193,23 +203,23 @@ const Index = () => {
     } else if (tab === 'adr') {
       setAdrFilter(filter);
     }
-  }, []);
+  }, [activateTab]);
 
   const handleNavigateToCalendar = useCallback(() => {
-    setActiveTab('calendar');
-  }, []);
+    activateTab('calendar');
+  }, [activateTab]);
   
   // Navigate back to dashboard
   const handleNavigateToDashboard = useCallback(() => {
-    setActiveTab('dashboard');
+    activateTab('dashboard');
     setSolutionsFilter(undefined);
     setDeliveryFilter(undefined);
     setAdrFilter(undefined);
-  }, []);
+  }, [activateTab]);
   
   // Clear filters when manually changing tabs
   const handleTabChange = useCallback((tab: string) => {
-    setActiveTab(tab);
+    activateTab(tab);
     // Only clear filters if navigating away from the filtered tab
     if (tab !== 'solutions') {
       setSolutionsFilter(undefined);
@@ -220,7 +230,7 @@ const Index = () => {
     if (tab !== 'adr') {
       setAdrFilter(undefined);
     }
-  }, []);
+  }, [activateTab]);
 
   // AI Assistant context
   const aiContext = useMemo(() => ({
@@ -320,7 +330,10 @@ const Index = () => {
             )}
           </div>
 
-          {/* Tab content panels - use display:none instead of conditional rendering to avoid removeChild crashes from Radix components */}
+          {/* Tab content panels - lazy-mount strategy:
+              Only mount a panel after the user first visits it (mountedTabs tracks this).
+              Once mounted, keep it in the DOM but hide with display:none to preserve
+              state and avoid Radix portal removeChild crashes on unmount. */}
           <div className="space-y-6" style={{ display: activeTab === 'dashboard' ? 'block' : 'none' }}>
             <RoleBasedDashboard 
               labRequests={requests} 
@@ -332,7 +345,7 @@ const Index = () => {
             />
           </div>
 
-          {showOperationalTabs && (
+          {showOperationalTabs && mountedTabs.has('solutions') && (
             <div className="space-y-6" style={{ display: activeTab === 'solutions' ? 'block' : 'none' }}>
               <SolutionsTabContent
                 requests={requests}
@@ -346,7 +359,7 @@ const Index = () => {
             </div>
           )}
 
-          {showOperationalTabs && (
+          {showOperationalTabs && mountedTabs.has('delivery') && (
             <div className="space-y-6" style={{ display: activeTab === 'delivery' ? 'block' : 'none' }}>
               <DeliveryTabContent
                 requests={deliveryRequests}
@@ -360,7 +373,7 @@ const Index = () => {
             </div>
           )}
 
-          {showOperationalTabs && (
+          {showOperationalTabs && mountedTabs.has('adr') && (
             <div className="space-y-6" style={{ display: activeTab === 'adr' ? 'block' : 'none' }}>
               <ADRTabContent
                 deliveryRequests={deliveryRequests}
@@ -375,13 +388,13 @@ const Index = () => {
             </div>
           )}
 
-          {showOperationalTabs && (
+          {showOperationalTabs && mountedTabs.has('calendar') && (
             <div className="space-y-6" style={{ display: activeTab === 'calendar' ? 'block' : 'none' }}>
               <CalendarView labRequests={requests} deliveryRequests={deliveryRequests} />
             </div>
           )}
 
-          {(isFinance || isOpsLead || isAdmin) && canAccessReports && (
+          {(isFinance || isOpsLead || isAdmin) && canAccessReports && mountedTabs.has('reports') && (
             <div className="space-y-6" style={{ display: activeTab === 'reports' ? 'block' : 'none' }}>
               <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
