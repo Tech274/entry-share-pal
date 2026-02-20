@@ -5,7 +5,7 @@ import { useAgents, useAccountManagers, useClients, useSolutionManagers, useDeli
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { ArrowLeft, Download, Upload, Cloud, Server, Building2, FileSpreadsheet, Package, Sparkles, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
@@ -473,178 +473,130 @@ const MasterDataSheet = () => {
           </div>
         </div>
 
-        {/* Data Classification Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="solutions" className="gap-2">
-              <FileSpreadsheet className="w-4 h-4" />
-              Solutions ({filteredLabRequests.length})
-            </TabsTrigger>
-            <TabsTrigger value="delivery" className="gap-2">
-              <Package className="w-4 h-4" />
-              Delivery ({filteredDeliveryRequests.length})
-            </TabsTrigger>
-          </TabsList>
+        {/* Data Classification Tabs - state-based to avoid removeChild crash */}
+        <div className="space-y-4">
+          <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground grid w-full max-w-md grid-cols-2">
+            <button
+              onClick={() => setActiveTab('solutions')}
+              className={cn('inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2', activeTab === 'solutions' ? 'bg-background text-foreground shadow-sm' : '')}
+            >
+              <FileSpreadsheet className="w-4 h-4" />Solutions ({filteredLabRequests.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('delivery')}
+              className={cn('inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all gap-2', activeTab === 'delivery' ? 'bg-background text-foreground shadow-sm' : '')}
+            >
+              <Package className="w-4 h-4" />Delivery ({filteredDeliveryRequests.length})
+            </button>
+          </div>
 
           {/* Solutions Table */}
-          <TabsContent value="solutions">
-            {/* AI Edit Bar for Solutions */}
-            <div className="mb-4">
-              <AIDataEditBar 
-                tableType="lab_requests" 
-                onEditComplete={refetchLabRequests}
-                recordCount={filteredLabRequests.length}
-              />
-            </div>
-            
-            <div className="bg-card rounded-lg border overflow-hidden">
-              <div className="p-4 border-b bg-muted/30">
-                <h2 className="font-semibold flex items-center gap-2">
-                  <FileSpreadsheet className="w-5 h-5 text-primary" />
-                  Solutions Requests
-                  {activeLabType !== 'all' && (
-                    <Badge variant="outline">{activeLabType}</Badge>
-                  )}
-                </h2>
+          {activeTab === 'solutions' && (
+            <div>
+              <div className="mb-4">
+                <AIDataEditBar tableType="lab_requests" onEditComplete={refetchLabRequests} recordCount={filteredLabRequests.length} />
               </div>
-              <ScrollArea className="w-full h-[calc(100vh-450px)]">
-                <table className="w-full table-fixed border-collapse text-sm">
-                  <thead className="sticky top-0 z-10">
-                    <tr className="bg-primary text-primary-foreground">
-                      <th className="p-3 text-left font-semibold w-[40px]">#</th>
-                      <th className="p-3 text-left font-semibold">Client</th>
-                      <th className="p-3 text-left font-semibold">Lab Name</th>
-                      <th className="p-3 text-left font-semibold">Lab Type</th>
-                      <th className="p-3 text-left font-semibold">Period</th>
-                      <th className="p-3 text-center font-semibold">Users</th>
-                      <th className="p-3 text-right font-semibold">Total Amount</th>
-                      <th className="p-3 text-right font-semibold">Margin</th>
-                      <th className="p-3 text-left font-semibold">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredLabRequests.length === 0 ? (
-                      <tr>
-                        <td colSpan={9} className="p-8 text-center text-muted-foreground">
-                          No solutions records found
-                        </td>
+              <div className="bg-card rounded-lg border overflow-hidden">
+                <div className="p-4 border-b bg-muted/30">
+                  <h2 className="font-semibold flex items-center gap-2">
+                    <FileSpreadsheet className="w-5 h-5 text-primary" />Solutions Requests
+                    {activeLabType !== 'all' && <Badge variant="outline">{activeLabType}</Badge>}
+                  </h2>
+                </div>
+                <ScrollArea className="w-full h-[calc(100vh-450px)]">
+                  <table className="w-full table-fixed border-collapse text-sm">
+                    <thead className="sticky top-0 z-10">
+                      <tr className="bg-primary text-primary-foreground">
+                        <th className="p-3 text-left font-semibold w-[40px]">#</th>
+                        <th className="p-3 text-left font-semibold">Client</th>
+                        <th className="p-3 text-left font-semibold">Lab Name</th>
+                        <th className="p-3 text-left font-semibold">Lab Type</th>
+                        <th className="p-3 text-left font-semibold">Period</th>
+                        <th className="p-3 text-center font-semibold">Users</th>
+                        <th className="p-3 text-right font-semibold">Total Amount</th>
+                        <th className="p-3 text-right font-semibold">Margin</th>
+                        <th className="p-3 text-left font-semibold">Status</th>
                       </tr>
-                    ) : (
-                      filteredLabRequests.map((request, index) => (
+                    </thead>
+                    <tbody>
+                      {filteredLabRequests.length === 0 ? (
+                        <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">No solutions records found</td></tr>
+                      ) : filteredLabRequests.map((request, index) => (
                         <tr key={request.id} className="border-b hover:bg-muted/50">
                           <td className="p-3">{index + 1}</td>
                           <td className="p-3 font-medium truncate">{request.client}</td>
                           <td className="p-3 truncate">{request.labName || '-'}</td>
-                          <td className="p-3">
-                            <div className="flex items-center gap-2">
-                              {getLabTypeIcon(request.cloud || '')}
-                              <span className="truncate">{request.cloud || '-'}</span>
-                            </div>
-                          </td>
+                          <td className="p-3"><div className="flex items-center gap-2">{getLabTypeIcon(request.cloud || '')}<span className="truncate">{request.cloud || '-'}</span></div></td>
                           <td className="p-3 truncate">{request.month} {request.year}</td>
                           <td className="p-3 text-center">{request.userCount || 0}</td>
-                          <td className="p-3 text-right font-medium">
-                            {formatINR(request.totalAmountForTraining || 0)}
-                          </td>
-                          <td className="p-3 text-right">
-                            {formatPercentage(request.margin || 0)}
-                          </td>
-                          <td className="p-3">
-                            <Badge variant={getStatusBadgeVariant(request.status || '')} className="text-xs">
-                              {request.status || '-'}
-                            </Badge>
-                          </td>
+                          <td className="p-3 text-right font-medium">{formatINR(request.totalAmountForTraining || 0)}</td>
+                          <td className="p-3 text-right">{formatPercentage(request.margin || 0)}</td>
+                          <td className="p-3"><Badge variant={getStatusBadgeVariant(request.status || '')} className="text-xs">{request.status || '-'}</Badge></td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-                <ScrollBar orientation="vertical" />
-              </ScrollArea>
+                      ))}
+                    </tbody>
+                  </table>
+                  <ScrollBar orientation="vertical" />
+                </ScrollArea>
+              </div>
             </div>
-          </TabsContent>
+          )}
 
           {/* Delivery Table */}
-          <TabsContent value="delivery">
-            {/* AI Edit Bar for Delivery */}
-            <div className="mb-4">
-              <AIDataEditBar 
-                tableType="delivery" 
-                onEditComplete={refetchDeliveryRequests}
-                recordCount={filteredDeliveryRequests.length}
-              />
-            </div>
-            
-            <div className="bg-card rounded-lg border overflow-hidden">
-              <div className="p-4 border-b bg-muted/30">
-                <h2 className="font-semibold flex items-center gap-2">
-                  <Package className="w-5 h-5 text-primary" />
-                  Delivery Requests
-                  {activeLabType !== 'all' && (
-                    <Badge variant="outline">{activeLabType}</Badge>
-                  )}
-                  <Badge className="bg-primary/10 text-primary ml-2">
-                    Status: Delivered, Delivery In-Progress, Delivery Completed
-                  </Badge>
-                </h2>
+          {activeTab === 'delivery' && (
+            <div>
+              <div className="mb-4">
+                <AIDataEditBar tableType="delivery" onEditComplete={refetchDeliveryRequests} recordCount={filteredDeliveryRequests.length} />
               </div>
-              <ScrollArea className="w-full h-[calc(100vh-450px)]">
-                <table className="w-full table-fixed border-collapse text-sm">
-                  <thead className="sticky top-0 z-10">
-                    <tr className="bg-primary text-primary-foreground">
-                      <th className="p-3 text-left font-semibold w-[40px]">#</th>
-                      <th className="p-3 text-left font-semibold">Client</th>
-                      <th className="p-3 text-left font-semibold">Training Name</th>
-                      <th className="p-3 text-left font-semibold">Lab Type</th>
-                      <th className="p-3 text-left font-semibold">Period</th>
-                      <th className="p-3 text-center font-semibold">Users</th>
-                      <th className="p-3 text-left font-semibold">Start Date</th>
-                      <th className="p-3 text-left font-semibold">End Date</th>
-                      <th className="p-3 text-right font-semibold">Total Amount</th>
-                      <th className="p-3 text-left font-semibold">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredDeliveryRequests.length === 0 ? (
-                      <tr>
-                        <td colSpan={10} className="p-8 text-center text-muted-foreground">
-                          No delivery records found
-                        </td>
+              <div className="bg-card rounded-lg border overflow-hidden">
+                <div className="p-4 border-b bg-muted/30">
+                  <h2 className="font-semibold flex items-center gap-2">
+                    <Package className="w-5 h-5 text-primary" />Delivery Requests
+                    {activeLabType !== 'all' && <Badge variant="outline">{activeLabType}</Badge>}
+                    <Badge className="bg-primary/10 text-primary ml-2">Status: Delivered, Delivery In-Progress, Delivery Completed</Badge>
+                  </h2>
+                </div>
+                <ScrollArea className="w-full h-[calc(100vh-450px)]">
+                  <table className="w-full table-fixed border-collapse text-sm">
+                    <thead className="sticky top-0 z-10">
+                      <tr className="bg-primary text-primary-foreground">
+                        <th className="p-3 text-left font-semibold w-[40px]">#</th>
+                        <th className="p-3 text-left font-semibold">Client</th>
+                        <th className="p-3 text-left font-semibold">Training Name</th>
+                        <th className="p-3 text-left font-semibold">Lab Type</th>
+                        <th className="p-3 text-left font-semibold">Period</th>
+                        <th className="p-3 text-center font-semibold">Users</th>
+                        <th className="p-3 text-left font-semibold">Start Date</th>
+                        <th className="p-3 text-left font-semibold">End Date</th>
+                        <th className="p-3 text-right font-semibold">Total Amount</th>
+                        <th className="p-3 text-left font-semibold">Status</th>
                       </tr>
-                    ) : (
-                      filteredDeliveryRequests.map((request, index) => (
+                    </thead>
+                    <tbody>
+                      {filteredDeliveryRequests.length === 0 ? (
+                        <tr><td colSpan={10} className="p-8 text-center text-muted-foreground">No delivery records found</td></tr>
+                      ) : filteredDeliveryRequests.map((request, index) => (
                         <tr key={request.id} className="border-b hover:bg-muted/50">
                           <td className="p-3">{index + 1}</td>
                           <td className="p-3 font-medium truncate">{request.client}</td>
                           <td className="p-3 truncate">{request.trainingName || '-'}</td>
-                          <td className="p-3">
-                            <div className="flex items-center gap-2">
-                              {getLabTypeIcon(request.cloud || '')}
-                              <span className="truncate">{request.cloud || '-'}</span>
-                            </div>
-                          </td>
+                          <td className="p-3"><div className="flex items-center gap-2">{getLabTypeIcon(request.cloud || '')}<span className="truncate">{request.cloud || '-'}</span></div></td>
                           <td className="p-3 truncate">{request.month} {request.year}</td>
                           <td className="p-3 text-center">{request.numberOfUsers || 0}</td>
                           <td className="p-3 truncate">{request.startDate || '-'}</td>
                           <td className="p-3 truncate">{request.endDate || '-'}</td>
-                          <td className="p-3 text-right font-medium">
-                            {formatINR(request.totalAmount || 0)}
-                          </td>
-                          <td className="p-3">
-                            <Badge variant={getStatusBadgeVariant(request.labStatus || '')} className="text-xs">
-                              {request.labStatus || '-'}
-                            </Badge>
-                          </td>
+                          <td className="p-3 text-right font-medium">{formatINR(request.totalAmount || 0)}</td>
+                          <td className="p-3"><Badge variant={getStatusBadgeVariant(request.labStatus || '')} className="text-xs">{request.labStatus || '-'}</Badge></td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-                <ScrollBar orientation="vertical" />
-              </ScrollArea>
+                      ))}
+                    </tbody>
+                  </table>
+                  <ScrollBar orientation="vertical" />
+                </ScrollArea>
+              </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </main>
     </div>
   );
