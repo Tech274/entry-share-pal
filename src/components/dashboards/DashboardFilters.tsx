@@ -6,7 +6,6 @@ import { CLOUD_OPTIONS, CLOUD_TYPE_OPTIONS, TP_LAB_TYPE_OPTIONS, LOB_OPTIONS, MO
 import { LAB_STATUS_OPTIONS } from '@/types/deliveryRequest';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DateRangePickerFilter, DateRange, isDateInRange } from './DateRangePickerFilter';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -104,279 +103,273 @@ export function DashboardFilters({
   const showTPLabType = filters.labType === 'TP Labs';
 
   return (
-    <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-      <div className="bg-card border rounded-lg">
-        {/* Header row - always visible */}
-        <div className="flex items-center justify-between p-3 border-b">
-          <div className="flex items-center gap-3">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-2">
-                <Filter className="w-4 h-4" />
-                <span className="text-sm font-medium">Filters</span>
-                {activeFilterCount > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1.5">
-                    {activeFilterCount}
-                  </Badge>
-                )}
-                {isExpanded ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-              </Button>
-            </CollapsibleTrigger>
-            
-            {/* Date Range Picker - always visible */}
-            <DateRangePickerFilter 
-              dateRange={filters.dateRange} 
-              onDateRangeChange={handleDateRangeChange} 
-            />
-          </div>
+    <div className="bg-card border rounded-lg">
+      {/* Header row - always visible */}
+      <div className="flex items-center justify-between p-3 border-b">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => setIsExpanded(!isExpanded)}>
+            <Filter className="w-4 h-4" />
+            <span className="text-sm font-medium">Filters</span>
+            {activeFilterCount > 0 && (
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+                {activeFilterCount}
+              </Badge>
+            )}
+            {isExpanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </Button>
           
-          <div className="flex items-center gap-2">
-            {/* Refresh Button */}
-            {onRefresh && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onRefresh}
-                disabled={isRefreshing}
-                className="gap-2"
-              >
-                <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-                {isRefreshing ? 'Refreshing...' : 'Refresh'}
-              </Button>
-            )}
-            
-            {/* Export Dropdown */}
-            {(onExportCSV || onExportPDF) && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="w-4 h-4" />
-                    Export
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-popover">
-                  {onExportCSV && (
-                    <DropdownMenuItem onClick={onExportCSV}>
-                      Export as CSV
-                    </DropdownMenuItem>
-                  )}
-                  {onExportPDF && (
-                    <DropdownMenuItem onClick={onExportPDF}>
-                      Export as PDF
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
+          {/* Date Range Picker - always visible */}
+          <DateRangePickerFilter 
+            dateRange={filters.dateRange} 
+            onDateRangeChange={handleDateRangeChange} 
+          />
         </div>
         
-        {/* Collapsible filters row */}
-        <CollapsibleContent>
-          <div className="flex flex-wrap items-center gap-3 p-4">
-      {/* Lab Type Filter */}
-      <Select
-        value={filters.labType}
-        onValueChange={(v) => handleFilterChange('labType', v)}
-      >
-        <SelectTrigger className="h-8 w-36">
-          <SelectValue placeholder="Lab Type" />
-        </SelectTrigger>
-        <SelectContent className="bg-popover">
-          <SelectItem value="all">All Lab Types</SelectItem>
-          {CLOUD_OPTIONS.map((option) => (
-            <SelectItem key={option} value={option}>
-              {option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Cloud Type Filter (conditional) */}
-      {showCloudType && (
-        <Select
-          value={filters.cloudType}
-          onValueChange={(v) => handleFilterChange('cloudType', v)}
-        >
-          <SelectTrigger className="h-8 w-32">
-            <SelectValue placeholder="Cloud Type" />
-          </SelectTrigger>
-          <SelectContent className="bg-popover">
-            <SelectItem value="all">All Cloud Types</SelectItem>
-            {CLOUD_TYPE_OPTIONS.map((option) => (
-              <SelectItem key={option} value={option}>
-                {option}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
-
-      {/* TP Lab Type Filter (conditional) */}
-      {showTPLabType && (
-        <Select
-          value={filters.tpLabType}
-          onValueChange={(v) => handleFilterChange('tpLabType', v)}
-        >
-          <SelectTrigger className="h-8 w-32">
-            <SelectValue placeholder="TP Lab Type" />
-          </SelectTrigger>
-          <SelectContent className="bg-popover">
-            <SelectItem value="all">All TP Labs</SelectItem>
-            {TP_LAB_TYPE_OPTIONS.map((option) => (
-              <SelectItem key={option} value={option}>
-                {option}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
-
-      {/* Client Filter */}
-      <Select
-        value={filters.client}
-        onValueChange={(v) => handleFilterChange('client', v)}
-      >
-        <SelectTrigger className="h-8 w-36">
-          <SelectValue placeholder="Client" />
-        </SelectTrigger>
-        <SelectContent className="bg-popover max-h-60">
-          <SelectItem value="all">All Clients</SelectItem>
-          {clients.map((client) => (
-            <SelectItem key={client} value={client}>
-              {client}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Line of Business Filter */}
-      <Select
-        value={filters.lineOfBusiness}
-        onValueChange={(v) => handleFilterChange('lineOfBusiness', v)}
-      >
-        <SelectTrigger className="h-8 w-32">
-          <SelectValue placeholder="LOB" />
-        </SelectTrigger>
-        <SelectContent className="bg-popover">
-          <SelectItem value="all">All LOB</SelectItem>
-          {LOB_OPTIONS.map((option) => (
-            <SelectItem key={option} value={option}>
-              {option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Month Filter */}
-      <Select
-        value={filters.month}
-        onValueChange={(v) => handleFilterChange('month', v)}
-      >
-        <SelectTrigger className="h-8 w-32">
-          <SelectValue placeholder="Month" />
-        </SelectTrigger>
-        <SelectContent className="bg-popover">
-          <SelectItem value="all">All Months</SelectItem>
-          {MONTH_OPTIONS.map((option) => (
-            <SelectItem key={option} value={option}>
-              {option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Year Filter */}
-      <Select
-        value={filters.year}
-        onValueChange={(v) => handleFilterChange('year', v)}
-      >
-        <SelectTrigger className="h-8 w-24">
-          <SelectValue placeholder="Year" />
-        </SelectTrigger>
-        <SelectContent className="bg-popover">
-          <SelectItem value="all">All Years</SelectItem>
-          {YEAR_OPTIONS.map((option) => (
-            <SelectItem key={String(option)} value={String(option)}>
-              {option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Agent Name Filter */}
-      <Select
-        value={filters.agentName}
-        onValueChange={(v) => handleFilterChange('agentName', v)}
-      >
-        <SelectTrigger className="h-8 w-32">
-          <SelectValue placeholder="Agent" />
-        </SelectTrigger>
-        <SelectContent className="bg-popover max-h-60">
-          <SelectItem value="all">All Agents</SelectItem>
-          {agentNames.map((agent) => (
-            <SelectItem key={agent} value={agent}>
-              {agent}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Account Manager Filter */}
-      <Select
-        value={filters.accountManager}
-        onValueChange={(v) => handleFilterChange('accountManager', v)}
-      >
-        <SelectTrigger className="h-8 w-36">
-          <SelectValue placeholder="Account Mgr" />
-        </SelectTrigger>
-        <SelectContent className="bg-popover max-h-60">
-          <SelectItem value="all">All Account Mgrs</SelectItem>
-          {accountManagers.map((am) => (
-            <SelectItem key={am} value={am}>
-              {am}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Status Filter */}
-      <Select
-        value={filters.status}
-        onValueChange={(v) => handleFilterChange('status', v)}
-      >
-        <SelectTrigger className="h-8 w-36">
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent className="bg-popover max-h-60">
-          <SelectItem value="all">All Statuses</SelectItem>
-          {allStatusOptions.map((status) => (
-            <SelectItem key={status} value={status}>
-              {status}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Clear Filters Button */}
-      {activeFilterCount > 0 && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleClearFilters}
-          className="gap-1 text-muted-foreground hover:text-foreground"
-        >
-          <X className="w-3 h-3" />
-          Clear ({activeFilterCount})
-        </Button>
-      )}
-          </div>
-        </CollapsibleContent>
+        <div className="flex items-center gap-2">
+          {/* Refresh Button */}
+          {onRefresh && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="gap-2"
+            >
+              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+              {isRefreshing ? 'Refreshing...' : 'Refresh'}
+            </Button>
+          )}
+          
+          {/* Export Dropdown */}
+          {(onExportCSV || onExportPDF) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Download className="w-4 h-4" />
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover">
+                {onExportCSV && (
+                  <DropdownMenuItem onClick={onExportCSV}>
+                    Export as CSV
+                  </DropdownMenuItem>
+                )}
+                {onExportPDF && (
+                  <DropdownMenuItem onClick={onExportPDF}>
+                    Export as PDF
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
-    </Collapsible>
+      
+      {/* Filter row - plain CSS show/hide, no Radix Collapsible */}
+      <div style={{ display: isExpanded ? 'flex' : 'none' }} className="flex-wrap items-center gap-3 p-4">
+        {/* Lab Type Filter */}
+        <Select
+          value={filters.labType}
+          onValueChange={(v) => handleFilterChange('labType', v)}
+        >
+          <SelectTrigger className="h-8 w-36">
+            <SelectValue placeholder="Lab Type" />
+          </SelectTrigger>
+          <SelectContent className="bg-popover">
+            <SelectItem value="all">All Lab Types</SelectItem>
+            {CLOUD_OPTIONS.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Cloud Type Filter (conditional) */}
+        {showCloudType && (
+          <Select
+            value={filters.cloudType}
+            onValueChange={(v) => handleFilterChange('cloudType', v)}
+          >
+            <SelectTrigger className="h-8 w-32">
+              <SelectValue placeholder="Cloud Type" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover">
+              <SelectItem value="all">All Cloud Types</SelectItem>
+              {CLOUD_TYPE_OPTIONS.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {/* TP Lab Type Filter (conditional) */}
+        {showTPLabType && (
+          <Select
+            value={filters.tpLabType}
+            onValueChange={(v) => handleFilterChange('tpLabType', v)}
+          >
+            <SelectTrigger className="h-8 w-32">
+              <SelectValue placeholder="TP Lab Type" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover">
+              <SelectItem value="all">All TP Labs</SelectItem>
+              {TP_LAB_TYPE_OPTIONS.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {/* Client Filter */}
+        <Select
+          value={filters.client}
+          onValueChange={(v) => handleFilterChange('client', v)}
+        >
+          <SelectTrigger className="h-8 w-36">
+            <SelectValue placeholder="Client" />
+          </SelectTrigger>
+          <SelectContent className="bg-popover max-h-60">
+            <SelectItem value="all">All Clients</SelectItem>
+            {clients.map((client) => (
+              <SelectItem key={client} value={client}>
+                {client}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Line of Business Filter */}
+        <Select
+          value={filters.lineOfBusiness}
+          onValueChange={(v) => handleFilterChange('lineOfBusiness', v)}
+        >
+          <SelectTrigger className="h-8 w-32">
+            <SelectValue placeholder="LOB" />
+          </SelectTrigger>
+          <SelectContent className="bg-popover">
+            <SelectItem value="all">All LOB</SelectItem>
+            {LOB_OPTIONS.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Month Filter */}
+        <Select
+          value={filters.month}
+          onValueChange={(v) => handleFilterChange('month', v)}
+        >
+          <SelectTrigger className="h-8 w-32">
+            <SelectValue placeholder="Month" />
+          </SelectTrigger>
+          <SelectContent className="bg-popover">
+            <SelectItem value="all">All Months</SelectItem>
+            {MONTH_OPTIONS.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Year Filter */}
+        <Select
+          value={filters.year}
+          onValueChange={(v) => handleFilterChange('year', v)}
+        >
+          <SelectTrigger className="h-8 w-24">
+            <SelectValue placeholder="Year" />
+          </SelectTrigger>
+          <SelectContent className="bg-popover">
+            <SelectItem value="all">All Years</SelectItem>
+            {YEAR_OPTIONS.map((option) => (
+              <SelectItem key={String(option)} value={String(option)}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Agent Name Filter */}
+        <Select
+          value={filters.agentName}
+          onValueChange={(v) => handleFilterChange('agentName', v)}
+        >
+          <SelectTrigger className="h-8 w-32">
+            <SelectValue placeholder="Agent" />
+          </SelectTrigger>
+          <SelectContent className="bg-popover max-h-60">
+            <SelectItem value="all">All Agents</SelectItem>
+            {agentNames.map((agent) => (
+              <SelectItem key={agent} value={agent}>
+                {agent}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Account Manager Filter */}
+        <Select
+          value={filters.accountManager}
+          onValueChange={(v) => handleFilterChange('accountManager', v)}
+        >
+          <SelectTrigger className="h-8 w-36">
+            <SelectValue placeholder="Account Mgr" />
+          </SelectTrigger>
+          <SelectContent className="bg-popover max-h-60">
+            <SelectItem value="all">All Account Mgrs</SelectItem>
+            {accountManagers.map((am) => (
+              <SelectItem key={am} value={am}>
+                {am}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Status Filter */}
+        <Select
+          value={filters.status}
+          onValueChange={(v) => handleFilterChange('status', v)}
+        >
+          <SelectTrigger className="h-8 w-36">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent className="bg-popover max-h-60">
+            <SelectItem value="all">All Statuses</SelectItem>
+            {allStatusOptions.map((status) => (
+              <SelectItem key={status} value={status}>
+                {status}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Clear Filters Button */}
+        {activeFilterCount > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearFilters}
+            className="gap-1 text-muted-foreground hover:text-foreground"
+          >
+            <X className="w-3 h-3" />
+            Clear ({activeFilterCount})
+          </Button>
+        )}
+      </div>
+    </div>
   );
 }
 
