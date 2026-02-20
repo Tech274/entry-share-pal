@@ -169,6 +169,10 @@ export function CloudBillingDashboard() {
   const [editing, setEditing] = useState<CloudBillingDetail | null>(null);
   const [activeProvider, setActiveProvider] = useState<CloudProvider | null>(null);
 
+  // Filter state
+  const [filterYear, setFilterYear] = useState<string>('all');
+  const [filterProvider, setFilterProvider] = useState<string>('all');
+
   const formState = useState({
     provider: 'aws' as CloudProvider,
     vendor_name: '' as string,
@@ -239,14 +243,10 @@ export function CloudBillingDashboard() {
             overall_business: form.overall_business,
             cloud_cost: form.cloud_cost,
             invoiced_to_customer: form.invoiced_to_customer,
-            // yet_to_be_billed is a generated column — DB computes it automatically
           },
         },
         {
-          onSuccess: () => {
-            toast.success('Updated');
-            resetForm();
-          },
+          onSuccess: () => { toast.success('Updated'); resetForm(); },
           onError: (err: Error) => toast.error(err.message),
         }
       );
@@ -260,19 +260,14 @@ export function CloudBillingDashboard() {
           overall_business: form.overall_business,
           cloud_cost: form.cloud_cost,
           invoiced_to_customer: form.invoiced_to_customer,
-          // yet_to_be_billed is a generated column — DB computes it automatically
         },
         {
-          onSuccess: () => {
-            toast.success('Entry added');
-            resetForm();
-          },
+          onSuccess: () => { toast.success('Entry added'); resetForm(); },
           onError: (err: Error) => toast.error(err.message),
         }
       );
     }
   };
-
 
   const handleDelete = (r: CloudBillingDetail) => {
     if (!confirm(`Delete ${r.month} ${r.year} for ${r.provider.toUpperCase()}?`)) return;
@@ -282,13 +277,36 @@ export function CloudBillingDashboard() {
     });
   };
 
+  // Derive available years from data
+  const availableYears = useMemo(() => {
+    const years = [...new Set(details.map((d) => d.year))].sort((a, b) => b - a);
+    return years;
+  }, [details]);
+
+  // Filtered data based on year + provider selections
+  const filteredDetails = useMemo(() => {
+    return details.filter((d) => {
+      const yearMatch = filterYear === 'all' || d.year === Number(filterYear);
+      const providerMatch = filterProvider === 'all' || d.provider === filterProvider;
+      return yearMatch && providerMatch;
+    });
+  }, [details, filterYear, filterProvider]);
+
   const byProvider = useMemo(() => {
     const map: Record<CloudProvider, CloudBillingDetail[]> = { aws: [], azure: [], gcp: [] };
-    details.forEach((d) => {
+    filteredDetails.forEach((d) => {
       if (map[d.provider]) map[d.provider].push(d);
     });
     return map;
-  }, [details]);
+  }, [filteredDetails]);
+
+  const visibleProviders = useMemo(() => {
+    return filterProvider === 'all'
+      ? PROVIDERS
+      : PROVIDERS.filter((p) => p.id === filterProvider);
+  }, [filterProvider]);
+
+  const isFiltered = filterYear !== 'all' || filterProvider !== 'all';
 
   if (isError) {
     const msg = error instanceof Error ? error.message : String(error);
@@ -299,13 +317,8 @@ export function CloudBillingDashboard() {
         <AlertTitle>Cloud Billing table missing</AlertTitle>
         <AlertDescription>
           {missingTable ? (
-            <>
-              Run <code className="text-xs bg-muted px-1 rounded">supabase/RUN_CLOUD_BILLING.sql</code> in Supabase
-              SQL Editor to create the table.
-            </>
-          ) : (
-            msg
-          )}
+            <>Run <code className="text-xs bg-muted px-1 rounded">supabase/RUN_CLOUD_BILLING.sql</code> in the SQL Editor to create the table.</>
+          ) : msg}
         </AlertDescription>
       </Alert>
     );
@@ -324,36 +337,39 @@ export function CloudBillingDashboard() {
   const loadSample = () => {
     if (!confirm('Load sample data for AWS, Azure, GCP (April–June 2025)? Existing rows for those months will be replaced.')) return;
     mutations.bulkInsert.mutate(SAMPLE_CLOUD_BILLING_DATA, {
-      onSuccess: () => toast.success('Sample data loaded. Margins and % calculated.'),
+      onSuccess: () => toast.success('Sample data loaded.'),
       onError: (err: Error) => toast.error(err.message),
     });
   };
 
   const handleExportCSV = () => {
-    if (details.length === 0) { toast.error('No data to export.'); return; }
-    exportCloudBillingToCSV(details, 'cloud-billing-report');
-    toast.success('Cloud Billing exported as CSV.');
+    if (filteredDetails.length === 0) { toast.error('No data to export.'); return; }
+    const suffix = isFiltered ? `-${filterProvider !== 'all' ? filterProvider : 'all'}-${filterYear}` : '';
+    exportCloudBillingToCSV(filteredDetails, `cloud-billing-report${suffix}`);
+    toast.success(`Exported ${filteredDetails.length} rows as CSV.`);
   };
 
   const handleExportXLS = () => {
-    if (details.length === 0) { toast.error('No data to export.'); return; }
-    exportCloudBillingToXLS(details, 'cloud-billing-report');
-    toast.success('Cloud Billing exported as XLS.');
+    if (filteredDetails.length === 0) { toast.error('No data to export.'); return; }
+    const suffix = isFiltered ? `-${filterProvider !== 'all' ? filterProvider : 'all'}-${filterYear}` : '';
+    exportCloudBillingToXLS(filteredDetails, `cloud-billing-report${suffix}`);
+    toast.success(`Exported ${filteredDetails.length} rows as XLS.`);
   };
 
   return (
     <div className="space-y-6">
+      {/* Toolbar row */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-muted-foreground text-sm">
           <Cloud className="w-4 h-4" />
           <span>Month-on-month invoiced to customer, cloud spend vs cloud sales, and % margins by provider.</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={details.length === 0} className="gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={filteredDetails.length === 0} className="gap-2">
             <FileDown className="w-4 h-4" />
             Export CSV
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExportXLS} disabled={details.length === 0} className="gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportXLS} disabled={filteredDetails.length === 0} className="gap-2">
             <FileSpreadsheet className="w-4 h-4" />
             Export XLS
           </Button>
@@ -364,7 +380,55 @@ export function CloudBillingDashboard() {
         </div>
       </div>
 
-      {PROVIDERS.map(({ id }) => (
+      {/* Filter bar */}
+      <div className="flex flex-wrap items-center gap-3 p-3 rounded-lg border bg-muted/40">
+        <span className="text-sm font-medium text-muted-foreground">Filter:</span>
+
+        {/* Provider filter */}
+        <Select value={filterProvider} onValueChange={setFilterProvider}>
+          <SelectTrigger className="h-8 w-36 text-sm bg-background">
+            <SelectValue placeholder="All Providers" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Providers</SelectItem>
+            {PROVIDERS.map((p) => (
+              <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Year filter */}
+        <Select value={filterYear} onValueChange={setFilterYear}>
+          <SelectTrigger className="h-8 w-28 text-sm bg-background">
+            <SelectValue placeholder="All Years" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Years</SelectItem>
+            {availableYears.map((y) => (
+              <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Active filter summary + clear */}
+        {isFiltered && (
+          <div className="flex items-center gap-2 ml-1">
+            <span className="text-xs text-muted-foreground">
+              Showing <span className="font-semibold text-foreground">{filteredDetails.length}</span> of {details.length} records
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs gap-1"
+              onClick={() => { setFilterYear('all'); setFilterProvider('all'); }}
+            >
+              Clear filters
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {visibleProviders.map(({ id }) => (
         <ProviderSection
           key={id}
           provider={id}
@@ -374,6 +438,7 @@ export function CloudBillingDashboard() {
           onAdd={() => openAdd(id)}
         />
       ))}
+
 
       <Dialog open={dialogOpen} onOpenChange={(v) => !v && resetForm()}>
         <DialogContent className="max-w-md">

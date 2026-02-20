@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { lovable } from '@/integrations/lovable/index';
@@ -16,6 +16,7 @@ const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
 
 const Auth = () => {
+  const [authTab, setAuthTab] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -149,13 +150,32 @@ const Auth = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
+          {/* State-based tab switcher — avoids Radix removeChild crash */}
+          <div className="w-full">
+            {/* Tab bar */}
+            <div className="grid grid-cols-2 mb-6 h-10 rounded-md bg-muted p-1 text-muted-foreground">
+              <button
+                onClick={() => setAuthTab('signin')}
+                className={cn(
+                  'inline-flex items-center justify-center rounded-sm px-3 py-1.5 text-sm font-medium transition-all',
+                  authTab === 'signin' ? 'bg-background text-foreground shadow-sm' : ''
+                )}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => setAuthTab('signup')}
+                className={cn(
+                  'inline-flex items-center justify-center rounded-sm px-3 py-1.5 text-sm font-medium transition-all',
+                  authTab === 'signup' ? 'bg-background text-foreground shadow-sm' : ''
+                )}
+              >
+                Sign Up
+              </button>
+            </div>
 
-            <TabsContent value="signin">
+            {/* Sign In panel */}
+            {authTab === 'signin' && (
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signin-email">Email</Label>
@@ -194,9 +214,10 @@ const Auth = () => {
                   Sign In
                 </Button>
               </form>
-            </TabsContent>
+            )}
 
-            <TabsContent value="signup">
+            {/* Sign Up panel */}
+            {authTab === 'signup' && (
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-name">Full Name</Label>
@@ -250,8 +271,8 @@ const Auth = () => {
                   Create Account
                 </Button>
               </form>
-            </TabsContent>
-          </Tabs>
+            )}
+          </div>
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
