@@ -172,6 +172,8 @@ export function CloudBillingDashboard() {
   // Filter state
   const [filterYear, setFilterYear] = useState<string>('all');
   const [filterProvider, setFilterProvider] = useState<string>('all');
+  const [filterMonthFrom, setFilterMonthFrom] = useState<string>('all');
+  const [filterMonthTo, setFilterMonthTo] = useState<string>('all');
 
   const formState = useState({
     provider: 'aws' as CloudProvider,
@@ -283,14 +285,19 @@ export function CloudBillingDashboard() {
     return years;
   }, [details]);
 
-  // Filtered data based on year + provider selections
+  // Filtered data based on year + provider + month range selections
   const filteredDetails = useMemo(() => {
+    const fromIdx = filterMonthFrom === 'all' ? -1 : MONTHS.indexOf(filterMonthFrom);
+    const toIdx = filterMonthTo === 'all' ? 99 : MONTHS.indexOf(filterMonthTo);
     return details.filter((d) => {
       const yearMatch = filterYear === 'all' || d.year === Number(filterYear);
       const providerMatch = filterProvider === 'all' || d.provider === filterProvider;
-      return yearMatch && providerMatch;
+      const monthIdx = MONTHS.indexOf(d.month);
+      const monthFromMatch = fromIdx === -1 || monthIdx >= fromIdx;
+      const monthToMatch = toIdx === 99 || monthIdx <= toIdx;
+      return yearMatch && providerMatch && monthFromMatch && monthToMatch;
     });
-  }, [details, filterYear, filterProvider]);
+  }, [details, filterYear, filterProvider, filterMonthFrom, filterMonthTo]);
 
   const byProvider = useMemo(() => {
     const map: Record<CloudProvider, CloudBillingDetail[]> = { aws: [], azure: [], gcp: [] };
@@ -306,7 +313,7 @@ export function CloudBillingDashboard() {
       : PROVIDERS.filter((p) => p.id === filterProvider);
   }, [filterProvider]);
 
-  const isFiltered = filterYear !== 'all' || filterProvider !== 'all';
+  const isFiltered = filterYear !== 'all' || filterProvider !== 'all' || filterMonthFrom !== 'all' || filterMonthTo !== 'all';
 
   if (isError) {
     const msg = error instanceof Error ? error.message : String(error);
@@ -342,17 +349,24 @@ export function CloudBillingDashboard() {
     });
   };
 
+  const buildExportSuffix = () => {
+    const parts: string[] = [];
+    if (filterProvider !== 'all') parts.push(filterProvider.toUpperCase());
+    if (filterYear !== 'all') parts.push(filterYear);
+    if (filterMonthFrom !== 'all') parts.push(filterMonthFrom.slice(0, 3));
+    if (filterMonthTo !== 'all') parts.push(`to-${filterMonthTo.slice(0, 3)}`);
+    return parts.length ? `-${parts.join('-')}` : '';
+  };
+
   const handleExportCSV = () => {
     if (filteredDetails.length === 0) { toast.error('No data to export.'); return; }
-    const suffix = isFiltered ? `-${filterProvider !== 'all' ? filterProvider : 'all'}-${filterYear}` : '';
-    exportCloudBillingToCSV(filteredDetails, `cloud-billing-report${suffix}`);
+    exportCloudBillingToCSV(filteredDetails, `cloud-billing-report${buildExportSuffix()}`);
     toast.success(`Exported ${filteredDetails.length} rows as CSV.`);
   };
 
   const handleExportXLS = () => {
     if (filteredDetails.length === 0) { toast.error('No data to export.'); return; }
-    const suffix = isFiltered ? `-${filterProvider !== 'all' ? filterProvider : 'all'}-${filterYear}` : '';
-    exportCloudBillingToXLS(filteredDetails, `cloud-billing-report${suffix}`);
+    exportCloudBillingToXLS(filteredDetails, `cloud-billing-report${buildExportSuffix()}`);
     toast.success(`Exported ${filteredDetails.length} rows as XLS.`);
   };
 
@@ -410,6 +424,34 @@ export function CloudBillingDashboard() {
           </SelectContent>
         </Select>
 
+        {/* Month From filter */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-muted-foreground">Month:</span>
+          <Select value={filterMonthFrom} onValueChange={setFilterMonthFrom}>
+            <SelectTrigger className="h-8 w-32 text-sm bg-background">
+              <SelectValue placeholder="From" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Any start</SelectItem>
+              {MONTHS.map((m) => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-xs text-muted-foreground">to</span>
+          <Select value={filterMonthTo} onValueChange={setFilterMonthTo}>
+            <SelectTrigger className="h-8 w-32 text-sm bg-background">
+              <SelectValue placeholder="To" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Any end</SelectItem>
+              {MONTHS.map((m) => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Active filter summary + clear */}
         {isFiltered && (
           <div className="flex items-center gap-2 ml-1">
@@ -420,7 +462,7 @@ export function CloudBillingDashboard() {
               variant="ghost"
               size="sm"
               className="h-7 px-2 text-xs gap-1"
-              onClick={() => { setFilterYear('all'); setFilterProvider('all'); }}
+              onClick={() => { setFilterYear('all'); setFilterProvider('all'); setFilterMonthFrom('all'); setFilterMonthTo('all'); }}
             >
               Clear filters
             </Button>
