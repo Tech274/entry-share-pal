@@ -74,6 +74,8 @@ export interface CloudBillingExportRow {
   cloud_cost: number;
   invoiced_to_customer: number;
   yet_to_be_billed: number;
+  margins?: number;
+  margin_percentage?: number;
 }
 
 const escapeCSV = (value: string | number): string => {
@@ -253,8 +255,8 @@ export function exportCloudBillingToCSV(rows: CloudBillingExportRow[], filename 
   if (rows.length === 0) return;
 
   const csvRows = rows.map((row) => {
-    const margins = row.overall_business - row.cloud_cost;
-    const marginPct = row.overall_business > 0 ? (margins / row.overall_business) * 100 : 0;
+    const margins = row.margins ?? (row.overall_business - row.cloud_cost);
+    const marginPct = row.margin_percentage ?? (row.overall_business > 0 ? (margins / row.overall_business) * 100 : 0);
     return [
       row.provider.toUpperCase(),
       row.vendor_name || '',
@@ -281,8 +283,8 @@ export function exportCloudBillingToXLS(rows: CloudBillingExportRow[], filename 
   if (rows.length === 0) return;
 
   const tableRows = rows.map((row) => {
-    const margins = row.overall_business - row.cloud_cost;
-    const marginPct = row.overall_business > 0 ? (margins / row.overall_business) * 100 : 0;
+    const margins = row.margins ?? (row.overall_business - row.cloud_cost);
+    const marginPct = row.margin_percentage ?? (row.overall_business > 0 ? (margins / row.overall_business) * 100 : 0);
     return `
       <tr>
         <td>${row.provider.toUpperCase()}</td>

@@ -26,7 +26,8 @@ import {
 } from '@/components/ui/table';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
 import { useCloudBillingDetails, useCloudBillingMutations, SAMPLE_CLOUD_BILLING_DATA, type CloudBillingDetail, type CloudProvider } from '@/hooks/useCloudBillingDetails';
-import { Plus, Pencil, Trash2, Cloud, AlertCircle, Database } from 'lucide-react';
+import { exportCloudBillingToCSV, exportCloudBillingToXLS } from '@/lib/exportUtils';
+import { Plus, Pencil, Trash2, Cloud, AlertCircle, Database, FileDown, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -328,6 +329,18 @@ export function CloudBillingDashboard() {
     });
   };
 
+  const handleExportCSV = () => {
+    if (details.length === 0) { toast.error('No data to export.'); return; }
+    exportCloudBillingToCSV(details, 'cloud-billing-report');
+    toast.success('Cloud Billing exported as CSV.');
+  };
+
+  const handleExportXLS = () => {
+    if (details.length === 0) { toast.error('No data to export.'); return; }
+    exportCloudBillingToXLS(details, 'cloud-billing-report');
+    toast.success('Cloud Billing exported as XLS.');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -335,10 +348,20 @@ export function CloudBillingDashboard() {
           <Cloud className="w-4 h-4" />
           <span>Month-on-month invoiced to customer, cloud spend vs cloud sales, and % margins by provider.</span>
         </div>
-        <Button variant="outline" size="sm" onClick={loadSample} disabled={mutations.bulkInsert.isPending} className="gap-2">
-          <Database className="w-4 h-4" />
-          {mutations.bulkInsert.isPending ? 'Loading…' : 'Load sample data'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={details.length === 0} className="gap-2">
+            <FileDown className="w-4 h-4" />
+            Export CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportXLS} disabled={details.length === 0} className="gap-2">
+            <FileSpreadsheet className="w-4 h-4" />
+            Export XLS
+          </Button>
+          <Button variant="outline" size="sm" onClick={loadSample} disabled={mutations.bulkInsert.isPending} className="gap-2">
+            <Database className="w-4 h-4" />
+            {mutations.bulkInsert.isPending ? 'Loading…' : 'Load sample data'}
+          </Button>
+        </div>
       </div>
 
       {PROVIDERS.map(({ id }) => (
