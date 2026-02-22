@@ -113,9 +113,11 @@ export const LabTypeBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
     }))
   ];
 
-  // Lab Type breakdown with revenue
+  // Lab Type breakdown with revenue — group AWS/Azure/GCP as "Public Cloud", SAP/Oracle/OEM as "TP Labs"
   const labTypeData = allRequests.reduce((acc, req) => {
-    const type = req.cloud || 'Unknown';
+    let type = req.cloud || 'Unknown';
+    if (['AWS', 'Azure', 'GCP'].includes(type)) type = 'Public Cloud';
+    else if (['SAP', 'Oracle', 'OEM'].includes(type)) type = 'TP Labs';
     if (!acc[type]) acc[type] = { name: type, value: 0, revenue: 0, solutions: 0, delivery: 0 };
     acc[type].value++;
     acc[type].revenue += req.revenue;
@@ -128,10 +130,10 @@ export const LabTypeBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
     .filter(d => d.name !== 'Unknown' && d.value > 0)
     .sort((a, b) => b.value - a.value);
 
-  // Cloud Type breakdown for Public Cloud
-  const publicCloudRequests = allRequests.filter(r => r.cloud === 'Public Cloud');
+  // Cloud Type breakdown for Public Cloud (AWS, Azure, GCP)
+  const publicCloudRequests = allRequests.filter(r => ['AWS', 'Azure', 'GCP'].includes(r.cloud));
   const cloudTypeData = publicCloudRequests.reduce((acc, req) => {
-    const type = req.cloudType || 'Unknown';
+    const type = req.cloud || 'Unknown';
     if (!acc[type]) acc[type] = { name: type, value: 0, revenue: 0 };
     acc[type].value++;
     acc[type].revenue += req.revenue;
@@ -142,10 +144,10 @@ export const LabTypeBreakdown = ({ labRequests, deliveryRequests, onNavigateToTa
     .filter(d => d.name !== 'Unknown' && d.value > 0)
     .sort((a, b) => b.value - a.value);
 
-  // TP Lab Type breakdown
-  const tpLabRequests = allRequests.filter(r => r.cloud === 'TP Labs');
+  // TP Lab Type breakdown (SAP, Oracle, OEM)
+  const tpLabRequests = allRequests.filter(r => ['SAP', 'Oracle', 'OEM'].includes(r.cloud));
   const tpLabTypeData = tpLabRequests.reduce((acc, req) => {
-    const type = req.tpLabType || 'Unknown';
+    const type = req.cloud || 'Unknown';
     if (!acc[type]) acc[type] = { name: type, value: 0, revenue: 0 };
     acc[type].value++;
     acc[type].revenue += req.revenue;

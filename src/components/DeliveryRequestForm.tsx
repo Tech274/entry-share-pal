@@ -261,36 +261,6 @@ export const DeliveryRequestForm = ({ onSubmit }: DeliveryRequestFormProps) => {
               </SelectContent>
             </Select>
           </div>
-          {formData.cloud === 'Public Cloud' && (
-            <div className="space-y-2">
-              <Label htmlFor="cloudType">Cloud Type</Label>
-              <Select value={formData.cloudType} onValueChange={v => handleChange('cloudType', v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select cloud type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CLOUD_TYPE_OPTIONS.map(ct => (
-                    <SelectItem key={ct} value={ct}>{ct}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          {formData.cloud === 'TP Labs' && (
-            <div className="space-y-2">
-              <Label htmlFor="tpLabType">TP Lab Type</Label>
-              <Select value={formData.tpLabType} onValueChange={v => handleChange('tpLabType', v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select TP lab type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TP_LAB_TYPE_OPTIONS.map(lt => (
-                    <SelectItem key={lt} value={lt}>{lt}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
           <div className="space-y-2">
             <Label htmlFor="labName">Lab Name</Label>
             <Input

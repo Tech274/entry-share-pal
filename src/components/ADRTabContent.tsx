@@ -74,9 +74,9 @@ const LabTypeSubTabs = ({
   canPreview?: boolean;
 }) => {
   const [activeLabType, setActiveLabType] = useState('all');
-  const publicCloudRequests = requests.filter(r => r.cloud === 'Public Cloud');
+  const publicCloudRequests = requests.filter(r => ['AWS', 'Azure', 'GCP'].includes(r.cloud));
   const privateCloudRequests = requests.filter(r => r.cloud === 'Private Cloud');
-  const tpLabsRequests = requests.filter(r => r.cloud === 'TP Labs');
+  const tpLabsRequests = requests.filter(r => ['SAP', 'Oracle', 'OEM'].includes(r.cloud));
 
   const labTypeTabs = [
     { value: 'all', label: `All (${requests.length})`, icon: Building2 },

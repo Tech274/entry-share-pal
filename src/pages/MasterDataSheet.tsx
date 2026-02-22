@@ -71,6 +71,8 @@ const MasterDataSheet = () => {
   // Filter by lab type
   const filterByLabType = <T extends { cloud?: string }>(items: T[], labType: string): T[] => {
     if (labType === 'all') return items;
+    if (labType === 'Public Cloud') return items.filter(item => ['AWS', 'Azure', 'GCP'].includes(item.cloud || ''));
+    if (labType === 'TP Labs') return items.filter(item => ['SAP', 'Oracle', 'OEM'].includes(item.cloud || ''));
     return items.filter(item => item.cloud === labType);
   };
 
@@ -81,16 +83,16 @@ const MasterDataSheet = () => {
   const labTypeCounts = {
     all: { solutions: labRequests.length, delivery: adrDeliveryRequests.length },
     'Public Cloud': { 
-      solutions: labRequests.filter(r => r.cloud === 'Public Cloud').length,
-      delivery: adrDeliveryRequests.filter(r => r.cloud === 'Public Cloud').length
+      solutions: labRequests.filter(r => ['AWS', 'Azure', 'GCP'].includes(r.cloud)).length,
+      delivery: adrDeliveryRequests.filter(r => ['AWS', 'Azure', 'GCP'].includes(r.cloud)).length
     },
     'Private Cloud': { 
       solutions: labRequests.filter(r => r.cloud === 'Private Cloud').length,
       delivery: adrDeliveryRequests.filter(r => r.cloud === 'Private Cloud').length
     },
     'TP Labs': { 
-      solutions: labRequests.filter(r => r.cloud === 'TP Labs').length,
-      delivery: adrDeliveryRequests.filter(r => r.cloud === 'TP Labs').length
+      solutions: labRequests.filter(r => ['SAP', 'Oracle', 'OEM'].includes(r.cloud)).length,
+      delivery: adrDeliveryRequests.filter(r => ['SAP', 'Oracle', 'OEM'].includes(r.cloud)).length
     },
   };
 

@@ -33,7 +33,9 @@ export interface LabRequest {
   createdAt: string;
 }
 
-export const CLOUD_OPTIONS = ['Public Cloud', 'Private Cloud', 'TP Labs'];
+export const CLOUD_OPTIONS = ['AWS', 'Azure', 'GCP', 'Private Cloud', 'SAP', 'Oracle', 'OEM'];
+export const PUBLIC_CLOUD_VALUES = ['AWS', 'Azure', 'GCP'];
+export const TP_LABS_VALUES = ['SAP', 'Oracle', 'OEM'];
 export const CLOUD_TYPE_OPTIONS = ['AWS', 'Azure', 'GCP'];
 export const TP_LAB_TYPE_OPTIONS = ['SAP', 'Oracle', 'OEM'];
 export const SOLUTION_STATUS_OPTIONS = ['Solution Pending', 'Solution Sent', 'POC In-Progress', 'Lost Closed'] as const;

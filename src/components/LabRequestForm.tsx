@@ -105,14 +105,7 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
         const sm = solutionManagers.find((x) => x.id === value);
         updated.requester = sm?.name ?? '';
       }
-      // Clear cloudType when cloud changes to non-Public Cloud
-      if (field === 'cloud' && value !== 'Public Cloud') {
-        updated.cloudType = '';
-      }
-      // Clear tpLabType when cloud changes to non-TP Labs
-      if (field === 'cloud' && value !== 'TP Labs') {
-        updated.tpLabType = '';
-      }
+      // cloudType and tpLabType are no longer needed — cloud field now holds the specific value directly
       
       // Auto-calculate duration when dates change
       if (field === 'labStartDate' || field === 'labEndDate') {
@@ -367,36 +360,6 @@ export const LabRequestForm = ({ onSubmit }: LabRequestFormProps) => {
               </SelectContent>
             </Select>
           </div>
-          {formData.cloud === 'Public Cloud' && (
-            <div className="space-y-2">
-              <Label htmlFor="cloudType">Cloud Type</Label>
-              <Select value={formData.cloudType} onValueChange={v => handleChange('cloudType', v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select cloud type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CLOUD_TYPE_OPTIONS.map(ct => (
-                    <SelectItem key={ct} value={ct}>{ct}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          {formData.cloud === 'TP Labs' && (
-            <div className="space-y-2">
-              <Label htmlFor="tpLabType">TP Lab Type</Label>
-              <Select value={formData.tpLabType} onValueChange={v => handleChange('tpLabType', v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select TP lab type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TP_LAB_TYPE_OPTIONS.map(lt => (
-                    <SelectItem key={lt} value={lt}>{lt}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
           <div className="space-y-2">
             <Label htmlFor="labName">Lab Name</Label>
             <Input
