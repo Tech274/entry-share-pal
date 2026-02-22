@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Layers, Search, ChevronRight, PlusCircle, Info, X, Share2, ArrowUpDown } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { LabelFilter } from '@/components/catalog/LabelFilter';
 import PublicHeader from '@/components/PublicHeader';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LabTemplateCard from '@/components/catalog/LabTemplateCard';
@@ -62,6 +63,7 @@ const LabCatalog = () => {
   const [selectedLabs, setSelectedLabs] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<'default' | 'az' | 'za' | 'newest'>('default');
   const [visibleCount, setVisibleCount] = useState(12);
+  const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   
   const [currentLabHighlight, setCurrentLabHighlight] = useState<LabHighlight>(labHighlights[0]);
   const [currentLabIndex, setCurrentLabIndex] = useState(0);
@@ -146,7 +148,29 @@ const LabCatalog = () => {
     return map;
   }, [entryLabels]);
 
-  
+  // Get unique labels for filter
+  const uniqueLabels = useMemo(() => {
+    const map = new Map<string, { label_id: string; name: string; color: string }>();
+    entryLabels.forEach(el => {
+      if (!map.has(el.label_id)) {
+        map.set(el.label_id, { label_id: el.label_id, name: el.name, color: el.color });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [entryLabels]);
+
+  const toggleLabel = useCallback((labelId: string) => {
+    setSelectedLabels(prev => 
+      prev.includes(labelId) ? prev.filter(l => l !== labelId) : [...prev, labelId]
+    );
+    setVisibleCount(12);
+  }, []);
+
+  const clearLabelFilters = useCallback(() => {
+    setSelectedLabels([]);
+    setVisibleCount(12);
+  }, []);
+
   // Set initial category when categories load
   useEffect(() => {
     if (dbCategories.length > 0 && activeCategory === null) {
@@ -227,6 +251,13 @@ const LabCatalog = () => {
       templates = [];
     }
 
+    // Apply label filtering
+    if (selectedLabels.length > 0) {
+      templates = templates.filter(t => 
+        t.labels.some((l: any) => selectedLabels.includes(l.label_id))
+      );
+    }
+
     // Apply sorting
     if (sortBy === 'az') {
       templates.sort((a, b) => a.name.localeCompare(b.name));
@@ -238,7 +269,7 @@ const LabCatalog = () => {
     }
 
     return templates;
-  }, [isSearching, searchResults, activeCategory, getTemplates, currentCategoryInfo, entryLabelsMap, sortBy]);
+  }, [isSearching, searchResults, activeCategory, getTemplates, currentCategoryInfo, entryLabelsMap, sortBy, selectedLabels]);
 
   // Category counts
   const getCategoryCount = useCallback((categoryId: string) => {
@@ -590,23 +621,39 @@ const LabCatalog = () => {
                 )}
               </div>
 
-              {/* Sort By dropdown */}
-              {currentTemplates.length > 0 && (
-                <div className="flex items-center justify-end gap-2 mb-4">
-                  <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                    <SelectTrigger className="w-[160px] h-9 text-sm bg-background">
-                      <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover z-50">
-                      <SelectItem value="default">Default</SelectItem>
-                      <SelectItem value="az">A → Z</SelectItem>
-                      <SelectItem value="za">Z → A</SelectItem>
-                      <SelectItem value="newest">Newest First</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              {/* Label Filter + Sort */}
+              <div className="space-y-3 mb-4">
+                {uniqueLabels.length > 0 && (
+                  <LabelFilter
+                    labels={uniqueLabels}
+                    selectedLabels={selectedLabels}
+                    onToggleLabel={toggleLabel}
+                    onClearAll={clearLabelFilters}
+                  />
+                )}
+                {currentTemplates.length > 0 && (
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm text-muted-foreground">
+                      {currentTemplates.length} template{currentTemplates.length !== 1 ? 's' : ''}
+                      {selectedLabels.length > 0 ? ' matching filters' : ''}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                      <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                        <SelectTrigger className="w-[160px] h-9 text-sm bg-background">
+                          <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover z-50">
+                          <SelectItem value="default">Default</SelectItem>
+                          <SelectItem value="az">A → Z</SelectItem>
+                          <SelectItem value="za">Z → A</SelectItem>
+                          <SelectItem value="newest">Newest First</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {isLoading ? (
                 <LabTemplateCardSkeletonGrid count={9} />
