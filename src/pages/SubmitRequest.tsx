@@ -28,7 +28,7 @@ import logo from '@/assets/makemylabs-logo.png';
 const TASK_OPTIONS = ['Lab Request - Solutions', 'Lab Request - Delivery'];
 const TENANT_OPTIONS = ['Techademy', 'MakeMyLabs', 'Other'];
 const LAB_TYPE_OPTIONS = ['Cloud', 'On-Premise', 'Hybrid', 'Virtual'];
-const LOB_OPTIONS = ['Standalone', 'VILT', 'Blended'];
+const LOB_OPTIONS = ['Standalone', 'VILT', 'Integrated'];
 
 interface RequestFormData {
   requesterEmail: string;
