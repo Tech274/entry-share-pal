@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Layers, Search, ChevronRight, PlusCircle, Info, X, Share2 } from 'lucide-react';
+import { Layers, Search, ChevronRight, PlusCircle, Info, X, Share2, ArrowUpDown } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PublicHeader from '@/components/PublicHeader';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import LabTemplateCard from '@/components/catalog/LabTemplateCard';
@@ -59,6 +60,8 @@ const LabCatalog = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLabs, setSelectedLabs] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState<'default' | 'az' | 'za' | 'newest'>('default');
+  const [visibleCount, setVisibleCount] = useState(12);
   
   const [currentLabHighlight, setCurrentLabHighlight] = useState<LabHighlight>(labHighlights[0]);
   const [currentLabIndex, setCurrentLabIndex] = useState(0);
@@ -203,15 +206,15 @@ const LabCatalog = () => {
   const currentCategoryInfo = getCategoryInfo(activeCategory || '');
   const CurrentCategoryIcon = currentCategoryInfo ? getIconComponent(currentCategoryInfo.icon_name || 'Layers') : Layers;
   
-  // Current templates with unique keys
+  // Current templates with unique keys and sorting
   const currentTemplates = useMemo(() => {
+    let templates: any[];
     if (isSearching) {
-      return searchResults || [];
-    }
-    if (activeCategory) {
-      const templates = getTemplates(activeCategory);
+      templates = [...(searchResults || [])];
+    } else if (activeCategory) {
+      const raw = getTemplates(activeCategory);
       const IconComponent = currentCategoryInfo ? getIconComponent(currentCategoryInfo.icon_name || 'Layers') : Layers;
-      return templates.map(t => ({
+      templates = raw.map(t => ({
         ...t,
         category: activeCategory,
         categoryLabel: currentCategoryInfo?.label || '',
@@ -220,9 +223,22 @@ const LabCatalog = () => {
         uniqueKey: `${activeCategory}-${t.name}`,
         labels: entryLabelsMap[t.id] || [],
       }));
+    } else {
+      templates = [];
     }
-    return [];
-  }, [isSearching, searchResults, activeCategory, getTemplates, currentCategoryInfo, entryLabelsMap]);
+
+    // Apply sorting
+    if (sortBy === 'az') {
+      templates.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === 'za') {
+      templates.sort((a, b) => b.name.localeCompare(a.name));
+    } else if (sortBy === 'newest') {
+      // Reverse default order (newest = highest display_order or last added)
+      templates.reverse();
+    }
+
+    return templates;
+  }, [isSearching, searchResults, activeCategory, getTemplates, currentCategoryInfo, entryLabelsMap, sortBy]);
 
   // Category counts
   const getCategoryCount = useCallback((categoryId: string) => {
@@ -272,12 +288,18 @@ const LabCatalog = () => {
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
+    setVisibleCount(12);
     if (value.trim()) {
       setActiveCategory(null);
     } else if (dbCategories.length > 0) {
       setActiveCategory(dbCategories[0].category_id);
     }
   }, [dbCategories]);
+
+  // Reset visible count when category changes
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [activeCategory]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -568,6 +590,24 @@ const LabCatalog = () => {
                 )}
               </div>
 
+              {/* Sort By dropdown */}
+              {currentTemplates.length > 0 && (
+                <div className="flex items-center justify-end gap-2 mb-4">
+                  <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                    <SelectTrigger className="w-[160px] h-9 text-sm bg-background">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover z-50">
+                      <SelectItem value="default">Default</SelectItem>
+                      <SelectItem value="az">A → Z</SelectItem>
+                      <SelectItem value="za">Z → A</SelectItem>
+                      <SelectItem value="newest">Newest First</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               {isLoading ? (
                 <LabTemplateCardSkeletonGrid count={9} />
               ) : currentTemplates.length === 0 ? (
@@ -575,20 +615,38 @@ const LabCatalog = () => {
                   No templates available for this category yet.
                 </div>
               ) : (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {currentTemplates.map((template: any, index: number) => (
-                    <LabTemplateCard
-                      key={template.uniqueKey}
-                      template={template}
-                      categoryIcon={template.icon}
-                      isFeatured={true}
-                      isSearching={isSearching}
-                      isSelected={selectedLabs.has(template.uniqueKey)}
-                      onToggleSelect={() => toggleLabSelection(template.uniqueKey)}
-                      animationIndex={index}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {currentTemplates.slice(0, visibleCount).map((template: any, index: number) => (
+                      <LabTemplateCard
+                        key={template.uniqueKey}
+                        template={template}
+                        categoryIcon={template.icon}
+                        isFeatured={true}
+                        isSearching={isSearching}
+                        isSelected={selectedLabs.has(template.uniqueKey)}
+                        onToggleSelect={() => toggleLabSelection(template.uniqueKey)}
+                        animationIndex={index}
+                      />
+                    ))}
+                  </div>
+                  {visibleCount < currentTemplates.length && (
+                    <div className="text-center mt-8">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={() => setVisibleCount(prev => prev + 12)}
+                      >
+                        Load More ({currentTemplates.length - visibleCount} remaining)
+                      </Button>
+                    </div>
+                  )}
+                  {visibleCount >= currentTemplates.length && currentTemplates.length > 12 && (
+                    <p className="text-center text-sm text-muted-foreground mt-6">
+                      Showing all {currentTemplates.length} templates
+                    </p>
+                  )}
+                </>
               )}
             </div>
           </div>
