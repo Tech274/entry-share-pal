@@ -78,7 +78,7 @@ export const AnimatedCategoryPill = ({
             "text-[10px] h-4 px-1 transition-colors",
             isActive ? "bg-white/20 text-white border-white/30" : ""
           )}>
-            {count}
+            {count} {count === 1 ? 'lab' : 'labs'}
           </Badge>
         )}
       </button>
@@ -107,7 +107,7 @@ export const AnimatedCategoryPill = ({
         "text-xs h-5 px-1.5 transition-colors",
         isActive ? "bg-white/20 text-white" : ""
       )}>
-        {count}
+        {count} {count === 1 ? 'lab' : 'labs'}
       </Badge>
     </button>
   );

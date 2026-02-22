@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Home, Search, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +50,7 @@ interface AttachmentFile {
 
 const SubmitRequest = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -67,6 +68,19 @@ const SubmitRequest = () => {
     subject: '',
     description: '',
   });
+
+  // Pre-fill from query params (e.g. from "Request this Lab" button)
+  useEffect(() => {
+    const labName = searchParams.get('labName');
+    const category = searchParams.get('category');
+    if (labName) {
+      setFormData(prev => ({
+        ...prev,
+        subject: labName,
+        description: prev.description || `<p>Requesting lab: <strong>${labName}</strong>${category ? ` (Category: ${category})` : ''}</p>`,
+      }));
+    }
+  }, [searchParams]);
 
   const handleChange = (field: keyof RequestFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
