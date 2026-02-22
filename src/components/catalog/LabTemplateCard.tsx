@@ -1,8 +1,10 @@
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Layers, LucideIcon, Share2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Heart, Layers, LucideIcon, Share2, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 import ShareCatalogDialog from './ShareCatalogDialog';
 
 interface TemplateLabel {
@@ -41,10 +43,20 @@ const LabTemplateCard = forwardRef<HTMLDivElement, LabTemplateCardProps>(({
   animationIndex = 0,
   hideSelection = false,
 }, ref) => {
+  const navigate = useNavigate();
   const TemplateIcon = template.icon || categoryIcon || Layers;
   const cardRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+
+  const handleRequestLab = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const params = new URLSearchParams({ labName: template.name });
+    if (template.categoryLabel || template.category) {
+      params.set('category', template.categoryLabel || template.category || '');
+    }
+    navigate(`/submit-request?${params.toString()}`);
+  };
 
   useEffect(() => {
     const element = cardRef.current;
@@ -147,7 +159,7 @@ const LabTemplateCard = forwardRef<HTMLDivElement, LabTemplateCardProps>(({
             {template.description}
           </CardDescription>
           {/* Labels and category */}
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 mb-3">
             {/* Assigned labels */}
             {template.labels && template.labels.length > 0 && (
               template.labels.map((label) => (
@@ -172,6 +184,16 @@ const LabTemplateCard = forwardRef<HTMLDivElement, LabTemplateCardProps>(({
               </Badge>
             )}
           </div>
+          {/* Request this Lab button */}
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full text-xs h-8 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            onClick={handleRequestLab}
+          >
+            <Send className="h-3 w-3 mr-1.5" />
+            Request this Lab
+          </Button>
         </CardContent>
       </Card>
 
