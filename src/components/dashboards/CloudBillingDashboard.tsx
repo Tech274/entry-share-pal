@@ -27,9 +27,11 @@ import {
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
 import { useCloudBillingDetails, useCloudBillingMutations, SAMPLE_CLOUD_BILLING_DATA, type CloudBillingDetail, type CloudProvider } from '@/hooks/useCloudBillingDetails';
 import { exportCloudBillingToCSV, exportCloudBillingToXLS } from '@/lib/exportUtils';
-import { Plus, Pencil, Trash2, Cloud, AlertCircle, Database, FileDown, FileSpreadsheet } from 'lucide-react';
+import { Plus, Pencil, Trash2, Cloud, AlertCircle, Database, FileDown, FileSpreadsheet, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { BulkUploadDialog } from '@/components/BulkUploadDialog';
+import type { CloudBillingDetailInsert } from '@/hooks/useCloudBillingDetails';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const PROVIDERS: { id: CloudProvider; label: string }[] = [
@@ -379,6 +381,36 @@ export function CloudBillingDashboard() {
           <span>Month-on-month invoiced to customer, cloud spend vs cloud sales, and % margins by provider.</span>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <BulkUploadDialog<CloudBillingDetailInsert>
+            title="Bulk Upload Cloud Billing"
+            description="Upload a CSV file with cloud billing data. Use the template for the correct format."
+            templateHeaders={['Provider', 'Vendor Name', 'Month', 'Year', 'Overall Business', 'Cloud Cost', 'Invoiced to Customer']}
+            onUpload={async (data) => {
+              await mutations.bulkInsert.mutateAsync(data);
+            }}
+            parseRow={(row, headers) => {
+              const provider = String(row['Provider'] ?? row['provider'] ?? '').toLowerCase().trim();
+              if (!['aws', 'azure', 'gcp'].includes(provider)) return null;
+              const month = String(row['Month'] ?? row['month'] ?? '').trim();
+              if (!month) return null;
+              const year = Number(row['Year'] ?? row['year']) || new Date().getFullYear();
+              return {
+                provider: provider as CloudProvider,
+                vendor_name: String(row['Vendor Name'] ?? row['vendor_name'] ?? '') || null,
+                month,
+                year,
+                overall_business: Number(row['Overall Business'] ?? row['overall_business']) || 0,
+                cloud_cost: Number(row['Cloud Cost'] ?? row['cloud_cost']) || 0,
+                invoiced_to_customer: Number(row['Invoiced to Customer'] ?? row['invoiced_to_customer']) || 0,
+              };
+            }}
+            trigger={
+              <Button variant="outline" size="sm" className="gap-2">
+                <Upload className="w-4 h-4" />
+                Bulk Upload
+              </Button>
+            }
+          />
           <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={filteredDetails.length === 0} className="gap-2">
             <FileDown className="w-4 h-4" />
             Export CSV
