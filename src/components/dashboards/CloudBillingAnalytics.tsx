@@ -46,8 +46,8 @@ function KPICard({ icon: Icon, label, value, sub, trend }: {
           <Icon className="w-5 h-5 text-primary" />
         </div>
         <div className="min-w-0">
-          <p className="text-xs text-muted-foreground truncate">{label}</p>
-          <p className="text-lg font-bold truncate">{value}</p>
+          <p className="text-xs text-muted-foreground">{label}</p>
+          <p className="text-base font-bold leading-tight break-all">{value}</p>
           {sub && (
             <p className={`text-xs flex items-center gap-1 ${trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-muted-foreground'}`}>
               {trend === 'up' && <TrendingUp className="w-3 h-3" />}
