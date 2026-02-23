@@ -32,6 +32,7 @@ import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { BulkUploadDialog } from '@/components/BulkUploadDialog';
 import type { CloudBillingDetailInsert } from '@/hooks/useCloudBillingDetails';
+import { CloudBillingAnalytics } from '@/components/dashboards/CloudBillingAnalytics';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const PROVIDERS: { id: CloudProvider; label: string }[] = [
@@ -502,6 +503,10 @@ export function CloudBillingDashboard() {
         )}
       </div>
 
+      {/* Analytics Breakdown */}
+      <CloudBillingAnalytics data={filteredDetails} />
+
+      {/* Provider detail tables */}
       {visibleProviders.map(({ id }) => (
         <ProviderSection
           key={id}
