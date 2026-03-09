@@ -247,7 +247,7 @@ const PercentTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-export function CloudBillingAnalytics({ data, onProviderFilter }: Props) {
+export function CloudBillingAnalytics({ data, onProviderFilter, onMonthFilter }: Props) {
   const [expandedKPI, setExpandedKPI] = useState<KPIMetric | null>(null);
 
   const toggleKPI = (key: KPIMetric) => {
@@ -256,6 +256,10 @@ export function CloudBillingAnalytics({ data, onProviderFilter }: Props) {
 
   const handleProviderClick = (provider: CloudProvider) => {
     onProviderFilter?.(provider);
+  };
+
+  const handleMonthClick = (rawMonth: string) => {
+    onMonthFilter?.(rawMonth);
   };
   // Overall snapshot
   const overall = useMemo(() => {
