@@ -18,7 +18,6 @@ import { cn } from '@/lib/utils';
 import { ArrowLeft, BarChart3, Users, IndianRupee, Layers, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LabRequest } from '@/types/labRequest';
-import { CloudBillingDashboard } from '@/components/dashboards/CloudBillingDashboard';
 
 const REPORT_TABS: { slug: ReportSlug; label: string; icon: React.ReactNode }[] = [
   { slug: 'revenue', label: 'Revenue', icon: <IndianRupee className="w-4 h-4" /> },
