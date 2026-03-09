@@ -504,7 +504,7 @@ export function CloudBillingDashboard() {
       </div>
 
       {/* Analytics Breakdown */}
-      <CloudBillingAnalytics data={filteredDetails} />
+      <CloudBillingAnalytics data={filteredDetails} onProviderFilter={(provider) => setFilterProvider(provider)} />
 
       {/* Provider detail tables */}
       {visibleProviders.map(({ id }) => (

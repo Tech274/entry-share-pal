@@ -53,6 +53,17 @@ export const Header = ({ requestCount, onExportCSV, onExportXLS, onClearAll, lab
           <div className="flex items-center gap-2">
             <GlobalSearch labRequests={labRequests} deliveryRequests={deliveryRequests} />
 
+            {(isAdmin || isOpsLead || role === 'finance') && (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="gap-1.5 bg-accent/80 text-accent-foreground hover:bg-accent"
+                onClick={() => navigate('/reports/cloud-billing')}
+              >
+                <Cloud className="w-4 h-4" />
+                <span className="hidden md:inline">Cloud Billing</span>
+              </Button>
+            )}
             {canClearAll && requestCount > 0 && (
               <Button variant="destructive" size="icon" onClick={onClearAll} title="Clear all entries">
                 <Trash2 className="w-4 h-4" />
