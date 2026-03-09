@@ -486,9 +486,41 @@ export function CloudBillingDashboard() {
           </Select>
         </div>
 
-        {/* Active filter summary + clear */}
+        {/* Active filter badges + clear */}
         {isFiltered && (
-          <div className="flex items-center gap-2 ml-1">
+          <div className="flex items-center gap-2 ml-1 flex-wrap">
+            {filterProvider !== 'all' && (
+              <Badge variant="secondary" className="gap-1 text-xs">
+                {PROVIDERS.find(p => p.id === filterProvider)?.label ?? filterProvider.toUpperCase()}
+                <button onClick={() => setFilterProvider('all')} className="ml-0.5 hover:text-destructive">
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )}
+            {filterMonthFrom !== 'all' && (
+              <Badge variant="secondary" className="gap-1 text-xs">
+                From: {filterMonthFrom}
+                <button onClick={() => setFilterMonthFrom('all')} className="ml-0.5 hover:text-destructive">
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )}
+            {filterMonthTo !== 'all' && (
+              <Badge variant="secondary" className="gap-1 text-xs">
+                To: {filterMonthTo}
+                <button onClick={() => setFilterMonthTo('all')} className="ml-0.5 hover:text-destructive">
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )}
+            {filterYear !== 'all' && (
+              <Badge variant="secondary" className="gap-1 text-xs">
+                {filterYear}
+                <button onClick={() => setFilterYear('all')} className="ml-0.5 hover:text-destructive">
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            )}
             <span className="text-xs text-muted-foreground">
               Showing <span className="font-semibold text-foreground">{filteredDetails.length}</span> of {details.length} records
             </span>
@@ -498,14 +530,28 @@ export function CloudBillingDashboard() {
               className="h-7 px-2 text-xs gap-1"
               onClick={() => { setFilterYear('all'); setFilterProvider('all'); setFilterMonthFrom('all'); setFilterMonthTo('all'); }}
             >
-              Clear filters
+              Clear all
             </Button>
           </div>
         )}
       </div>
 
       {/* Analytics Breakdown */}
-      <CloudBillingAnalytics data={filteredDetails} onProviderFilter={(provider) => setFilterProvider(provider)} />
+      <CloudBillingAnalytics
+        data={filteredDetails}
+        onProviderFilter={(provider) => setFilterProvider(provider)}
+        onMonthFilter={(rawMonth) => {
+          // rawMonth is like "April 2025"
+          const parts = rawMonth.split(' ');
+          const month = parts[0];
+          const year = parts[1];
+          if (month) {
+            setFilterMonthFrom(month);
+            setFilterMonthTo(month);
+          }
+          if (year) setFilterYear(year);
+        }}
+      />
 
       {/* Provider detail tables */}
       {visibleProviders.map(({ id }) => (
