@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
 import { type CloudBillingDetail, type CloudProvider } from '@/hooks/useCloudBillingDetails';
@@ -6,7 +6,16 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line,
 } from 'recharts';
-import { TrendingUp, TrendingDown, IndianRupee, Cloud, BarChart3, Layers } from 'lucide-react';
+import { TrendingUp, TrendingDown, IndianRupee, Cloud, BarChart3, Layers, ChevronDown, ChevronUp, X } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 
 const MONTHS_ORDER = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -28,24 +37,32 @@ const BAR_COLORS = {
   invoiced: 'hsl(145, 60%, 50%)',
 };
 
+type KPIMetric = 'totalBusiness' | 'totalCost' | 'totalMargins' | 'totalInvoiced' | 'totalYTB' | 'providers';
+
 interface Props {
   data: CloudBillingDetail[];
 }
 
-function KPICard({ icon: Icon, label, value, sub, trend }: {
+function KPICard({ icon: Icon, label, value, sub, trend, metricKey, isExpanded, onToggle }: {
   icon: React.ElementType;
   label: string;
   value: string;
   sub?: string;
   trend?: 'up' | 'down' | 'neutral';
+  metricKey: KPIMetric;
+  isExpanded: boolean;
+  onToggle: (key: KPIMetric) => void;
 }) {
   return (
-    <Card>
+    <Card
+      className={`cursor-pointer transition-all hover:shadow-md ${isExpanded ? 'ring-2 ring-primary shadow-md' : ''}`}
+      onClick={() => onToggle(metricKey)}
+    >
       <CardContent className="flex items-center gap-4 p-4">
         <div className="p-2.5 rounded-lg bg-primary/10">
           <Icon className="w-5 h-5 text-primary" />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-xs text-muted-foreground">{label}</p>
           <p className="text-base font-bold leading-tight break-all">{value}</p>
           {sub && (
@@ -56,6 +73,143 @@ function KPICard({ icon: Icon, label, value, sub, trend }: {
             </p>
           )}
         </div>
+        <div className="text-muted-foreground">
+          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function KPIDetailPanel({ metricKey, data, onClose }: { metricKey: KPIMetric; data: CloudBillingDetail[]; onClose: () => void }) {
+  const METRIC_CONFIG: Record<KPIMetric, { title: string; getProviderValue: (rows: CloudBillingDetail[]) => number; formatValue: (v: number) => string; columns: { label: string; getValue: (r: CloudBillingDetail) => string }[] }> = {
+    totalBusiness: {
+      title: 'Total Business — Line Items',
+      getProviderValue: (rows) => rows.reduce((s, r) => s + r.overall_business, 0),
+      formatValue: formatINR,
+      columns: [
+        { label: 'Month', getValue: (r) => `${r.month} ${r.year}` },
+        { label: 'Vendor', getValue: (r) => r.vendor_name || '—' },
+        { label: 'Overall Business', getValue: (r) => formatINR(r.overall_business) },
+      ],
+    },
+    totalCost: {
+      title: 'Total Cloud Cost — Line Items',
+      getProviderValue: (rows) => rows.reduce((s, r) => s + r.cloud_cost, 0),
+      formatValue: formatINR,
+      columns: [
+        { label: 'Month', getValue: (r) => `${r.month} ${r.year}` },
+        { label: 'Vendor', getValue: (r) => r.vendor_name || '—' },
+        { label: 'Cloud Cost', getValue: (r) => formatINR(r.cloud_cost) },
+      ],
+    },
+    totalMargins: {
+      title: 'Total Margins — Line Items',
+      getProviderValue: (rows) => rows.reduce((s, r) => s + (r.overall_business - r.cloud_cost), 0),
+      formatValue: formatINR,
+      columns: [
+        { label: 'Month', getValue: (r) => `${r.month} ${r.year}` },
+        { label: 'Vendor', getValue: (r) => r.vendor_name || '—' },
+        { label: 'Business', getValue: (r) => formatINR(r.overall_business) },
+        { label: 'Cost', getValue: (r) => formatINR(r.cloud_cost) },
+        { label: 'Margin', getValue: (r) => formatINR(r.overall_business - r.cloud_cost) },
+        { label: 'Margin %', getValue: (r) => r.overall_business > 0 ? formatPercentage(((r.overall_business - r.cloud_cost) / r.overall_business) * 100) : '0%' },
+      ],
+    },
+    totalInvoiced: {
+      title: 'Total Invoiced — Line Items',
+      getProviderValue: (rows) => rows.reduce((s, r) => s + r.invoiced_to_customer, 0),
+      formatValue: formatINR,
+      columns: [
+        { label: 'Month', getValue: (r) => `${r.month} ${r.year}` },
+        { label: 'Vendor', getValue: (r) => r.vendor_name || '—' },
+        { label: 'Invoiced', getValue: (r) => formatINR(r.invoiced_to_customer) },
+      ],
+    },
+    totalYTB: {
+      title: 'Yet to Bill — Line Items',
+      getProviderValue: (rows) => rows.reduce((s, r) => s + r.yet_to_be_billed, 0),
+      formatValue: formatINR,
+      columns: [
+        { label: 'Month', getValue: (r) => `${r.month} ${r.year}` },
+        { label: 'Vendor', getValue: (r) => r.vendor_name || '—' },
+        { label: 'Business', getValue: (r) => formatINR(r.overall_business) },
+        { label: 'Invoiced', getValue: (r) => formatINR(r.invoiced_to_customer) },
+        { label: 'Yet to Bill', getValue: (r) => formatINR(r.yet_to_be_billed) },
+      ],
+    },
+    providers: {
+      title: 'Provider Summary',
+      getProviderValue: (rows) => rows.length,
+      formatValue: (v) => `${v} entries`,
+      columns: [
+        { label: 'Month', getValue: (r) => `${r.month} ${r.year}` },
+        { label: 'Vendor', getValue: (r) => r.vendor_name || '—' },
+        { label: 'Business', getValue: (r) => formatINR(r.overall_business) },
+        { label: 'Cost', getValue: (r) => formatINR(r.cloud_cost) },
+        { label: 'Invoiced', getValue: (r) => formatINR(r.invoiced_to_customer) },
+      ],
+    },
+  };
+
+  const config = METRIC_CONFIG[metricKey];
+
+  // Group by provider
+  const grouped = useMemo(() => {
+    const map: Record<string, CloudBillingDetail[]> = {};
+    data.forEach((r) => {
+      const key = r.provider;
+      if (!map[key]) map[key] = [];
+      map[key].push(r);
+    });
+    return Object.entries(map).map(([provider, rows]) => ({
+      provider: provider as CloudProvider,
+      label: PROVIDER_LABELS[provider as CloudProvider] || provider.toUpperCase(),
+      rows: rows.sort((a, b) => MONTHS_ORDER.indexOf(a.month) - MONTHS_ORDER.indexOf(b.month)),
+      total: config.getProviderValue(rows),
+    }));
+  }, [data, config]);
+
+  return (
+    <Card className="border-primary/30 animate-in slide-in-from-top-2 duration-200">
+      <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
+        <CardTitle className="text-sm">{config.title}</CardTitle>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
+          <X className="w-4 h-4" />
+        </Button>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {grouped.map(({ provider, label, rows, total }) => (
+          <div key={provider}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: PROVIDER_COLORS[provider] }} />
+                <span className="text-sm font-semibold">{label}</span>
+              </div>
+              <span className="text-sm font-bold">{config.formatValue(total)}</span>
+            </div>
+            <div className="overflow-x-auto rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {config.columns.map((col) => (
+                      <TableHead key={col.label} className="text-xs py-2">{col.label}</TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.map((r) => (
+                    <TableRow key={r.id}>
+                      {config.columns.map((col) => (
+                        <TableCell key={col.label} className="text-xs py-1.5">{col.getValue(r)}</TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        ))}
       </CardContent>
     </Card>
   );
@@ -92,6 +246,11 @@ const PercentTooltip = ({ active, payload, label }: any) => {
 };
 
 export function CloudBillingAnalytics({ data }: Props) {
+  const [expandedKPI, setExpandedKPI] = useState<KPIMetric | null>(null);
+
+  const toggleKPI = (key: KPIMetric) => {
+    setExpandedKPI(prev => prev === key ? null : key);
+  };
   // Overall snapshot
   const overall = useMemo(() => {
     const totalBusiness = data.reduce((s, r) => s + r.overall_business, 0);
@@ -200,19 +359,25 @@ export function CloudBillingAnalytics({ data }: Props) {
           <BarChart3 className="w-4 h-4" /> Overall Cloud Snapshot
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <KPICard icon={IndianRupee} label="Total Business" value={formatINR(overall.totalBusiness)} />
-          <KPICard icon={Cloud} label="Total Cloud Cost" value={formatINR(overall.totalCost)} />
+          <KPICard icon={IndianRupee} label="Total Business" value={formatINR(overall.totalBusiness)} metricKey="totalBusiness" isExpanded={expandedKPI === 'totalBusiness'} onToggle={toggleKPI} />
+          <KPICard icon={Cloud} label="Total Cloud Cost" value={formatINR(overall.totalCost)} metricKey="totalCost" isExpanded={expandedKPI === 'totalCost'} onToggle={toggleKPI} />
           <KPICard
             icon={TrendingUp}
             label="Total Margins"
             value={formatINR(overall.totalMargins)}
             sub={formatPercentage(overall.marginPct)}
             trend={overall.totalMargins >= 0 ? 'up' : 'down'}
+            metricKey="totalMargins"
+            isExpanded={expandedKPI === 'totalMargins'}
+            onToggle={toggleKPI}
           />
-          <KPICard icon={IndianRupee} label="Total Invoiced" value={formatINR(overall.totalInvoiced)} />
-          <KPICard icon={Layers} label="Yet to Bill" value={formatINR(overall.totalYTB)} />
-          <KPICard icon={BarChart3} label="Providers" value={String(providerBreakdown.length)} sub={providerBreakdown.map(p => p.name).join(', ')} />
+          <KPICard icon={IndianRupee} label="Total Invoiced" value={formatINR(overall.totalInvoiced)} metricKey="totalInvoiced" isExpanded={expandedKPI === 'totalInvoiced'} onToggle={toggleKPI} />
+          <KPICard icon={Layers} label="Yet to Bill" value={formatINR(overall.totalYTB)} metricKey="totalYTB" isExpanded={expandedKPI === 'totalYTB'} onToggle={toggleKPI} />
+          <KPICard icon={BarChart3} label="Providers" value={String(providerBreakdown.length)} sub={providerBreakdown.map(p => p.name).join(', ')} metricKey="providers" isExpanded={expandedKPI === 'providers'} onToggle={toggleKPI} />
         </div>
+        {expandedKPI && (
+          <KPIDetailPanel metricKey={expandedKPI} data={data} onClose={() => setExpandedKPI(null)} />
+        )}
       </div>
 
       {/* Cloud Distribution: Pie + Provider Comparison Bar */}

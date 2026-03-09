@@ -14,6 +14,7 @@ import Preview from "./pages/Preview";
 import DeliveryPreview from "./pages/DeliveryPreview";
 import MasterDataSheet from "./pages/MasterDataSheet";
 import Reports from "./pages/Reports";
+import CloudBilling from "./pages/CloudBilling";
 import Auth from "./pages/Auth";
 import Docs from "./pages/Docs";
 import LabCatalog from "./pages/LabCatalog";
@@ -78,6 +79,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['admin', 'finance', 'ops_lead']}>
                   <Reports />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/reports/cloud-billing" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'finance', 'ops_lead']}>
+                  <CloudBilling />
                 </ProtectedRoute>
               } 
             />
