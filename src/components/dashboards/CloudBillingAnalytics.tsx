@@ -344,7 +344,6 @@ export function CloudBillingAnalytics({ data, onProviderFilter, onMonthFilter }:
     return Array.from(monthMap.entries())
       .map(([name, vals]) => ({ name: name.replace(/\s\d{4}$/, m => ` '${m.trim().slice(2)}`), _rawMonth: name, ...vals }))
       .sort((a, b) => ((a as any)._sortKey as number) - ((b as any)._sortKey as number));
-      .sort((a, b) => ((a as any)._sortKey as number) - ((b as any)._sortKey as number));
   }, [data]);
 
   if (data.length === 0) return null;
