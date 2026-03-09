@@ -445,9 +445,16 @@ export function CloudBillingAnalytics({ data, onProviderFilter }: Props) {
         </h3>
         <div className="grid gap-4 md:grid-cols-3">
           {providerBreakdown.map((p) => (
-            <Card key={p.provider} className="overflow-hidden">
+            <Card
+              key={p.provider}
+              className="overflow-hidden cursor-pointer transition-all hover:shadow-md hover:scale-[1.01]"
+              onClick={() => handleProviderClick(p.provider)}
+            >
               <CardHeader className="py-3 px-4" style={{ backgroundColor: PROVIDER_COLORS[p.provider], color: 'white' }}>
-                <CardTitle className="text-sm">{p.name}</CardTitle>
+                <CardTitle className="text-sm flex items-center justify-between">
+                  {p.name}
+                  <span className="text-xs opacity-80">Click to filter ›</span>
+                </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
