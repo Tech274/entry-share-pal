@@ -499,14 +499,19 @@ export function CloudBillingAnalytics({ data, onProviderFilter, onMonthFilter }:
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={momData}>
+              <BarChart data={momData} onClick={(state) => {
+                if (state?.activeLabel) {
+                  const entry = momData.find(d => d.name === state.activeLabel);
+                  if (entry?._rawMonth) handleMonthClick(entry._rawMonth);
+                }
+              }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`} tick={{ fontSize: 11 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 {(['aws', 'azure', 'gcp'] as CloudProvider[]).map(p => (
-                  <Bar key={p} dataKey={`${PROVIDER_LABELS[p]} Margins`} fill={PROVIDER_COLORS[p]} radius={[4, 4, 0, 0]} />
+                  <Bar key={p} dataKey={`${PROVIDER_LABELS[p]} Margins`} fill={PROVIDER_COLORS[p]} radius={[4, 4, 0, 0]} cursor="pointer" />
                 ))}
               </BarChart>
             </ResponsiveContainer>
