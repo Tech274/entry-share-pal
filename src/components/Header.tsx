@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Trash2, LogOut, User } from 'lucide-react';
+import { Trash2, LogOut, User, Cloud } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
