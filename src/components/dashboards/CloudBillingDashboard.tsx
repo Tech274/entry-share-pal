@@ -27,7 +27,7 @@ import {
 import { formatINR, formatPercentage } from '@/lib/formatUtils';
 import { useCloudBillingDetails, useCloudBillingMutations, SAMPLE_CLOUD_BILLING_DATA, type CloudBillingDetail, type CloudProvider } from '@/hooks/useCloudBillingDetails';
 import { exportCloudBillingToCSV, exportCloudBillingToXLS } from '@/lib/exportUtils';
-import { Plus, Pencil, Trash2, Cloud, AlertCircle, Database, FileDown, FileSpreadsheet, Upload } from 'lucide-react';
+import { Plus, Pencil, Trash2, Cloud, AlertCircle, Database, FileDown, FileSpreadsheet, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { BulkUploadDialog } from '@/components/BulkUploadDialog';
