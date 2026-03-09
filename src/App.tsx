@@ -82,6 +82,14 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/reports/cloud-billing" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'finance', 'ops_lead']}>
+                  <CloudBilling />
+                </ProtectedRoute>
+              } 
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
