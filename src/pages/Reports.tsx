@@ -133,7 +133,18 @@ const Reports = () => {
             )}
             {activeReportTab === 'cloudBilling' && allowedSlugs.includes('cloudBilling') && (
               <div className="space-y-6">
-                <CloudBillingDashboard />
+                <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/reports/cloud-billing')}>
+                  <CardContent className="flex items-center justify-between p-6">
+                    <div className="flex items-center gap-3">
+                      <Cloud className="w-6 h-6 text-primary" />
+                      <div>
+                        <h3 className="font-semibold">Cloud Billing Dashboard</h3>
+                        <p className="text-sm text-muted-foreground">View detailed cloud billing analytics, provider breakdowns, and MoM trends</p>
+                      </div>
+                    </div>
+                    <ArrowLeft className="w-5 h-5 text-muted-foreground rotate-180" />
+                  </CardContent>
+                </Card>
               </div>
             )}
             {activeReportTab === 'summary' && allowedSlugs.includes('summary') && (
