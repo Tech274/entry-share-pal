@@ -359,19 +359,25 @@ export function CloudBillingAnalytics({ data }: Props) {
           <BarChart3 className="w-4 h-4" /> Overall Cloud Snapshot
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <KPICard icon={IndianRupee} label="Total Business" value={formatINR(overall.totalBusiness)} />
-          <KPICard icon={Cloud} label="Total Cloud Cost" value={formatINR(overall.totalCost)} />
+          <KPICard icon={IndianRupee} label="Total Business" value={formatINR(overall.totalBusiness)} metricKey="totalBusiness" isExpanded={expandedKPI === 'totalBusiness'} onToggle={toggleKPI} />
+          <KPICard icon={Cloud} label="Total Cloud Cost" value={formatINR(overall.totalCost)} metricKey="totalCost" isExpanded={expandedKPI === 'totalCost'} onToggle={toggleKPI} />
           <KPICard
             icon={TrendingUp}
             label="Total Margins"
             value={formatINR(overall.totalMargins)}
             sub={formatPercentage(overall.marginPct)}
             trend={overall.totalMargins >= 0 ? 'up' : 'down'}
+            metricKey="totalMargins"
+            isExpanded={expandedKPI === 'totalMargins'}
+            onToggle={toggleKPI}
           />
-          <KPICard icon={IndianRupee} label="Total Invoiced" value={formatINR(overall.totalInvoiced)} />
-          <KPICard icon={Layers} label="Yet to Bill" value={formatINR(overall.totalYTB)} />
-          <KPICard icon={BarChart3} label="Providers" value={String(providerBreakdown.length)} sub={providerBreakdown.map(p => p.name).join(', ')} />
+          <KPICard icon={IndianRupee} label="Total Invoiced" value={formatINR(overall.totalInvoiced)} metricKey="totalInvoiced" isExpanded={expandedKPI === 'totalInvoiced'} onToggle={toggleKPI} />
+          <KPICard icon={Layers} label="Yet to Bill" value={formatINR(overall.totalYTB)} metricKey="totalYTB" isExpanded={expandedKPI === 'totalYTB'} onToggle={toggleKPI} />
+          <KPICard icon={BarChart3} label="Providers" value={String(providerBreakdown.length)} sub={providerBreakdown.map(p => p.name).join(', ')} metricKey="providers" isExpanded={expandedKPI === 'providers'} onToggle={toggleKPI} />
         </div>
+        {expandedKPI && (
+          <KPIDetailPanel metricKey={expandedKPI} data={data} onClose={() => setExpandedKPI(null)} />
+        )}
       </div>
 
       {/* Cloud Distribution: Pie + Provider Comparison Bar */}
