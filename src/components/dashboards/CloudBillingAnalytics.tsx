@@ -403,6 +403,8 @@ export function CloudBillingAnalytics({ data, onProviderFilter }: Props) {
                   outerRadius={100}
                   labelLine={false}
                   label={renderPieLabel}
+                  cursor="pointer"
+                  onClick={(_, index) => handleProviderClick(providerBreakdown[index].provider)}
                 >
                   {providerBreakdown.map((entry) => (
                     <Cell key={entry.provider} fill={PROVIDER_COLORS[entry.provider]} />
