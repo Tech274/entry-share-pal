@@ -246,6 +246,11 @@ const PercentTooltip = ({ active, payload, label }: any) => {
 };
 
 export function CloudBillingAnalytics({ data }: Props) {
+  const [expandedKPI, setExpandedKPI] = useState<KPIMetric | null>(null);
+
+  const toggleKPI = (key: KPIMetric) => {
+    setExpandedKPI(prev => prev === key ? null : key);
+  };
   // Overall snapshot
   const overall = useMemo(() => {
     const totalBusiness = data.reduce((s, r) => s + r.overall_business, 0);
