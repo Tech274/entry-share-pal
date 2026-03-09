@@ -423,15 +423,20 @@ export function CloudBillingAnalytics({ data, onProviderFilter }: Props) {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={providerBarData}>
+              <BarChart data={providerBarData} cursor="pointer" onClick={(state) => {
+                if (state?.activeLabel) {
+                  const provider = providerBreakdown.find(p => p.name === state.activeLabel)?.provider;
+                  if (provider) handleProviderClick(provider);
+                }
+              }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                 <YAxis tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`} tick={{ fontSize: 11 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Bar dataKey="Overall Business" fill={BAR_COLORS.overall_business} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Cloud Cost" fill={BAR_COLORS.cloud_cost} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Billed" fill={BAR_COLORS.invoiced} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Overall Business" fill={BAR_COLORS.overall_business} radius={[4, 4, 0, 0]} cursor="pointer" />
+                <Bar dataKey="Cloud Cost" fill={BAR_COLORS.cloud_cost} radius={[4, 4, 0, 0]} cursor="pointer" />
+                <Bar dataKey="Billed" fill={BAR_COLORS.invoiced} radius={[4, 4, 0, 0]} cursor="pointer" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
