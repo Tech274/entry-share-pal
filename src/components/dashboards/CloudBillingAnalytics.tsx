@@ -42,6 +42,7 @@ type KPIMetric = 'totalBusiness' | 'totalCost' | 'totalMargins' | 'totalInvoiced
 interface Props {
   data: CloudBillingDetail[];
   onProviderFilter?: (provider: CloudProvider) => void;
+  onMonthFilter?: (month: string) => void;
 }
 
 function KPICard({ icon: Icon, label, value, sub, trend, metricKey, isExpanded, onToggle }: {
