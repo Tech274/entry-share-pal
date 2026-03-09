@@ -423,7 +423,7 @@ export function CloudBillingAnalytics({ data, onProviderFilter }: Props) {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={providerBarData} cursor="pointer" onClick={(state) => {
+              <BarChart data={providerBarData} onClick={(state) => {
                 if (state?.activeLabel) {
                   const provider = providerBreakdown.find(p => p.name === state.activeLabel)?.provider;
                   if (provider) handleProviderClick(provider);
