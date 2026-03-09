@@ -30,6 +30,7 @@ import { exportCloudBillingToCSV, exportCloudBillingToXLS } from '@/lib/exportUt
 import { Plus, Pencil, Trash2, Cloud, AlertCircle, Database, FileDown, FileSpreadsheet, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { BulkUploadDialog } from '@/components/BulkUploadDialog';
 import type { CloudBillingDetailInsert } from '@/hooks/useCloudBillingDetails';
 import { CloudBillingAnalytics } from '@/components/dashboards/CloudBillingAnalytics';
