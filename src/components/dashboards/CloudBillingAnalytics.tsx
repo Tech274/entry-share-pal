@@ -246,11 +246,15 @@ const PercentTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-export function CloudBillingAnalytics({ data }: Props) {
+export function CloudBillingAnalytics({ data, onProviderFilter }: Props) {
   const [expandedKPI, setExpandedKPI] = useState<KPIMetric | null>(null);
 
   const toggleKPI = (key: KPIMetric) => {
     setExpandedKPI(prev => prev === key ? null : key);
+  };
+
+  const handleProviderClick = (provider: CloudProvider) => {
+    onProviderFilter?.(provider);
   };
   // Overall snapshot
   const overall = useMemo(() => {
