@@ -342,7 +342,8 @@ export function CloudBillingAnalytics({ data, onProviderFilter, onMonthFilter }:
       entry[`${PROVIDER_LABELS[r.provider]} Billed`] = r.invoiced_to_customer;
     });
     return Array.from(monthMap.entries())
-      .map(([name, vals]) => ({ name: name.replace(/\s\d{4}$/, m => ` '${m.trim().slice(2)}`), ...vals }))
+      .map(([name, vals]) => ({ name: name.replace(/\s\d{4}$/, m => ` '${m.trim().slice(2)}`), _rawMonth: name, ...vals }))
+      .sort((a, b) => ((a as any)._sortKey as number) - ((b as any)._sortKey as number));
       .sort((a, b) => ((a as any)._sortKey as number) - ((b as any)._sortKey as number));
   }, [data]);
 
