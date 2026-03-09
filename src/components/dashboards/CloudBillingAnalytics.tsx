@@ -41,6 +41,7 @@ type KPIMetric = 'totalBusiness' | 'totalCost' | 'totalMargins' | 'totalInvoiced
 
 interface Props {
   data: CloudBillingDetail[];
+  onProviderFilter?: (provider: CloudProvider) => void;
 }
 
 function KPICard({ icon: Icon, label, value, sub, trend, metricKey, isExpanded, onToggle }: {
@@ -245,11 +246,15 @@ const PercentTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-export function CloudBillingAnalytics({ data }: Props) {
+export function CloudBillingAnalytics({ data, onProviderFilter }: Props) {
   const [expandedKPI, setExpandedKPI] = useState<KPIMetric | null>(null);
 
   const toggleKPI = (key: KPIMetric) => {
     setExpandedKPI(prev => prev === key ? null : key);
+  };
+
+  const handleProviderClick = (provider: CloudProvider) => {
+    onProviderFilter?.(provider);
   };
   // Overall snapshot
   const overall = useMemo(() => {
@@ -398,6 +403,8 @@ export function CloudBillingAnalytics({ data }: Props) {
                   outerRadius={100}
                   labelLine={false}
                   label={renderPieLabel}
+                  cursor="pointer"
+                  onClick={(_, index) => handleProviderClick(providerBreakdown[index].provider)}
                 >
                   {providerBreakdown.map((entry) => (
                     <Cell key={entry.provider} fill={PROVIDER_COLORS[entry.provider]} />
@@ -416,15 +423,20 @@ export function CloudBillingAnalytics({ data }: Props) {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={providerBarData}>
+              <BarChart data={providerBarData} onClick={(state) => {
+                if (state?.activeLabel) {
+                  const provider = providerBreakdown.find(p => p.name === state.activeLabel)?.provider;
+                  if (provider) handleProviderClick(provider);
+                }
+              }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                 <YAxis tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`} tick={{ fontSize: 11 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Bar dataKey="Overall Business" fill={BAR_COLORS.overall_business} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Cloud Cost" fill={BAR_COLORS.cloud_cost} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Billed" fill={BAR_COLORS.invoiced} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Overall Business" fill={BAR_COLORS.overall_business} radius={[4, 4, 0, 0]} cursor="pointer" />
+                <Bar dataKey="Cloud Cost" fill={BAR_COLORS.cloud_cost} radius={[4, 4, 0, 0]} cursor="pointer" />
+                <Bar dataKey="Billed" fill={BAR_COLORS.invoiced} radius={[4, 4, 0, 0]} cursor="pointer" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -438,9 +450,16 @@ export function CloudBillingAnalytics({ data }: Props) {
         </h3>
         <div className="grid gap-4 md:grid-cols-3">
           {providerBreakdown.map((p) => (
-            <Card key={p.provider} className="overflow-hidden">
+            <Card
+              key={p.provider}
+              className="overflow-hidden cursor-pointer transition-all hover:shadow-md hover:scale-[1.01]"
+              onClick={() => handleProviderClick(p.provider)}
+            >
               <CardHeader className="py-3 px-4" style={{ backgroundColor: PROVIDER_COLORS[p.provider], color: 'white' }}>
-                <CardTitle className="text-sm">{p.name}</CardTitle>
+                <CardTitle className="text-sm flex items-center justify-between">
+                  {p.name}
+                  <span className="text-xs opacity-80">Click to filter ›</span>
+                </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
